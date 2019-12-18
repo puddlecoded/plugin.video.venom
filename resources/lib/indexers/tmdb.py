@@ -171,11 +171,15 @@ class Movies:
 				tagline = '0'
 
 			values = {'next': next, 'title': title, 'originaltitle': originaltitle, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
-							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'tagline': tagline}
+							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'tagline': tagline, 'metacache': False}
 
-			list.append(values)
+			# list.append(values)
+			self.list.append(values)
 
 		def items_list(i):
+			if i['metacache'] is True:
+				return
+
 			try:
 				next, title, originaltitle, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = i['next'], i['title'], i['originaltitle'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
 
@@ -245,7 +249,11 @@ class Movies:
 						meta.update(values)
 
 				values = dict((k,v) for k, v in values.iteritems() if v != '0')
-				self.list.append(values)
+				# self.list.append(values)
+
+				for i in range(0, len(self.list)):
+					if str(self.list[i]['tmdb']) == str(tmdb):
+						self.list[i].update(values)
 
 				if 'next' in meta.get('item'):
 					del meta['item']['next']
@@ -255,18 +263,22 @@ class Movies:
 			except:
 				pass
 
-		# items = list[:100]
-		items = list[:len(list)]
+		self.list = metacache.fetch(self.list, self.lang, API_key)
+		# items = list[:len(list)]
+		items = self.list[:len(self.list)]
+		log_utils.log('len(items) = %s' % len(items), __name__, log_utils.LOGDEBUG)
+
 		threads = []
 		for i in items:
 			threads.append(workers.Thread(items_list, i))
 		[i.start() for i in threads]
 		[i.join() for i in threads]
+		log_utils.log('len(self.list) = %s' % len(self.list), __name__, log_utils.LOGDEBUG)
+		log_utils.log('len(threads) = %s' % len(threads), __name__, log_utils.LOGDEBUG)
 
 		sorted_list = []
 		for i in sortList:
-			sorted_list += [item for item in self.list if item['tmdb'] == i]
-
+			sorted_list += [item for item in self.list if str(item['tmdb']) == str(i)]
 		return sorted_list
 
 

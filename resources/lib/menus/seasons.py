@@ -8,13 +8,14 @@ import sys, re, json, zipfile
 import StringIO, urllib, urllib2, urlparse
 import datetime
 
-from resources.lib.modules import trakt
-from resources.lib.modules import cleantitle
-from resources.lib.modules import cleangenre
-from resources.lib.modules import control
-from resources.lib.modules import client
 from resources.lib.modules import cache
+from resources.lib.modules import cleangenre
+from resources.lib.modules import cleantitle
+from resources.lib.modules import client
+from resources.lib.modules import control
+from resources.lib.modules import log_utils
 from resources.lib.modules import playcount
+from resources.lib.modules import trakt
 from resources.lib.modules import views
 
 from resources.lib.menus import episodes as episodesx
@@ -210,8 +211,7 @@ class Seasons:
 			# if imdb == '0' or tmdb == '0' or tvdb == '0':
 			if imdb == '0' or tvdb == '0':
 				try:
-					# trakt_ids = trakt.SearchTVShow(urllib.quote_plus(tvshowtitle), year, full=False)[0]
-					trakt_ids = trakt.SearchTVShow(tvshowtitle, year, full=False)[0]
+					trakt_ids = trakt.SearchTVShow(urllib.quote_plus(tvshowtitle), year, full=False)[0]
 
 					trakt_ids = trakt_ids.get('show', '0')
 
@@ -489,8 +489,7 @@ class Seasons:
 			unaired = ''
 
 		except:
-			import traceback
-			traceback.print_exc()
+			log_utils.error()
 			pass
 
 		for item in seasons:
@@ -552,8 +551,7 @@ class Seasons:
 											'thumb': thumb, 'unaired': unaired})
 
 			except:
-				import traceback
-				traceback.print_exc()
+				log_utils.error()
 				pass
 
 		for item in episodes:
@@ -714,8 +712,7 @@ class Seasons:
 				# metacache.insert(self.meta)
 
 			except:
-				import traceback
-				traceback.print_exc()
+				log_utils.error()
 				pass
 		return self.list
 
@@ -812,6 +809,7 @@ class Seasons:
 				tvdb = client.parseDOM(tvdb, 'seriesid')[0]
 				if tvdb == '': tvdb = '0'
 		except:
+			log_utils.error()
 			return None
 
 		try:
@@ -838,6 +836,7 @@ class Seasons:
 			result = result.split('<Episode>')
 			return self.seasonCountParse(items = result)
 		except:
+			log_utils.error()
 			return None
 
 
@@ -1037,6 +1036,7 @@ class Seasons:
 				item.addStreamInfo('video', video_streaminfo)
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
 			except:
+				log_utils.error()
 				pass
 
 		try:

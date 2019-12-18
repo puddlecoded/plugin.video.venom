@@ -8,13 +8,13 @@ import os, re, imp, json, urlparse
 import time, threading
 
 from resources.lib.modules import cache
-from resources.lib.modules import control
 from resources.lib.modules import cleandate
 from resources.lib.modules import client
+from resources.lib.modules import control
+from resources.lib.modules import log_utils
 from resources.lib.modules import utils
 
 from resources.lib.extensions import database
-
 
 BASE_URL = 'http://api.trakt.tv'
 V2_BASE_URL = 'http://api-v2launch.trakt.tv'
@@ -102,8 +102,7 @@ def getTrakt(url, post = None, cache = True, check = True, timestamp = None, ext
 			return result[0], result[2]
 		else: return result[0]
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 
 	return None
 
@@ -156,8 +155,7 @@ def _cache(url, post = None, timestamp = None):
 		)
 		data._close()
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 
 
 def _cacheCreate(data):
@@ -208,8 +206,7 @@ def _cacheClear():
 		data._drop(databaseTable, commit = True)
 		data._close()
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 
 
 def authTrakt():
@@ -488,8 +485,7 @@ def manager(name, imdb = None, tvdb = None, season = None, episode = None, refre
 					message = 33583 if (select % 2) == 0 else 33582
 				control.notification(title = name, message = message, icon = 'INFO', sound = notificationSound)
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 		control.hide()
 
 
@@ -766,8 +762,7 @@ def _seasonCountRetrieve(imdb):
 		return [{'total': season['aired'], 'watched': season['completed'], 'unwatched': season['aired'] - season['completed']} for season in seasons]
 		# return [{season['number']: {'total': season['aired'], 'watched': season['completed'], 'unwatched': season['aired'] - season['completed']} for season in seasons}]
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 		return None
 
 
@@ -865,8 +860,7 @@ def getMovieSummary(id, full=True):
 			url += '?extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 
 
 def getTVShowSummary(id, full=True):
@@ -876,8 +870,7 @@ def getTVShowSummary(id, full=True):
 			url += '?extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 
 
 def getEpisodeSummary(id, season, episode, full=True):
@@ -887,8 +880,7 @@ def getEpisodeSummary(id, season, episode, full=True):
 			url += '&extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 
 
 def getSeasons(id, full=True):
@@ -898,8 +890,7 @@ def getSeasons(id, full=True):
 			url += '&extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 
 
 def sort_list(sort_key, sort_direction, list_data):
@@ -946,8 +937,7 @@ def getPeople(id, content_type, full=True):
 			url += '?extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 
 
 def SearchAll(title, year, full=True):
@@ -1061,8 +1051,7 @@ def scrobbleProgress(type, imdb = None, tvdb = None, season = None, episode = No
 					if 'movie' in item and 'imdb' in item['movie']['ids'] and item['movie']['ids']['imdb'] == imdb:
 						return item['progress']
 	except:
-		import traceback
-		traceback.print_exc()
+		log_utils.error()
 	return 0
 
 

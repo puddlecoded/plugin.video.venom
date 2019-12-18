@@ -1366,8 +1366,10 @@ class bookmarks:
 			dbcur = dbcon.cursor()
 			dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""UNIQUE(idFile)"");")
 			dbcur.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
-			if ok: dbcur.execute("INSERT INTO bookmark Values (?, ?)", (idFile, timeInSeconds))
-			dbcon.commit()
+			if ok:
+				dbcur.execute("INSERT INTO bookmark Values (?, ?)", (idFile, timeInSeconds))
+			dbcur.connection.commit()
+			dbcon.close()
 		except:
 			pass
 

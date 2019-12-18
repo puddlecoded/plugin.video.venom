@@ -7,11 +7,12 @@
 import json, re, urllib
 import datetime
 
-from resources.lib.modules import control
-from resources.lib.modules import client
-from resources.lib.modules import workers
 from resources.lib.modules import cache
+from resources.lib.modules import client
+from resources.lib.modules import control
+from resources.lib.modules import log_utils
 from resources.lib.modules import metacache
+from resources.lib.modules import workers
 
 
 networks_this_season = [
@@ -261,8 +262,7 @@ class tvshows:
 			items = [i[0] for i in items if len(i) > 0]
 			items = items[:list_count]
 		except:
-			import traceback
-			traceback.print_exc()
+			log_utils.error()
 			return
 
 		def items_list(i):
@@ -426,8 +426,7 @@ class tvshows:
 				self.meta.append(meta)
 				metacache.insert(self.meta)
 			except:
-				import traceback
-				traceback.print_exc()
+				log_utils.error()
 				pass
 
 		try:
@@ -443,6 +442,5 @@ class tvshows:
 
 			return self.list
 		except:
-			import traceback
-			traceback.print_exc()
+			log_utils.error()
 			return
