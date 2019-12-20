@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-try:
-	from sqlite3 import dbapi2 as database
-except:
-	from pysqlite2 import dbapi2 as database
-
 import datetime
 # Import _strptime to workaround python 2 bug with threads
 import _strptime
@@ -16,6 +11,11 @@ import urllib
 import urlparse
 import xbmc, xbmcvfs
 
+try:
+	from sqlite3 import dbapi2 as database
+except:
+	from pysqlite2 import dbapi2 as database
+
 from resources.lib.modules import control
 from resources.lib.modules import cleantitle
 from resources.lib.modules import log_utils
@@ -26,9 +26,6 @@ notificationSound = True if control.setting('notification.sound') == 'true' else
 
 
 class lib_tools:
-	def __init__(self):
-		self.property = '%s_service_property' % control.addonInfo('name').lower()
-
 
 	@staticmethod
 	def create_folder(folder):
@@ -122,17 +119,23 @@ class lib_tools:
 
 	@staticmethod
 	def ckKodiSources(paths=None):
-		# Check if the path was added to the Kodi sources.
+		# Check if the Venom folders were added to the Kodi video sources.
 		# If not, ask user to run full auto setup.
 		contains = False
 		try:
 			if paths == None:
 				paths = []
 				movie_LibraryFolder = os.path.join(control.transPath(control.setting('library.movie')), '')
+				special_movie_LibraryFolder = os.path.join(control.setting('library.movie'), '')
+
 				paths.append(movie_LibraryFolder)
+				paths.append(special_movie_LibraryFolder)
 
 				tvShows_LibraryFolder = os.path.join(control.transPath(control.setting('library.tv')),'')
+				speical_tvShows_LibraryFolder = os.path.join(control.setting('library.tv'),'')
+
 				paths.append(tvShows_LibraryFolder)
+				paths.append(speical_tvShows_LibraryFolder)
 
 			paths = [i.rstrip('/').rstrip('\\') for i in paths]
 
@@ -173,6 +176,7 @@ class lib_tools:
 
 
 	def service(self):
+		self.property = '%s_service_property' % control.addonInfo('name').lower()
 		try:
 			lib_tools.create_folder(os.path.join(control.transPath(control.setting('library.movie')), ''))
 			lib_tools.create_folder(os.path.join(control.transPath(control.setting('library.tv')), ''))
@@ -196,18 +200,19 @@ class lib_tools:
 			dbcon.close()
 		except:
 			log_utils.error()
-			try:
-				return dbcon.close()
-			except:
-				return
+			try: return dbcon.close()
+			except: return
 
 		try:
 			control.window.setProperty(self.property, last_service)
 		except:
 			return
 
-		while not xbmc.abortRequested:
+		while not xbmc.Monitor().abortRequested():
 			try:
+				if xbmc.Monitor().waitForAbort(60*15):
+					break
+
 				last_service = control.window.getProperty(self.property)
 				t1 = datetime.timedelta(hours=6)
 				t2 = datetime.datetime.strptime(last_service, '%Y-%m-%d %H:%M:%S.%f')
@@ -227,17 +232,13 @@ class lib_tools:
 					dbcon = database.connect(control.libcacheFile)
 					dbcur = dbcon.cursor()
 					dbcur.execute("CREATE TABLE IF NOT EXISTS service (""setting TEXT, ""value TEXT, ""UNIQUE(setting)"");")
-					dbcur.execute("DELETE FROM service WHERE setting = 'last_run'")
-					dbcur.execute("INSERT INTO service Values (?, ?)", ('last_run', last_service))
-					# dbcur.execute("INSERT OR REPLACE service Values (?, ?)", ('last_run', last_service))
+					dbcur.execute("INSERT OR REPLACE INTO service Values (?, ?)", ('last_run', last_service))
 					dbcur.connection.commit()
 					dbcon.close()
 				except:
 					log_utils.error()
-					try:
-						dbcon.close()
-					except:
-						pass
+					try: dbcon.close()
+					except: pass
 
 				if not control.setting('library.service.update') == 'true':
 					continue
@@ -247,10 +248,7 @@ class lib_tools:
 				libepisodes().update()
 			except:
 				log_utils.error()
-				pass
-
-			control.sleep(10000)
-			# control.sleep(108000)
+				continue
 
 
 class libmovies:
@@ -291,14 +289,17 @@ class libmovies:
 			except: return
 
 		for list in results:
+			type = list[0]
+			list_name = list[1]
 			url = list[2]
+
 			from resources.lib.menus import movies
 			items = movies.Movies().get(url, idx=False)
 			if items is None or items == []:
 				return
 
 			if service_notification and not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-				control.notification(title = name, message = 32552, icon = 'default', time = 1000, sound = notificationSound)
+				control.notification(title = 'list...' + list_name + ' - ' + type, message = 32552, icon = 'default', time = 1000, sound = notificationSound)
 
 			total_added = 0
 			for i in items:
@@ -539,6 +540,8 @@ class libtvshows:
 			except: return
 
 		for list in results:
+			type = list[0]
+			list_name = list[1]
 			url = list[2]
 			from resources.lib.menus import tvshows
 			items = tvshows.TVshows().get(url, idx=False)
@@ -546,7 +549,7 @@ class libtvshows:
 				return
 
 			if service_notification and not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-				control.notification(title = 'default', message = 32552, icon = 'default', time = 1000, sound = notificationSound)
+				control.notification(title = 'list...' + list_name + ' - ' + type, message = 32552, icon = 'default', time = 1000, sound = notificationSound)
 
 			total_added = 0
 			for i in items:

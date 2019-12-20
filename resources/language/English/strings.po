@@ -335,10 +335,6 @@ msgctxt "#32075"
 msgid "Auto update User Lists"
 msgstr ""
 
-msgctxt "#32075"
-msgid "Auto update User Lists"
-msgstr ""
-
 msgctxt "#32076"
 msgid ""
 msgstr ""
@@ -351,6 +347,25 @@ msgctxt "#32078"
 msgid "Show general notifications"
 msgstr ""
 
+msgctxt "#32079"
+msgid ""
+msgstr ""
+
+msgctxt "#32080"
+msgid ""
+msgstr ""
+
+msgctxt "#32081"
+msgid ""
+msgstr ""
+
+msgctxt "#32082"
+msgid ""
+msgstr ""
+
+msgctxt "#32083"
+msgid ""
+msgstr ""
 
 
 
@@ -1303,7 +1318,7 @@ msgid "TV"
 msgstr ""
 
 msgctxt "#32545"
-msgid "Auto update TV Shows"
+msgid "Auto Update Service"
 msgstr ""
 
 msgctxt "#32546"
@@ -2299,6 +2314,19 @@ msgstr ""
 
 msgctxt "#33679"
 msgid "Sorting Order"
+msgstr ""
+
+
+
+
+
+
+msgctxt "#33786"
+msgid "No Trakt Result"
+msgstr ""
+
+msgctxt "#33787"
+msgid "Trakt Rate Limit Reached"
 msgstr ""
 
 

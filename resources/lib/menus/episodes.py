@@ -130,6 +130,8 @@ class Episodes:
 		try:
 			attribute = int(control.setting('sort.%s.type' % type))
 			reverse = int(control.setting('sort.%s.order' % type)) == 1
+			if self.list is None:
+				return
 			if attribute > 0:
 				if attribute == 1:
 					try:
@@ -545,6 +547,7 @@ class Episodes:
 				item2 = result[0]
 
 				num = [x for x,y in enumerate(item) if re.compile('<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(i['snum']) and re.compile('<EpisodeNumber>(.+?)</EpisodeNumber>').findall(y)[0] == str(i['enum'])][-1]
+				# TVDb index out of order for Seasons and Episodes now.  This now fails allot getting next episode in index and no simple fix
 				item = [y for x,y in enumerate(item) if x > num][0]
 
 				artwork = artwork.split('<Banner>')
@@ -698,8 +701,7 @@ class Episodes:
 							castandart.append({'name': name, 'role': role, 'thumbnail': ((self.tvdb_image + image) if image is not None else '0')})
 					except:
 						castandart = []
-					if len(castandart) == 200: break
-
+					if len(castandart) == 150: break
 
 				plot = client.parseDOM(item, 'Overview')[0]
 				if not plot:
@@ -728,7 +730,7 @@ class Episodes:
 			except:
 				pass
 
-		items = items[:100]
+		items = items[:len(items)]
 		threads = []
 		for i in items:
 			threads.append(workers.Thread(items_list, i))
@@ -1050,7 +1052,7 @@ class Episodes:
 							castandart.append({'name': name, 'role': role, 'thumbnail': ((self.tvdb_image + image) if image is not None else '0')})
 					except:
 						castandart = []
-					if len(castandart) == 200: break
+					if len(castandart) == 150: break
 
 				plot = client.parseDOM(item, 'Overview')[0]
 				if not plot:
@@ -1400,7 +1402,7 @@ class Episodes:
 							castandart.append({'name': name, 'role': role, 'thumbnail': ((self.tvdb_image + image) if image is not None else '0')})
 					except:
 						castandart = []
-					if len(castandart) == 200: break
+					if len(castandart) == 150: break
 
 				airday = i['airday'] or ''
 				airtime = i['airtime'] or client.parseDOM(item2, 'Airs_Time')[0] or ''

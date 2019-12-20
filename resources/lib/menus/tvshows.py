@@ -1042,12 +1042,12 @@ class TVshows:
 							imdb = '0'
 
 					if tmdb == '0':
-						tmdb = str(trakt_ids.get('ids', {}).get('tmdb', 0))
+						tmdb = str(trakt_ids.get('ids', {}).get('tmdb', '0'))
 						if tmdb == '' or tmdb is None or tmdb == 'None':
 							tmdb = '0'
 
 					if tvdb == '0':
-						tvdb = str(trakt_ids.get('ids', {}).get('tvdb', 0))
+						tvdb = str(trakt_ids.get('ids', {}).get('tvdb', '0'))
 						if tvdb == '' or tvdb is None or tvdb == 'None':
 							tvdb = '0'
 				except:
@@ -1110,7 +1110,6 @@ class TVshows:
 			# artwork = zip.read('banners.xml')
 			# actors = zip.read('actors.xml')
 			# zip.close()
-
 			# item = result.split('<Series>')
 
 			if item is None:
@@ -1196,8 +1195,7 @@ class TVshows:
 								castandart.append({'name': name, 'role': role, 'thumbnail': ((self.tvdb_image + image) if image is not None else '0')})
 						except:
 							castandart = []
-						if len(castandart) == 200: break
-
+						if len(castandart) == 150: break
 			else:
 				castandart = self.list[i]['castandart']
 

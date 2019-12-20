@@ -212,7 +212,6 @@ class Seasons:
 			if imdb == '0' or tvdb == '0':
 				try:
 					trakt_ids = trakt.SearchTVShow(urllib.quote_plus(tvshowtitle), year, full=False)[0]
-
 					trakt_ids = trakt_ids.get('show', '0')
 
 					if imdb == '0':
@@ -221,15 +220,16 @@ class Seasons:
 							imdb = '0'
 
 					if tmdb == '0':
-						tmdb = str(trakt_ids.get('ids', {}).get('tmdb', 0))
+						tmdb = str(trakt_ids.get('ids', {}).get('tmdb', '0'))
 						if tmdb == '' or tmdb is None or tmdb == 'None':
 							tmdb = '0'
 
 					if tvdb == '0':
-						tvdb = str(trakt_ids.get('ids', {}).get('tvdb', 0))
+						tvdb = str(trakt_ids.get('ids', {}).get('tvdb', '0'))
 						if tvdb == '' or tvdb is None or tvdb == 'None':
 							tvdb = '0'
 				except:
+					log_utils.error()
 					pass
 
 			if tvdb == '0' and imdb != '0':
@@ -271,6 +271,7 @@ class Seasons:
 				if tvdb == '':
 					tvdb = '0'
 		except:
+			log_utils.error()
 			return
 
 		try:
@@ -468,7 +469,7 @@ class Seasons:
 						castandart.append({'name': name, 'role': role, 'thumbnail': ((self.tvdb_image + image) if image is not None else '0')})
 				except:
 					castandart = []
-				if len(castandart) == 200: break
+				if len(castandart) == 150: break
 
 			try:
 				label = client.parseDOM(item2, 'SeriesName')[0]
@@ -549,7 +550,7 @@ class Seasons:
 											'rating': rating, 'votes': votes, 'mpaa': mpaa, 'castandart': castandart, 'plot': plot, 'imdb': imdb,
 											'tmdb': tmdb, 'tvdb': tvdb, 'tvshowid': imdb, 'poster': poster, 'banner': banner, 'fanart': fanart,
 											'thumb': thumb, 'unaired': unaired})
-
+				self.list = sorted(self.list, key=lambda k: int(k['season'])) # Temp fix for TVDb fucked up index, does not fix Trakt-Progress
 			except:
 				log_utils.error()
 				pass
@@ -704,7 +705,7 @@ class Seasons:
 								'premiered': premiered, 'status': status, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa,
 								'director': director, 'writer': writer, 'castandart': castandart, 'plot': episodeplot, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'banner': banner,
 								'fanart': fanart, 'thumb': thumb, 'season_poster': season_poster, 'unaired': unaired, 'episodeIDS': episodeIDS})
-
+				self.list = sorted(self.list, key=lambda k: (int(k['season']), int(k['episode']))) # Temp fix for TVDb fucked up index, does not fix Trakt-Progress
 				# meta = {}
 				# meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'lang': self.lang, 'user': self.tvdb_key, 'item': item}
 

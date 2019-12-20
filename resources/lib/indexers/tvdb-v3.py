@@ -46,9 +46,9 @@ class TVDBAPI:
 			self.headers['Authorization'] = 'Bearer %s' % self.jwToken
 
 
-
 	def post_request(self, url, postData):
 		return cache.get(self._post_request, 12, url, postData)
+
 
 	def _post_request(self, url, postData):
 		postData = json.dumps(postData)
@@ -59,9 +59,7 @@ class TVDBAPI:
 			self.headers['Authorization'] = 'Bearer %s' % self.jwToken
 			response = requests.post(url, data=postData, headers=self.headers).text
 		response = json.loads(response)
-
 		return response
-
 
 
 	def get_request(self, url):
@@ -72,7 +70,6 @@ class TVDBAPI:
 			self.headers['Authorization'] = 'Bearer %s' % self.jwToken
 			response = requests.get(url, headers=self.headers).text
 		response = json.loads(response)
-
 		return response
 
 
@@ -115,6 +112,7 @@ class TVDBAPI:
 			return self._extract_art(response['data'], keyType, number)
 		except:
 			pass
+
 
 	def _extract_art(self, response, dict_name, number):
 		images = [(self.baseImageUrl + x['fileName'],

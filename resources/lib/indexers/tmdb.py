@@ -231,7 +231,7 @@ class Movies:
 							castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
 					except:
 						castandart = []
-					if len(castandart) == 200: break
+					if len(castandart) == 150: break
 
 				values = {'content': 'movie', 'title': title, 'originaltitle': originaltitle, 'year': year, 'premiered': premiered,
 							'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa, 'director': director, 'writer': writer,
@@ -266,15 +266,15 @@ class Movies:
 		self.list = metacache.fetch(self.list, self.lang, API_key)
 		# items = list[:len(list)]
 		items = self.list[:len(self.list)]
-		log_utils.log('len(items) = %s' % len(items), __name__, log_utils.LOGDEBUG)
+		# log_utils.log('len(items) = %s' % len(items), __name__, log_utils.LOGDEBUG)
 
 		threads = []
 		for i in items:
 			threads.append(workers.Thread(items_list, i))
 		[i.start() for i in threads]
 		[i.join() for i in threads]
-		log_utils.log('len(self.list) = %s' % len(self.list), __name__, log_utils.LOGDEBUG)
-		log_utils.log('len(threads) = %s' % len(threads), __name__, log_utils.LOGDEBUG)
+		# log_utils.log('len(self.list) = %s' % len(self.list), __name__, log_utils.LOGDEBUG)
+		# log_utils.log('len(threads) = %s' % len(threads), __name__, log_utils.LOGDEBUG)
 
 		sorted_list = []
 		for i in sortList:
@@ -398,7 +398,7 @@ class Movies:
 							castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
 					except:
 						castandart = []
-					if len(castandart) == 200: break
+					if len(castandart) == 150: break
 
 				values = {'content': 'movie', 'title': title, 'originaltitle': originaltitle, 'year': year, 'premiered': premiered,
 							'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa, 'director': director, 'writer': writer,
@@ -610,7 +610,7 @@ class TVshows:
 							castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
 					except:
 						castandart = []
-					if len(castandart) == 200: break
+					if len(castandart) == 150: break
 
 				values = {'content': 'tvshow', 'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes,
 								'mpaa': mpaa, 'status': status, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster,
@@ -765,7 +765,7 @@ class TVshows:
 							castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
 					except:
 						castandart = []
-					if len(castandart) == 200: break
+					if len(castandart) == 150: break
 
 				values = {'content': 'movie', 'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes,
 								'mpaa': mpaa, 'status': status, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'poster': poster,

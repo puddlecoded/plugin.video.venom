@@ -10,9 +10,8 @@ from resources.lib.modules import control
 from resources.lib.modules import log_utils
 from resources.lib.modules import trakt
 
+# check on adding while loop here with xbmc.Monitor().abortRequested() vs. inside the service function
 control.execute('RunPlugin(plugin://%s)' % control.get_plugin_url({'action': 'service'}))
-
-# check on adding while loop with xbmc.Monitor().abortRequested for ease of termination
 
 traktCredentials = trakt.getTraktCredentialsInfo()
 

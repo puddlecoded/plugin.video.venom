@@ -1161,7 +1161,7 @@ class Movies:
 							castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((self.tmdb_poster + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
 					except:
 						castandart = []
-					if len(castandart) == 200: break
+					if len(castandart) == 150: break
 
 				for person in tmdb_Item['credits']['crew']:
 					if 'Director' in person['job']:
@@ -1210,7 +1210,6 @@ class Movies:
 			self.list[i].update(item)
 			self.meta.append(meta)
 		except:
-			log_utils.error()
 			pass
 
 

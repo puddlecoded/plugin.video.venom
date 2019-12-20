@@ -27,7 +27,8 @@ databaseTable = 'trakt'
 notificationSound = False if control.setting('notification.sound') == 'false' else True
 
 
-def getTrakt(url, post = None, cache = True, check = True, timestamp = None, extended = False, direct = False, authentication = None):
+def getTrakt(url, post = None, cache = True, check = False, timestamp = None, extended = False, direct = False, authentication = None):
+# def getTrakt(url, post = None, cache = True, check = True, timestamp = None, extended = False, direct = False, authentication = None):
 	try:
 		if not url.startswith(BASE_URL):
 			url = urlparse.urljoin(BASE_URL, url)

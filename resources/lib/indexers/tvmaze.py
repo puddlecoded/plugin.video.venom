@@ -321,7 +321,7 @@ class tvshows:
 					except:
 						castandart = []
 						pass
-					if len(castandart) == 200: break
+					if len(castandart) == 150: break
 
 				poster = item.get('image').get('original')
 				fanart = '0' ; banner = '0'

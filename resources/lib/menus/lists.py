@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
 
-import os,re,sys,hashlib,urllib,urlparse,json,base64,random,datetime
+import os, re, sys, hashlib, urllib
+import urlparse, json, base64, random, datetime
 import xbmc
 
-try: from sqlite3 import dbapi2 as database
-except: from pysqlite2 import dbapi2 as database
+try:
+	from sqlite3 import dbapi2 as database
+except:
+	from pysqlite2 import dbapi2 as database
 
 from resources.lib.modules import cache
 from resources.lib.modules import metacache

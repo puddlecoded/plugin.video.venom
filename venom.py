@@ -46,7 +46,7 @@ if action is None:
 	if run == '':
 		run = 'true' #clean install scenerio
 	if cache._find_cache_version():
-		run = 'true'  #check whether plugin.video.venom has been updated-use to be for script.module.venom
+		run = 'true'
 	if run == 'true':
 		from resources.lib.modules import changelog
 		changelog.get()
@@ -715,7 +715,6 @@ elif action == 'librarySetup':
 
 elif action == 'service':
 	from resources.lib.modules import libtools
-	# libtools.libepisodes().service()
 	libtools.lib_tools().service()
 
 

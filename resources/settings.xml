@@ -228,12 +228,11 @@
 	<category label="32541">
 		<setting id="library.movie" type="folder" label="32543" default="special://userdata/addon_data/plugin.video.venom/Movies" />
 		<setting id="library.tv" type="folder" label="32544" default="special://userdata/addon_data/plugin.video.venom/TVShows" />
-		<setting type="action" label="32677" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=librarySetup&opensettings=true&query=8.2)" />
+		<setting type="action" label="32677" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=librarySetup)" />
 		<setting type="lsep" label="32542" />
-		<setting id="library.service.update" type="bool" label="32545" default="true" />
-		<setting id="library.service.lists.update" type="bool" label="32075" default="true" />
-		<setting id="library.service.notification" type="bool" label="32546" default="true" />
-		<setting id="library.general.notification" type="bool" label="32078" default="true" />
+		<setting id="library.service.update" type="bool" label="32545" default="false" />
+		<setting id="library.service.notification" type="bool" label="32546" enable="eq(-1,true)"default="true" />
+		<setting id="library.general.notification" type="bool" label="32078" enable="eq(-2,true)"default="true" />
 		<setting type="sep" />
 		<setting id="library.update" type="bool" label="32547" default="true" />
 		<setting id="library.check" type="bool" label="32548" default="true" />

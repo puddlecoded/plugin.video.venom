@@ -752,12 +752,10 @@ def getBanners(tvdb):
 		artwork = artwork.split('<Banner>')
 		artwork = [i for i in artwork if '<Language>en</Language>' in i and '<BannerType>season</BannerType>' in i]
 		artwork = [i for i in artwork if not 'seasonswide' in re.findall('<BannerPath>(.+?)</BannerPath>', i)[0]]
-
 		return artwork
 
 	except:
 		return None
-
 
 
 def parseBanners(artwork):
@@ -768,10 +766,8 @@ def getActors(tvdb):
 	url = info_link % (tvdb, 'actors')
 	try:
 		actors = client.request(url, timeout='10', error=True)
-
 		if actors is None:
 			raise Exception()
-
 		return actors
 	except:
 		return None
@@ -802,7 +798,7 @@ def parseActors(actors):
 					castandart.append({'name': name, 'role': role, 'thumbnail': ((imageUrl + image) if image is not None else '0')})
 			except:
 				castandart = []
-			if len(castandart) == 200: break
+			if len(castandart) == 150: break
 
 		return castandart
 
