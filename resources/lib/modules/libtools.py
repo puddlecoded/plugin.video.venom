@@ -410,21 +410,48 @@ class libmovies:
 		if not control.yesnoDialog(control.lang(32555).encode('utf-8'), '', ''):
 			return
 
-		if 'traktcollection' in url:
-			message = 32661
-		if 'traktwatchlist' in url:
-			message = 32662
-		if '/lists/' in url:
-			message = 32672
-		if '/likes/' in url:
-			message = 32673
+		try:
+			if 'traktcollection' in url:
+				message = 32661
+			elif 'traktwatchlist' in url:
+				message = 32662
+			elif all(i in url for i in ['trakt', '/me/', '/lists/']):
+				message = 32663
+			elif all(i in url for i in ['trakt', '/lists/']) and '/me/' not in url:
+				message = 32664
+			elif 'tmdb_watchlist' in url:
+				message = 32679
+			elif 'tmdb_favorites' in url:
+				message = 32680
+			elif all(i in url for i in ['themoviedb', '/list/']):
+				message = 32681
+			else:
+				message = 'list import'
+		except:
+				log_utils.error()
+				pass
 
 		if general_notification:
 			if not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
 				control.notification(title = 'default', message = message, icon = 'default', time = 1000, sound = notificationSound)
 
-		from resources.lib.menus import movies
-		items = movies.Movies().get(url, idx=False)
+		items = []
+		try:
+			if 'trakt' in url:
+				from resources.lib.menus import movies
+				items = movies.Movies().get(url, idx=False)
+
+			if 'tmdb' in url:
+				from resources.lib.menus import movies
+				items = movies.Movies().getTMDb(url, idx=False, cached=False)
+
+			if (all(i in url for i in ['themoviedb', '/list/'])):
+				from resources.lib.indexers import tmdb
+				items = tmdb.Movies().tmdb_collections_list(url)
+		except:
+			log_utils.error()
+			pass
+
 		if items is None or items == []:
 			if general_notification:
 				control.notification(title = message, message = 33049, icon = 'INFO', time = 3000, sound=notificationSound)
@@ -445,7 +472,7 @@ class libmovies:
 				log_utils.error()
 				pass
 
-		if '/users/' in url:
+		if (all(i in url for i in ['trakt', '/lists/'])) or (all(i in url for i in ['themoviedb', '/list/'])):
 			try:
 				type = 'movies'
 				control.makeFile(control.dataPath)
@@ -514,8 +541,10 @@ class libtvshows:
 			icon = os.path.join(control.artPath(), 'libtv.png')
 			icon = 'DefaultTVShows.png'
 			source_name = 'Venom TV Shows'
-			# source_content = "('%s','tvshows','metadata.tvdb.com','',0,0,'<settings version=\"2\"><setting id=\"absolutenumber\" default=\"true\">false</setting><setting id=\"alsoimdb\">true</setting><setting id=\"dvdorder\" default=\"true\">false</setting><setting id=\"fallback\">true</setting><setting id=\"fallbacklanguage\">es</setting><setting id=\"fanart\">true</setting><setting id=\"language\" default=\"true\">en</setting><setting id=\"RatingS\" default=\"true\">TheTVDB</setting><setting id=\"usefallbacklanguage1\">true</setting></settings>',0,0,NULL,NULL)" % self.library_folder
-			source_content = "('%s','tvshows','metadata.tvshows.themoviedb.org','',0,0,'<settings version=\"2\"><setting id=\"alsoimdb\" default=\"true\">false</setting><setting id=\"certprefix\" default=\"true\"></setting><setting id=\"fallback\">true</setting><setting id=\"fanarttvart\">true</setting><setting id=\"keeporiginaltitle\" default=\"true\">false</setting><setting id=\"language\" default=\"true\">en</setting><setting id=\"RatingS\" default=\"true\">Themoviedb</setting><setting id=\"tmdbart\">true</setting><setting id=\"tmdbcertcountry\" default=\"true\">us</setting></settings>',0,0,NULL,NULL)" % self.library_folder
+			# TVDb scraper
+			source_content = "('%s','tvshows','metadata.tvdb.com','',0,0,'<settings version=\"2\"><setting id=\"absolutenumber\" default=\"true\">false</setting><setting id=\"alsoimdb\">true</setting><setting id=\"dvdorder\" default=\"true\">false</setting><setting id=\"fallback\">true</setting><setting id=\"fallbacklanguage\">es</setting><setting id=\"fanart\">true</setting><setting id=\"language\" default=\"true\">en</setting><setting id=\"RatingS\" default=\"true\">TheTVDB</setting><setting id=\"usefallbacklanguage1\">true</setting></settings>',0,0,NULL,NULL)" % self.library_folder
+			# TMDb scraper
+			# source_content = "('%s','tvshows','metadata.tvshows.themoviedb.org','',0,0,'<settings version=\"2\"><setting id=\"alsoimdb\" default=\"true\">false</setting><setting id=\"certprefix\" default=\"true\"></setting><setting id=\"fallback\">true</setting><setting id=\"fanarttvart\">true</setting><setting id=\"keeporiginaltitle\" default=\"true\">false</setting><setting id=\"language\" default=\"true\">en</setting><setting id=\"RatingS\" default=\"true\">Themoviedb</setting><setting id=\"tmdbart\">true</setting><setting id=\"tmdbcertcountry\" default=\"true\">us</setting></settings>',0,0,NULL,NULL)" % self.library_folder
 			control.add_source(source_name, self.library_folder, source_content, icon)
 			return True
 		except:
@@ -707,24 +736,51 @@ class libtvshows:
 
 	def range(self, url, list_name):
 		control.idle()
-
 		if not control.yesnoDialog(control.lang(32555).encode('utf-8'), '', ''):
 			return
 
-		if 'traktcollection' in url:
-			message = 32661
-		if 'traktwatchlist' in url:
-			message = 32662
-		if '/lists/' in url:
-			message = 32674
-		if '/likes/' in url:
-			message = 32675
+		try:
+			if 'traktcollection' in url:
+				message = 32661
+			elif 'traktwatchlist' in url:
+				message = 32662
+			elif all(i in url for i in ['trakt', '/me/', '/lists/']):
+				message = 32663
+			elif all(i in url for i in ['trakt', '/lists/']) and '/me/' not in url:
+				message = 32664
+			elif 'tmdb_watchlist' in url:
+				message = 32679
+			elif 'tmdb_favorites' in url:
+				message = 32680
+			elif all(i in url for i in ['themoviedb', '/list/']):
+				message = 32681
+			else:
+				message = 'list import'
+		except:
+				log_utils.error()
+				pass
 
-		if not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-			control.notification(title = 'default', message = message, icon = 'default', time = 1000, sound = notificationSound)
+		if general_notification:
+			if not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
+				control.notification(title = 'default', message = message, icon = 'default', time = 1000, sound = notificationSound)
 
-		from resources.lib.menus import tvshows
-		items = tvshows.TVshows().get(url, idx=False)
+		items = []
+		try:
+			if 'trakt' in url:
+				from resources.lib.menus import tvshows
+				items = tvshows.TVshows().get(url, idx=False)
+
+			if 'tmdb' in url:
+				from resources.lib.menus import tvshows
+				items = tvshows.TVshows().getTMDb(url, idx=False, cached=False)
+
+			if (all(i in url for i in ['themoviedb', '/list/'])):
+				from resources.lib.indexers import tmdb
+				items = tmdb.TVshows().tmdb_collections_list(url)
+		except:
+			log_utils.error()
+			pass
+
 		if items is None or items == []:
 			if general_notification:
 				control.notification(title = message, message = 33049, icon = 'INFO', time = 3000, sound=notificationSound)
@@ -746,7 +802,7 @@ class libtvshows:
 				log_utils.error()
 				pass
 
-		if '/users/' in url:
+		if (all(i in url for i in ['trakt', '/lists/'])) or (all(i in url for i in ['themoviedb', '/list/'])):
 			try:
 				type = 'tvshows'
 				control.makeFile(control.dataPath)

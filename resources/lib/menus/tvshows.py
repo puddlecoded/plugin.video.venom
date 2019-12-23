@@ -209,25 +209,21 @@ class TVshows:
 					control.notification(title=32002, message=33049, icon='INFO', sound=notificationSound)
 
 
-	def getTMDb(self, url, idx=True):
+	def getTMDb(self, url, idx=True, cached=True):
 		try:
-			try:
-				url = getattr(self, url + '_link')
-			except:
-				pass
+			try: url = getattr(self, url + '_link')
+			except: pass
+			try: u = urlparse.urlparse(url).netloc.lower()
+			except: pass
 
-			try:
-				u = urlparse.urlparse(url).netloc.lower()
-			except:
-				pass
-
-			if u in self.tmdb_link and ('/user/' in url or '/list/' in url):
+			if u in self.tmdb_link and '/list/' in url:
 				from resources.lib.indexers import tmdb
-				self.list = cache.get(tmdb.TVshows().tmdb_collections_list, 24, url)
+				self.list = cache.get(tmdb.TVshows().tmdb_collections_list, 0, url)
 
-			elif u in self.tmdb_link and not ('/user/' in url or '/list/' in url):
+			elif u in self.tmdb_link and not '/list/' in url:
 				from resources.lib.indexers import tmdb
-				self.list = cache.get(tmdb.TVshows().tmdb_list, 168, url)
+				duration = 168 if cached else 0
+				self.list = cache.get(tmdb.TVshows().tmdb_list, duration, url)
 
 			if self.list is None:
 				self.list = []
@@ -505,14 +501,17 @@ class TVshows:
 
 
 	def tvshowsListToLibrary(self, url):
-		if 'traktlists' in url:
-			url = self.traktlists_link
-		if 'traktlikedlists' in url:
-			url = self.traktlikedlists_link
+		url = getattr(self, url + '_link')
+		u = urlparse.urlparse(url).netloc.lower()
 
 		try:
 			control.idle()
-			items = self.trakt_user_list(url, self.trakt_user)
+			if u in self.tmdb_link:
+				from resources.lib.indexers import tmdb
+				items = tmdb.userlists(url)
+
+			elif u in self.trakt_link:
+				items = self.trakt_user_list(url, self.trakt_user)
 
 			items = [(i['name'], i['url']) for i in items]
 
@@ -523,9 +522,13 @@ class TVshows:
 				return
 
 			link = items[select][1]
+			link = link.split('&sort_by')[0]
 
-			url = '%s?action=tvshowsToLibrary&url=%s&list_name=%s' % (sys.argv[0], link, list_name)
-			control.execute('RunPlugin(%s)' % url)
+			from resources.lib.modules import libtools
+			libtools.libtvshows().range(link, list_name)
+
+			# url = '%s?action=tvshowsToLibrary&url=%s&list_name=%s' % (sys.argv[0], link, list_name)
+			# control.execute('RunPlugin(%s)' % url)
 		except:
 			log_utils.error()
 			return
@@ -1031,6 +1034,19 @@ class TVshows:
 			tmdb = self.list[i]['tmdb'] if 'tmdb' in self.list[i] else '0'
 			tvdb = self.list[i]['tvdb'] if 'tvdb' in self.list[i] else '0'
 
+			if (tvdb == '0' or tmdb == '0') and imdb != '0':
+				trakt_ids = trakt.IdLookup('show', 'imdb', imdb)
+
+				if tvdb == '0':
+					tvdb = str(trakt_ids.get('tvdb', '0'))
+					if tvdb == '' or tvdb is None or tvdb == 'None':
+						tvdb = '0'
+
+				if tmdb == '0':
+					tmdb = str(trakt_ids.get('tmdb', '0'))
+					if tvdb == '' or tvdb is None or tvdb == 'None':
+						tvdb = '0'
+
 			if imdb == '0' or tmdb == '0' or tvdb == '0':
 				try:
 					trakt_ids = trakt.SearchTVShow(urllib.quote_plus(self.list[i]['title']), self.list[i]['year'], full=False)[0]
@@ -1052,27 +1068,6 @@ class TVshows:
 							tvdb = '0'
 				except:
 					pass
-
-			if tvdb == '0' and imdb != '0':
-				url = self.tvdb_by_imdb % imdb
-
-				result = client.request(url, timeout='10')
-
-				try:
-					tvdb = client.parseDOM(result, 'seriesid')[0]
-				except:
-					tvdb = '0'
-
-				try:
-					name = client.parseDOM(result, 'SeriesName')[0]
-				except:
-					name = '0'
-
-				dupe = re.findall('[***]Duplicate (\d*)[***]', name)
-				if dupe:
-					tvdb = str(dupe[0])
-				if tvdb == '':
-					tvdb = '0'
 
 ###--Check TVDb for missing info
 			if tvdb == '0' or imdb == '0':
@@ -1100,10 +1095,9 @@ class TVshows:
 
 			url = self.tvdb_info_link % (tvdb, self.lang)
 			# log_utils.log('url = %s' % str(url), __name__, log_utils.LOGDEBUG)
-
 			item = client.request(url, timeout='10', error = True)
 
-			# url = self.tvdb_info_link % (tvdb, 'en')
+			# url = self.tvdb_zip_link % (tvdb, 'en')
 			# data = urllib2.urlopen(url, timeout=30).read()
 			# zip = zipfile.ZipFile(StringIO.StringIO(data))
 			# result = zip.read('en.xml')

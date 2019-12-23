@@ -69,9 +69,9 @@ class Movies:
 		self.tmdb_upcoming_link = 'http://api.themoviedb.org/3/movie/upcoming?api_key=%s&language=en-US&region=US&page=1' 
 		self.tmdb_nowplaying_link = 'http://api.themoviedb.org/3/movie/now_playing?api_key=%s&language=en-US&region=US&page=1'
 
-		self.tmdb_userlists_link = 'http://api.themoviedb.org/3/account/{account_id}/lists?api_key=%s&language=en-US&session_id=%s&page=1' % ('%s', self.tmdb_session_id)
 		self.tmdb_watchlist_link = 'http://api.themoviedb.org/3/account/{account_id}/watchlist/movies?api_key=%s&session_id=%s&sort_by=created_at.asc&page=1' % ('%s', self.tmdb_session_id)
 		self.tmdb_favorites_link = 'https://api.themoviedb.org/3/account/{account_id}/favorite/movies?api_key=%s&session_id=%s&sort_by=created_at.asc&page=1' % ('%s', self.tmdb_session_id) 
+		self.tmdb_userlists_link = 'http://api.themoviedb.org/3/account/{account_id}/lists?api_key=%s&language=en-US&session_id=%s&page=1' % ('%s', self.tmdb_session_id)
 
 		self.tmdb_poster = 'http://image.tmdb.org/t/p/w300'
 		self.tmdb_fanart = 'http://image.tmdb.org/t/p/w1280'
@@ -205,7 +205,7 @@ class Movies:
 					control.notification(title = 32001, message = 33049, icon = 'INFO', sound=notificationSound)
 
 
-	def getTMDb(self, url, idx=True):
+	def getTMDb(self, url, idx=True, cached=True):
 		try:
 			try: url = getattr(self, url + '_link')
 			except: pass
@@ -215,12 +215,13 @@ class Movies:
 			self.list = []
 			if u in self.tmdb_link and '/list/' in url:
 				from resources.lib.indexers import tmdb
-				self.list = cache.get(tmdb.Movies().tmdb_collections_list, 168, url)
+				self.list = cache.get(tmdb.Movies().tmdb_collections_list, 0, url)
 				self.sort()
 
 			elif u in self.tmdb_link and not '/list/' in url:
 				from resources.lib.indexers import tmdb
-				self.list = cache.get(tmdb.Movies().tmdb_list, 168, url)
+				duration = 168 if cached else 0
+				self.list = cache.get(tmdb.Movies().tmdb_list, duration, url)
 
 			if self.list is None: 
 				self.list = []
@@ -529,14 +530,17 @@ class Movies:
 
 
 	def moviesListToLibrary(self, url):
-		if 'traktlists' in url:
-			url = self.traktlists_link
-		if 'traktlikedlists' in url:
-			url = self.traktlikedlists_link
+		url = getattr(self, url + '_link')
+		u = urlparse.urlparse(url).netloc.lower()
 
 		try:
 			control.idle()
-			items = self.trakt_user_list(url, self.trakt_user)
+			if u in self.tmdb_link:
+				from resources.lib.indexers import tmdb
+				items = tmdb.userlists(url)
+
+			elif u in self.trakt_link:
+				items = self.trakt_user_list(url, self.trakt_user)
 
 			items = [(i['name'], i['url']) for i in items]
 
@@ -547,9 +551,13 @@ class Movies:
 				return
 
 			link = items[select][1]
+			link = link.split('&sort_by')[0]
 
-			url = '%s?action=moviesToLibrary&url=%s&list_name=%s' % (sys.argv[0], link, list_name)
-			control.execute('RunPlugin(%s)' % url)
+			from resources.lib.modules import libtools
+			libtools.libmovies().range(link, list_name)
+
+			# url = '%s?action=moviesToLibrary&url=%s&list_name=%s' % (sys.argv[0], link, list_name)
+			# control.execute('RunPlugin(%s)' % url)
 		except:
 			log_utils.error()
 			return

@@ -20,6 +20,7 @@ except:
 
 artPath = control.artPath()
 imdbCredentials = False if control.setting('imdb.user') == '' else True
+tmdbSessionID = False if control.setting('tmdb.session_id') == '' else True
 traktCredentials = trakt.getTraktCredentialsInfo()
 traktIndicators = trakt.getTraktIndicatorsInfo()
 indexLabels = False if control.setting('index.labels') == 'false' else True
@@ -324,11 +325,23 @@ class Navigator:
 			self.addDirectoryItem(32672, 'moviesListToLibrary&url=traktlists', 'trakt.png', 'DefaultMovies.png', isFolder=False)
 			self.addDirectoryItem(32673, 'moviesListToLibrary&url=traktlikedlists', 'trakt.png', 'DefaultMovies.png', isFolder=False)
 
+		if tmdbSessionID is True:
+			self.addDirectoryItem('TMDb: Import Movie Watchlist...', 'moviesToLibrary&url=tmdb_watchlist', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
+			self.addDirectoryItem('TMDb: Import Movie Favorites...', 'moviesToLibrary&url=tmdb_favorites', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
+			self.addDirectoryItem('TMDb: Import Movie User list...', 'moviesListToLibrary&url=tmdb_userlists', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
+
+		if traktCredentials is True:
 			self.addDirectoryItem(32563, 'tvshowsToLibrary&url=traktcollection', 'trakt.png', 'DefaultTVShows.png', isFolder=False)
 			self.addDirectoryItem(32564, 'tvshowsToLibrary&url=traktwatchlist', 'trakt.png', 'DefaultTVShows.png', isFolder=False)
 			self.addDirectoryItem(32674, 'tvshowsListToLibrary&url=traktlists', 'trakt.png', 'DefaultMovies.png', isFolder=False)
 			self.addDirectoryItem(32675, 'tvshowsListToLibrary&url=traktlikedlists', 'trakt.png', 'DefaultMovies.png', isFolder=False)
+
+		if tmdbSessionID is True:
+			self.addDirectoryItem('TMDb: Import TV Watchlist...', 'tvshowsToLibrary&url=tmdb_watchlist', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
+			self.addDirectoryItem('TMDb: Import TV Favorites...', 'tvshowsToLibrary&url=tmdb_favorites', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
+			self.addDirectoryItem('TMDb: Import TV User list...', 'tvshowsListToLibrary&url=tmdb_userlists', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
 		self.endDirectory()
+
 
 	def downloads(self):
 		movie_downloads = control.setting('movie.download.path')

@@ -1802,12 +1802,41 @@ msgid "Updated TV Show title"
 msgstr ""
 
 msgctxt "#32679"
-msgid ""
+msgid "Importing TMDb Watchlist..."
 msgstr ""
 
 msgctxt "#32680"
+msgid "Importing TMDb Favorites..."
+msgstr ""
+
+msgctxt "#32681"
+msgid "Importing TMDb Userlist..."
+msgstr ""
+
+msgctxt "#32682"
 msgid ""
 msgstr ""
+
+msgctxt "#32683"
+msgid ""
+msgstr ""
+
+msgctxt "#32684"
+msgid ""
+msgstr ""
+
+msgctxt "#32685"
+msgid ""
+msgstr ""
+
+msgctxt "#32686"
+msgid ""
+msgstr ""
+
+
+
+
+
 
 
 
