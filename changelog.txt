@@ -1,3 +1,8 @@
+[B][COLOR red]Update - v3.3.9 - Dec. 23, 2019[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed broken for loop from previous update preventing
+    Library Updates from completing.[/I]
+[COLOR yellow]--[/COLOR][I] Added Disney+ and Showcase to TVShows Networks.[/I]
+
 [B][COLOR red]Update - v3.3.8 - Dec. 23, 2019[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Switched from Trakt slug check for ID's to Trakt IDLookup
     method. Slug checks seems to report same IMDB_ID

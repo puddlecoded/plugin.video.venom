@@ -984,7 +984,7 @@ class libepisodes:
 
 			try:
 				if it is not None:
-					continue
+					raise Exception()
 
 				it = episodes.Episodes().get(item['tvshowtitle'], item['year'], item['imdb'], item['tvdb'], idx = False)
 
@@ -992,7 +992,7 @@ class libepisodes:
 
 				it = [{'title': i['title'], 'year': i['year'], 'imdb': i['imdb'], 'tvdb': i['tvdb'], 'season': i['season'], 'episode': i['episode'], 'tvshowtitle': i['tvshowtitle'], 'premiered': i['premiered']} for i in it]
 
-				# if status == 'continuing': raise Exception()
+				if status == 'continuing': raise Exception()
 				dbcur.execute("INSERT INTO tvshows Values (?, ?)", (item['tvdb'], repr(it)))
 				dbcur.connection.commit()
 			except:
@@ -1034,10 +1034,7 @@ class libepisodes:
 					# Show Unaired items.
 					if premiered == '0' and self.include_unknown == 'false':
 						continue
-					elif status == 'ended':
-						pass
 					elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.date))):
-						unaired = 'true'
 						if self.showunaired != 'true':
 							continue
 
