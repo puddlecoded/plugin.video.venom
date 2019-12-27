@@ -1520,6 +1520,8 @@ class Episodes:
 			watchedMenu = control.lang(32066).encode('utf-8')
 			unwatchedMenu = control.lang(32067).encode('utf-8')
 
+		traktManagerMenu = control.lang(32070).encode('utf-8')
+
 		playlistManagerMenu = control.lang(35522).encode('utf-8')
 		queueMenu = control.lang(32065).encode('utf-8')
 
@@ -1688,7 +1690,6 @@ class Episodes:
 ####-Context Menu and Overlays-####
 				cm = []
 				if self.traktCredentials is True:
-					traktManagerMenu = control.lang(32070).encode('utf-8')
 					cm.append((traktManagerMenu, 'RunPlugin(%s?action=traktManager&name=%s&imdb=%s&tvdb=%s&season=%s&episode=%s)' % (
 										sysaddon, systvshowtitle, imdb, tvdb, season, episode)))
 
@@ -1756,8 +1757,9 @@ class Episodes:
 						cm.append(('Rescrape Item', 'PlayMedia(%s?action=reScrape&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&t=%s)' % (
 											sysaddon, systitle, year, imdb, tvdb, season, episode, systvshowtitle, syspremiered, sysmeta, self.systime)))
 
-				cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tvdb=%s)' % (
-										sysaddon, systvshowtitle, year, imdb, tvdb)))
+				if control.setting('library.service.update') == 'true':
+					cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tvdb=%s)' % (
+											sysaddon, systvshowtitle, year, imdb, tvdb)))
 				cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 
 				# cm.append(('PlayAll', 'RunPlugin(%s?action=playAll)' % sysaddon))

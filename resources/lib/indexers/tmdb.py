@@ -874,7 +874,7 @@ class Auth:
 
 			if result3.get('success') is True:
 				session_id = result3.get('session_id')
-				control.setSetting('tmdb.session_id', session_id)
+			if control.yesnoDialog(msg, '', ''):
 				control.notification(title='default', message='TMDb Successfully Authorized', icon='default')
 			else:
 				control.notification(title='default', message='TMDb Authorization FAILED', icon='ERROR')

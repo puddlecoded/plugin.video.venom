@@ -1372,7 +1372,8 @@ class Movies:
 				elif control.setting('hosts.mode') != '1':
 					cm.append(('Rescrape Item', 'PlayMedia(%s?action=reScrape&title=%s&year=%s&imdb=%s&meta=%s&t=%s)' % (sysaddon, systitle, year, imdb, sysmeta, self.systime)))
 
-				cm.append((addToLibrary, 'RunPlugin(%s?action=movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
+				if control.setting('library.service.update') == 'true':
+					cm.append((addToLibrary, 'RunPlugin(%s?action=movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
 				cm.append(('Find similar', 'ActivateWindow(10025,%s?action=movies&url=http://api.trakt.tv/movies/%s/related,return)' % (sysaddon, imdb)))
 				cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
@@ -1474,10 +1475,9 @@ class Movies:
 					cm.append((queueMenu, 'RunPlugin(%s?action=queueItem)' % sysaddon))
 
 				try:
-					cm.append((addToLibrary, 'RunPlugin(%s?action=moviesToLibrary&url=%s)' % (sysaddon, urllib.quote_plus(i['context']))))
-				except:
-					pass
-
+					if control.setting('library.service.update') == 'true':
+						cm.append((addToLibrary, 'RunPlugin(%s?action=moviesToLibrary&url=%s)' % (sysaddon, urllib.quote_plus(i['context']))))
+				except: pass
 				cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 

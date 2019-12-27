@@ -2209,8 +2209,23 @@ msgid "Error Connecting to TMDB"
 msgstr ""
 
 msgctxt "#33587"
+msgid "Install Venom Global Context menu Addon..."
+msgstr ""
+
+msgctxt "#33588"
+msgid "Enable Venom Global Context menu"
+msgstr ""
+
+msgctxt "#33589"
 msgid ""
 msgstr ""
+
+msgctxt "#33590"
+msgid ""
+msgstr ""
+
+
+
 
 
 

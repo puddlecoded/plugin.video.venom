@@ -1315,6 +1315,7 @@ class TVshows:
 				meta.update({'code': imdb, 'imdbnumber': imdb, 'imdb_id': imdb})
 				meta.update({'tvdb_id': tvdb})
 				meta.update({'mediatype': 'tvshow'})
+				# meta.update({'tvshowtitle': i['originaltitle']})
 				meta.update({'trailer': '%s?action=trailer&name=%s' % (sysaddon, urllib.quote_plus(label))})
 
 				# Some descriptions have a link at the end that. Remove it.
@@ -1398,6 +1399,7 @@ class TVshows:
 				cm.append((queueMenu, 'RunPlugin(%s?action=queueItem&name=%s)' % (sysaddon, systitle)))
 				cm.append((showPlaylistMenu, 'RunPlugin(%s?action=showPlaylist)' % sysaddon))
 				cm.append((clearPlaylistMenu, 'RunPlugin(%s?action=clearPlaylist)' % sysaddon))
+				# if control.setting('library.service.update') == 'true':
 				cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tvdb=%s)' % (sysaddon, systitle, year, imdb, tvdb)))
 				cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
@@ -1474,7 +1476,6 @@ class TVshows:
 
 		control.content(syshandle, 'tvshows')
 		control.directory(syshandle, cacheToDisc=True)
-
 		views.setView('tvshows', {'skin.estuary': 55, 'skin.confluence': 500})
 
 
@@ -1522,9 +1523,9 @@ class TVshows:
 					cm.append((queueMenu, 'RunPlugin(%s?action=queueItem)' % sysaddon))
 
 				try:
-					cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowsToLibrary&url=%s)' % (sysaddon, urllib.quote_plus(i['context']))))
-				except:
-					pass
+					if control.setting('library.service.update') == 'true':
+						cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowsToLibrary&url=%s)' % (sysaddon, urllib.quote_plus(i['context']))))
+				except: pass
 				cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 
