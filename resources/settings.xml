@@ -189,7 +189,8 @@
 		<setting id="trakt.user" type="text" default="" label="40062" enable="false" visible="true" />
 		<setting id="trakt.token" type="text" visible="hidden" label="" default="" />
 		<setting id="trakt.refresh" type="text" visible="hidden" label="" default="" />
-		<setting id="trakt.notifications" type="bool" label="33050" default="true" visible="!eq(-3,true)" />
+		<setting id="trakt.server.notifications" type="bool" label="33051" default="true" visible="!eq(-3,true)" />
+		<setting id="trakt.general.notifications" type="bool" label="33052" default="true" visible="!eq(-4,true)" />
 		<setting id="trakt.rating" type="enum" label="35187" lvalues="33564|35547" default="0" visible="!eq(-4,true)" />
 		<setting id="indicators.alt" type="enum" label="32313" lvalues="32314|32315" default="1" visible="!eq(-5,true)" />
 		<setting id="indicators" type="enum" label="32313" lvalues="32314" default="0" visible="eq(-6,true)" />
