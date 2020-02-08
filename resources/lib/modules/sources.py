@@ -6,7 +6,7 @@ import re, urllib, urlparse, random, json
 
 from resources.lib.modules import client, cleantitle, control, workers
 from resources.lib.modules import trakt, source_utils, log_utils
-from resources.lib.modules import debrid, cache
+from resources.lib.modules import debrid, cache, providerscache
 
 try:
 	from sqlite3 import dbapi2 as database
@@ -32,12 +32,7 @@ class Sources:
 			if rescrape:
 				items = self.getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 			else:
-############-not needed with new global context menu to rescrape, test more first before removing-########
-				# if 'plugin' not in control.infoLabel('Container.PluginName'):
-					# items = self.getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-				# else:
-					# items = cache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-				items = cache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
+				items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 
 			if items is None:
 				self.url = url
