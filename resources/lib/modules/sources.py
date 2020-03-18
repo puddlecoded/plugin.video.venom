@@ -32,6 +32,7 @@ class Sources:
 		try:
 			url = None
 
+			self.title = title
 			if rescrape:
 				items = self.getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 			else:
@@ -1085,6 +1086,7 @@ class Sources:
 
 		sec_color = control.setting('sec.identify')
 		sec_identify = self.getPremColor(sec_color)
+		sec_identify2 = control.setting('sec.identify2')
 
 		for i in range(len(self.sources)):
 			if extra_info == 'true':
@@ -1140,6 +1142,7 @@ class Sources:
 				label += '[COLOR %s]  |  [B]%s[/B][/COLOR]' % (prem_color, l.upper())
 
 			multiline_label = label
+			mLabel = label
 
 			if t != '':
 				if f != '' and f != '0 ' and f != ' ':
@@ -1152,6 +1155,23 @@ class Sources:
 				if f != '' and f != '0 ' and f != ' ':
 					multiline_label += '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_identify, f)
 					label += '[COLOR %s] / %s[/COLOR]' % (prem_color, f)
+
+			if sec_identify2 == 'magnet title':
+				# log_utils.log('self.title = %s' % self.title, log_utils.LOGDEBUG)
+				if 'magnet:' in u:
+					link_title = u.split('&dn=')[1]
+					link_title = urllib.unquote_plus(link_title).replace('&amp;', '&').replace(' ', '.').replace('.-.', '.')
+					if '&tr=' in link_title:
+						link_title = link_title.split('&tr=')[0]
+					if link_title.startswith('['):
+						link_title = re.sub(r'\[.*?\]\.', '', link_title).replace('./.', '')
+					if link_title.startswith('www'):
+						link_title = re.sub(r'.*?'+self.title, self.title, link_title)
+					size = ''
+					if f:
+						size = f.split(' /', 1)[0]
+						mLabel += '[COLOR %s]  |  %s[/COLOR]' % (prem_color, size)
+					multiline_label = mLabel + '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_identify, link_title)
 
 			self.sources[i]['multiline_label'] = multiline_label
 			self.sources[i]['label'] = label

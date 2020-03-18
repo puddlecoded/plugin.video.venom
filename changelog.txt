@@ -1,3 +1,11 @@
+[B][COLOR red]Update - v3.5.4 - March 18, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Added setting option for torrent secondary line to
+    display as std info or magnet title.  Note this is skin
+    dependent so secondary info line lengthens and
+    should be tested with your skin of choice.  The
+    new setting is under Source Options-Secondary
+    Line Torrent content.[/I]
+
 [B][COLOR red]Update - v3.5.3 - March 16, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Google api for trailer search now checks if user entered
     own key in youtube addon.  That key will now take

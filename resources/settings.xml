@@ -140,7 +140,8 @@
 		<setting id="debrid.only" type="bool" label="32653" default="false" />
 		<setting id="hosts.mode" type="select" label="32331" lvalues="32332|32333|32334" default="1" />
 		<setting id="sourcelist.multiline" type="bool" label="Multiline source list" default="true" enable="eq(-1,1)" />
-		<setting id="sec.identify" type="select" label="Secondary Line Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="4" enable="eq(-1,true)" />
+		<setting id="sec.identify" type="select" label="   Secondary Line Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="4" enable="eq(-1,true)" />
+		<setting id="sec.identify2" type="select" label="   Secondary Line Torrent content" values="std info line|magnet title" default="magnet title" enable="eq(-2,true)" />
 		<setting id="enable.resquality.icons" type="bool" label="32052" default="false" />
 		<setting id="progress.dialog" type="enum" label="32335" lvalues="32336|32337" default="0" />
 		<setting id="progress.dialog.prem.color" type="select" label="Progress Dialog Premium Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671" default="5" enable="eq(-1,0)" />
