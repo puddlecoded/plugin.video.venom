@@ -940,18 +940,16 @@ class Sources:
 							if info_hash.group(1) in b:
 								filter.remove(sublist)
 								if control.setting('remove.duplicates.logging') != 'true':
-									log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (
-													sublist['provider'], info_hash.group(1), i['provider']), log_utils.LOGDEBUG)
+									log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], info_hash.group(1), i['provider']), log_utils.LOGDEBUG)
 								break
 					elif a == b:
 						filter.remove(sublist)
 						if control.setting('remove.duplicates.logging') != 'true':
-							log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (
-											sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
+							log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
 						break
 				filter.append(i)
-			if control.setting('remove.duplicates.logging') != 'true':
-				log_utils.log('Removed %s duplicate sources from list' % (len(self.sources) - len(filter)), log_utils.LOGDEBUG)
+			# if control.setting('remove.duplicates.logging') != 'true':
+			log_utils.log('Removed %s duplicate sources from list' % (len(self.sources) - len(filter)), log_utils.LOGDEBUG)
 			self.sources = filter
 		###---------
 
@@ -973,6 +971,13 @@ class Sources:
 
 		if provider == 'true':
 			self.sources = sorted(self.sources, key=lambda k: k['provider'])
+
+		if control.setting('torrent.size.sort') == 'true':
+			filter = []
+			filter += [i for i in self.sources if 'magnet:' in i['url']]
+			filter.sort(key=lambda k: k.get('size', 0), reverse=True)
+			filter += [i for i in self.sources if 'magnet:' not in i['url']]
+			self.sources = filter
 
 		local = [i for i in self.sources if 'local' in i and i['local'] is True]
 		for i in local:
@@ -1029,11 +1034,13 @@ class Sources:
 		self.sources = filter
 
 		if group_sort == '1':
-			sorted_filter = []
-			sorted_filter += [i for i in filter if 'torrent' in i['source'].lower()] #torrents first
-			sorted_filter += [i for i in filter if 'torrent' not in i['source'].lower() and i['debridonly'] is True] #prem. next
-			sorted_filter += [i for i in filter if 'torrent' not in i['source'].lower() and i['debridonly'] is False] #free hosters fucking last
-			self.sources = sorted_filter
+			filter = []
+			filter += [i for i in self.sources if 'torrent' in i['source'].lower()] #torrents first
+			if control.setting('torrent.size.sort') == 'true':
+				filter.sort(key=lambda k: k.get('size', 0), reverse=True)
+			filter += [i for i in self.sources if 'torrent' not in i['source'].lower() and i['debridonly'] is True] #prem. next
+			filter += [i for i in self.sources if 'torrent' not in i['source'].lower() and i['debridonly'] is False] #free hosters fucking last
+			self.sources = filter
 
 		for i in range(len(self.sources)):
 			q = self.sources[i]['quality']
@@ -1157,7 +1164,6 @@ class Sources:
 					label += '[COLOR %s] / %s[/COLOR]' % (prem_color, f)
 
 			if sec_identify2 == 'magnet title':
-				# log_utils.log('self.title = %s' % self.title, log_utils.LOGDEBUG)
 				if 'magnet:' in u:
 					link_title = u.split('&dn=')[1]
 					link_title = urllib.unquote_plus(link_title).replace('&amp;', '&').replace(' ', '.').replace('.-.', '.')
@@ -1246,7 +1252,11 @@ class Sources:
 
 	def sourcesDialog(self, items):
 		try:
-			labels = [i['label'] for i in items]
+			multiline = control.setting('sourcelist.multiline')
+			if multiline == 'true':
+				labels = [i['multiline_label'] for i in items]
+			else:
+				labels = [i['label'] for i in items]
 
 			select = control.selectDialog(labels)
 			if select == -1:
@@ -1406,6 +1416,7 @@ class Sources:
 			except:
 				progressDialog.update(int((100 / float(len(items))) * i), str(header2), str(items[i]['label']))
 				pass
+
 			try:
 				if xbmc.abortRequested is True:
 					return sys.exit()
