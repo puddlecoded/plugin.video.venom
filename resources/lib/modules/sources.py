@@ -635,68 +635,6 @@ class Sources:
 		return self.sources
 
 
-	def preScrape(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered):
-		return cache.get(self.silentScrape, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-
-
-	# def silentScrape(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, quality='HD', timeout=30):
-		# self.prepareSources()
-		# sourceDict = self.sourceDict
-
-		# content = 'movie' if tvshowtitle is None else 'episode'
-		# if content == 'movie':
-			# sourceDict = [(i[0], i[1], getattr(i[1], 'movie', None)) for i in sourceDict]
-			# genres = trakt.getGenre('movie', 'imdb', imdb)
-		# else:
-			# sourceDict = [(i[0], i[1], getattr(i[1], 'tvshow', None)) for i in sourceDict]
-			# genres = trakt.getGenre('show', 'tvdb', tvdb)
-
-		# sourceDict = [(i[0], i[1], i[2]) for i in sourceDict if not hasattr(i[1], 'genre_filter') or not i[1].genre_filter or any(
-								# x in i[1].genre_filter for x in genres)]
-		# sourceDict = [(i[0], i[1]) for i in sourceDict if i[2] is not None]
-
-		# language = self.getLanguage()
-
-		# sourceDict = [(i[0], i[1], i[1].language) for i in sourceDict]
-		# sourceDict = [(i[0], i[1]) for i in sourceDict if any(x in i[2] for x in language)]
-
-		# try:
-			# sourceDict = [(i[0], i[1], control.setting('provider.' + i[0])) for i in sourceDict]
-		# except:
-			# sourceDict = [(i[0], i[1], 'true') for i in sourceDict]
-
-		# sourceDict = [(i[0], i[1]) for i in sourceDict if i[2] != 'false']
-		# sourceDict = [(i[0], i[1], i[1].priority) for i in sourceDict]
-
-		# random.shuffle(sourceDict)
-
-		# sourceDict = sorted(sourceDict, key=lambda i: i[2])
-
-		# threads = []
-
-		# if content == 'movie':
-			# title = self.getTitle(title)
-			# localtitle = self.getLocalTitle(title, imdb, tvdb, content)
-			# aliases = self.getAliasTitles(imdb, localtitle, content)
-
-			# for i in sourceDict:
-				# threads.append(workers.Thread(self.getMovieSource, title, localtitle, aliases, year, imdb, i[0], i[1]))
-		# else:
-			# tvshowtitle = self.getTitle(tvshowtitle)
-			# localtvshowtitle = self.getLocalTitle(tvshowtitle, imdb, tvdb, content)
-			# aliases = self.getAliasTitles(imdb, localtvshowtitle, content)
-
-			# for i in sourceDict:
-				# threads.append(workers.Thread(self.getEpisodeSource, title, year, imdb, tvdb, season,
-											# episode, tvshowtitle, localtvshowtitle, aliases, premiered, i[0], i[1]))
-
-		# s = [i[0] + (i[1],) for i in zip(sourceDict, threads)]
-		# s = [(i[3].getName(), i[0], i[2]) for i in s]
-
-		# mainsourceDict = [i[0] for i in s if i[2] == 0]
-		# sourcelabelDict = dict([(i[0], i[1].upper()) for i in s])
-
-
 	def prepareSources(self):
 		try:
 			control.makeFile(control.dataPath)
@@ -1028,6 +966,10 @@ class Sources:
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 			control.hide()
 
+			if d.name != 'Premiumize.me' and d.name != 'Real-Debrid':
+				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
+				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
+
 		if debrid_only == 'false' or debrid.status() is False:
 			filter += [i for i in self.sources if not i['source'].lower() in self.hostprDict and i['debridonly'] is False]
 
@@ -1150,6 +1092,7 @@ class Sources:
 
 			multiline_label = label
 			mLabel = label
+			l1 = label
 
 			if t != '':
 				if f != '' and f != '0 ' and f != ' ':
@@ -1176,8 +1119,19 @@ class Sources:
 					size = ''
 					if f:
 						size = f.split(' /', 1)[0]
-						mLabel += '[COLOR %s]  |  %s[/COLOR]' % (prem_color, size)
-					multiline_label = mLabel + '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_identify, link_title)
+						l1 += '[COLOR %s]  |  %s[/COLOR]' % (prem_color, size)
+						l1l = len(l1)-58
+						# log_utils.log('l1l = %s' % str(l1l), __name__, log_utils.LOGDEBUG)
+						# log_utils.log('l1 = %s' % str(l1), __name__, log_utils.LOGDEBUG)
+						l2 = '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_identify, link_title)
+						l2l = len(l2)-27
+						# log_utils.log('l2l = %s' % str(l2l), __name__, log_utils.LOGDEBUG)
+						# log_utils.log('l2 = %s' % l2, __name__, log_utils.LOGDEBUG)
+						if l2l > l1l:
+							adjust = l2l - l1l
+							l1 = l1.ljust(l1l+76+adjust)
+					multiline_label = l1 + l2
+					# multiline_label = mLabel + '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_identify, link_title)
 
 			self.sources[i]['multiline_label'] = multiline_label
 			self.sources[i]['label'] = label
