@@ -1,3 +1,10 @@
+[B][COLOR red]Update - v3.5.8 - March 29, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed issue with random innacurate seasoncount.[/I]
+[COLOR yellow]--[/COLOR][I] Fixed issue with random innacurate resume point
+    saved. Issue would lose progress indicators for some shows.[/I]
+[COLOR yellow]--[/COLOR][I] added notification when resolveURL fails for
+    cached torrents.[/I]
+
 [B][COLOR red]Update - v3.5.7 - March 24, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed issue with random duplicate list items
     after playback ends when Autoplay is enabled.[/I]
