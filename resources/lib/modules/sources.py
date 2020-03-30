@@ -1138,7 +1138,7 @@ class Sources:
 		return self.sources
 
 
-	def sourcesResolve(self, item, info=True):
+	def sourcesResolve(self, item, info=False):
 		try:
 			self.url = None
 			u = url = item['url']
@@ -1396,24 +1396,12 @@ class Sources:
 
 	def getLanguage(self):
 		langDict = {
-			'English': ['en'],
-			'German': ['de'],
-			'German+English': ['de', 'en'],
-			'French': ['fr'],
-			'French+English': ['fr', 'en'],
-			'Portuguese': ['pt'],
-			'Portuguese+English': ['pt', 'en'],
-			'Polish': ['pl'],
-			'Polish+English': ['pl', 'en'],
-			'Korean': ['ko'],
-			'Korean+English': ['ko', 'en'],
-			'Russian': ['ru'],
-			'Russian+English': ['ru', 'en'],
-			'Spanish': ['es'],
-			'Spanish+English': ['es', 'en'],
-			'Greek': ['gr'],
-			'Italian': ['it'],
-			'Italian+English': ['it', 'en'],
+			'English': ['en'], 'German': ['de'], 'German+English': ['de', 'en'],
+			'French': ['fr'], 'French+English': ['fr', 'en'], 'Portuguese': ['pt'],
+			'Portuguese+English': ['pt', 'en'], 'Polish': ['pl'], 'Polish+English': ['pl', 'en'],
+			'Korean': ['ko'], 'Korean+English': ['ko', 'en'], 'Russian': ['ru'],
+			'Russian+English': ['ru', 'en'], 'Spanish': ['es'], 'Spanish+English': ['es', 'en'],
+			'Greek': ['gr'], 'Italian': ['it'], 'Italian+English': ['it', 'en'],
 			'Greek+English': ['gr', 'en']}
 		name = control.setting('providers.lang')
 		return langDict.get(name, ['en'])
@@ -1423,13 +1411,11 @@ class Sources:
 		lang = self._getPrimaryLang()
 		if not lang:
 			return title
-
 		if content == 'movie':
 			t = trakt.getMovieTranslation(imdb, lang)
 		else:
 			from resources.lib.modules import tvmaze
 			t = tvmaze.tvMaze().getTVShowTranslation(tvdb, lang)
-
 		return t or title
 
 
