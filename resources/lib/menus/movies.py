@@ -450,9 +450,12 @@ class Movies:
 		dbcur.execute("INSERT INTO movies VALUES (?,?)", (None, q))
 		dbcur.connection.commit()
 		dbcon.close()
-
 		url = self.search_link + urllib.quote_plus(q)
-		self.get(url)
+		if int(control.getKodiVersion()) >= 18:
+			self.get(url)
+		else:
+			url = '%s?action=moviePage&url=%s' % (sys.argv[0], urllib.quote_plus(url))
+			control.execute('Container.Update(%s)' % url)
 
 
 	def search_term(self, name):

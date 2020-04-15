@@ -461,13 +461,12 @@ class Episodes:
 				if num_1 >= num_2:
 					continue
 
-				# season = str(item['seasons'][-1]['number'])
-				# episode = str(item['seasons'][-1]['episodes'][-1]['number'])
-
-# trakt sometimes places season0 at end. So we sort it to be sure
+				# trakt sometimes places season0 at end and episodes out of order. So we sort it to be sure.
 				season_sort = sorted(item['seasons'][:], key=lambda k: k['number'], reverse=False)
 				season = str(season_sort[-1]['number'])
-				episode = str(season_sort[-1]['episodes'][-1]['number'])
+				episode = [x for x in season_sort[-1]['episodes'] if 'number' in x]
+				episode = sorted(episode, key=lambda x: x['number'])
+				episode = str(episode[-1]['number'])
 
 				try:
 					tvshowtitle = (item['show']['title']).encode('utf-8')
@@ -551,7 +550,6 @@ class Episodes:
 				zip.close()
 
 				result = result.split('<Episode>')
-
 				item = [x for x in result if '<EpisodeNumber>' in x]
 				item2 = result[0]
 
@@ -559,20 +557,18 @@ class Episodes:
 				try:
 					sorted_item = [y for y in item if re.compile('<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(i['snum'])]
 					sorted_item += [y for y in item if re.compile('<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(int(i['snum']) + 1)]
-					sorted_item = [re.sub('<SeasonNumber>(.+?)</SeasonNumber>', '<SeasonNumber>%02d</SeasonNumber>' % int(client.parseDOM(y, 'SeasonNumber')[0]), y) for y in sorted_item]
-					sorted_item = [re.sub('<EpisodeNumber>(.+?)</EpisodeNumber>', '<EpisodeNumber>%02d</EpisodeNumber>' % int(client.parseDOM(y, 'EpisodeNumber')[0]), y) for y in sorted_item]
-					sorted_item = sorted(sorted_item, key= lambda t: (re.compile('<SeasonNumber>(.+?)</SeasonNumber>').findall(t), re.compile('<EpisodeNumber>(.+?)</EpisodeNumber>').findall(t)))
+					sorted_item = sorted(sorted_item, key= lambda t:(int(re.compile('<SeasonNumber>(\d+)</SeasonNumber>').findall(t)[-1]), int(re.compile('<EpisodeNumber>(\d+)</EpisodeNumber>').findall(t)[-1])))
+					num = [x for x,y in enumerate(sorted_item) if re.compile('<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(i['snum']) and re.compile('<EpisodeNumber>(.+?)</EpisodeNumber>').findall(y)[0] == str(i['enum'])][-1]
+					item = [y for x,y in enumerate(sorted_item) if x > num][0]
 				except:
-					log_utils.error()
-
-				num = [x for x,y in enumerate(sorted_item) if re.compile('<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str('%02d' % int(i['snum'])) and re.compile('<EpisodeNumber>(.+?)</EpisodeNumber>').findall(y)[0] == str('%02d' % int(i['enum']))][-1]
-				item = [y for x,y in enumerate(sorted_item) if x > num][0]
+					return
 
 				artwork = artwork.split('<Banner>')
 				artwork = [x for x in artwork if '<Language>en</Language>' in x and '<BannerType>season</BannerType>' in x]
 				artwork = [x for x in artwork if not 'seasonswide' in re.findall('<BannerPath>(.+?)</BannerPath>', x)[0]]
 
 				premiered = client.parseDOM(item, 'FirstAired')[0]
+				if premiered == '' or '-00' in premiered: premiered = '0'
 
 				try:
 					added = i['added']
@@ -695,7 +691,6 @@ class Episodes:
 				writer = (' / '.join(writer)).encode('utf-8')
 				writer = client.replaceHTMLCodes(writer)
 
-				# import xml.etree.ElementTree as ET
 				tree = ET.ElementTree(ET.fromstring(actors))
 				root = tree.getroot()
 				castandart = []
@@ -743,6 +738,7 @@ class Episodes:
 					values['airzone'] = i['airzone']
 				self.list.append(values)
 			except:
+				log_utils.error()
 				pass
 
 		items = items[:len(items)]
@@ -1496,8 +1492,6 @@ class Episodes:
 			multi = []
 		multi = len([x for y, x in enumerate(multi) if x not in multi[:y]])
 		multi = True if multi > 1 else False
-		if 'ForceAirEnabled' in items[0]:
-			multi = False
 		try:
 			if '/users/me/history/' in items[0]['next']:
 				multi = True

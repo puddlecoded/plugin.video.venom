@@ -870,11 +870,13 @@ class Sources:
 					b = sublist['url'].lower()
 					if 'magnet:' in a and debrid.status() is True:
 						info_hash = re.search('magnet:.+?urn:\w+:([a-z0-9]+)', a)
+						# info_hash = i['hash'].lower()
 						if info_hash:
 							if info_hash.group(1) in b:
+							# if info_hash in b:
 								filter.remove(sublist)
 								if control.setting('remove.duplicates.logging') != 'true':
-									log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], info_hash.group(1), i['provider']), log_utils.LOGDEBUG)
+									log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), log_utils.LOGDEBUG)
 								break
 					elif a == b:
 						filter.remove(sublist)
@@ -882,9 +884,9 @@ class Sources:
 							log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
 						break
 				filter.append(i)
-			# if control.setting('remove.duplicates.logging') != 'true':
 			log_utils.log('Removed %s duplicate sources from list' % (len(self.sources) - len(filter)), log_utils.LOGDEBUG)
 			self.sources = filter
+			# log_utils.log('self.sources = %s' % str(self.sources), log_utils.LOGDEBUG)
 		###---------
 
 		if control.setting('HEVC') != 'true':
@@ -951,7 +953,7 @@ class Sources:
 						if rdTorrent_List == []:
 							raise Exception()
 						rdCached = self.rd_cache_chk_list(rdTorrent_List, d)
-						if control.setting('pm.remove.uncached') == 'true':
+						if control.setting('rd.remove.uncached') == 'true':
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if i['source'] == 'cached torrent']
 						else:
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if 'magnet:' in i['url']]
@@ -960,11 +962,12 @@ class Sources:
 				else:
 					filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
-			control.hide()
 
 			if d.name != 'Premiumize.me' and d.name != 'Real-Debrid':
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
+
+			control.hide()
 
 		if debrid_only == 'false' or debrid.status() is False:
 			filter += [i for i in self.sources if not i['source'].lower() in self.hostprDict and i['debridonly'] is False]
@@ -1104,14 +1107,16 @@ class Sources:
 
 			if sec_identify2 == 'magnet title':
 				if 'magnet:' in u:
-					link_title = u.split('&dn=')[1]
-					link_title = urllib.unquote_plus(link_title).replace('&amp;', '&').replace(' ', '.').replace('.-.', '.')
-					if '&tr=' in link_title:
-						link_title = link_title.split('&tr=')[0]
-					if link_title.startswith('['):
-						link_title = re.sub(r'\[.*?\]\.', '', link_title).replace('./.', '')
-					if link_title.startswith('www'):
-						link_title = re.sub(r'.*?'+self.title, self.title, link_title)
+					link_title = self.sources[i]['name']
+
+					# link_title = u.split('&dn=')[1]
+					# link_title = urllib.unquote_plus(link_title).replace('&amp;', '&').replace(' ', '.').replace('.-.', '.')
+					# if '&tr=' in link_title:
+						# link_title = link_title.split('&tr=')[0]
+					# if link_title.startswith('['):
+						# link_title = re.sub(r'\[.*?\]\.', '', link_title).replace('./.', '')
+					# if link_title.startswith('www'):
+						# link_title = re.sub(r'.*?'+self.title, self.title, link_title)
 					size = ''
 					if f:
 						size = f.split(' /', 1)[0]
@@ -1453,19 +1458,18 @@ class Sources:
 			self.hostDict = resolveurl.relevant_resolvers(order_matters=True)
 			self.hostDict = [i.domains for i in self.hostDict if not '*' in i.domains]
 			self.hostDict = [i.lower() for i in reduce(lambda x, y: x+y, self.hostDict)]
-			self.hostDict = [x for y, x in enumerate(self.hostDict) if not x in self.hostDict[:y]]
+			self.hostDict = [x for y, x in enumerate(self.hostDict) if x not in self.hostDict[:y]]
 		except:
 			self.hostDict = []
 
-		self.hostprDict = ['1fichier.com', 'extabit.com', 'filefactory.com', 'filefreak.com', 'filerocks.pw', 'multiup.org', 'nitroflare.com', 'oboom.com', 'rapidgator.net', 'rapidshare.com', 'rg.to', 'turbobit.net',
+		self.hostprDict = ['1fichier.com', 'filefactory.com', 'filefreak.com', 'multiup.org', 'nitroflare.com', 'oboom.com', 'rapidgator.net', 'rg.to', 'turbobit.net',
 									'uploaded.net', 'uploaded.to', 'uploadgig.com', 'ul.to', 'uploadrocket.net']
 
-		self.hostcapDict = ['flashx.tv', 'flashx.to', 'flashx.sx', 'flashx.bz', 'flashx.cc', 'hugefiles.net', 'kingfiles.net', 'streamin.to',
-									'thevideo.me', 'torba.se', 'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
+		self.hostcapDict = ['flashx.tv', 'flashx.to', 'flashx.sx', 'flashx.bz', 'flashx.cc', 'hugefiles.cc', 'hugefiles.net', 'kingfiles.net', 'streamin.to',
+									'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io', 'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
 
 		self.hosthqDict = ['gvideo', 'google.com', 'thevideo.me', 'rapidvideo.com', 'raptu.com', 'filez.tv', 'uptobox.com', 'uptostream.com',
 									'xvidstage.com', 'xstreamcdn.com', 'idtbox.com', 'streamvid.co']
-
 
 		self.hostblockDict = ['divxme.com', 'divxstage.eu', 'estream.to', 'facebook.com', 'oload.download', 'oload.fun', 'oload.icu', 'oload.info',
 									'oload.life', 'oload.space', 'oload.stream', 'oload.tv', 'oload.win', 'openload.co', 'openload.io', 'openload.pw', 'rapidvideo.com',
@@ -1508,8 +1512,6 @@ class Sources:
 
 	def paginate_sources(self, sources, page, limit):
 		pages = [sources[i:i + limit] for i in xrange(0, len(sources), limit)]
-		log_utils.log('pages = %s' % str(pages), __name__, log_utils.LOGDEBUG)
-		# log_utils.log('sources = %s' % str(len(sources)), __name__, log_utils.LOGDEBUG)
 		return pages[page - 1]
 
 
@@ -1534,7 +1536,7 @@ class Sources:
 		if len(torrent_List) == 0:
 			return
 		try:
-			hashList = [i['url'] for i in torrent_List]
+			hashList = [i['hash'] for i in torrent_List]
 			cached = premiumize.Premiumize().check_cache_list(hashList)
 			count = 0
 			for i in torrent_List:
@@ -1553,15 +1555,13 @@ class Sources:
 		if len(torrent_List) == 0:
 			return
 		try:
-			for i in torrent_List:
-				i.update({'hash': re.findall('magnet:\?xt=urn:btih:(.*?)&', i['url'])[0]})
 			hashList = [i['hash'] for i in torrent_List]
 			cached = realdebrid.RealDebrid().check_cache_list(hashList)
 			for i in torrent_List:
-				if 'rd' not in cached.get(i['hash'], {}):
+				if 'rd' not in cached.get(i['hash'].lower(), {}):
 					i.update({'source': 'uncached torrent'})
 					continue
-				elif len(cached[i['hash']]['rd']) >= 1:
+				elif len(cached[i['hash'].lower()]['rd']) >= 1:
 					i.update({'source': 'cached torrent'})
 				else:
 					i.update({'source': 'uncached torrent'})

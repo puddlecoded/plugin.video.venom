@@ -173,8 +173,8 @@
 <!-- 		<setting id="torrent.sort.them.up" type="bool" label="32639" enable="eq(-3,true)"  default="true" visible = "true" /> -->
 		<setting id="torrent.group.sort" type="select" label="Torent/Hoster sorting method" lvalues="32021|32022" enable="eq(-3,true)"  default="1" visible = "true" />
 		<setting id="torrent.size.sort" type="bool" label="Sort torrents by size" default="true" />
-		<setting id="torrent.resolveurl2" type="action" label="32640" enable="eq(-5,true)" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=urlResolverRDTorrent&amp;query=1.42)" />
-		<setting id="torrent.resolveurl" type="action" label="32637" enable="eq(-6,true)" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=urlResolverRDTorrent&amp;query=1.52)" />
+		<setting id="torrent.resolveurl2" type="action" label="32640" enable="eq(-5,true)" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=urlResolverRDTorrent&amp;query=1.43)" />
+		<setting id="torrent.resolveurl" type="action" label="32637" enable="eq(-6,true)" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=urlResolverRDTorrent&amp;query=1.53)" />
 		<setting id="pm.chk.cached" type="bool" label="PM cached torrent check" default="true" />
 		<setting id="pm.remove.uncached" type="bool" label="   PM remove uncached torrents" default="true" enable="eq(-1,true)" />
 		<setting id="rd.chk.cached" type="bool" label="RD cached torrent check" default="true" />

@@ -51,10 +51,8 @@ class RealDebrid:
 		self.token = RealDebridResolver.get_setting('token')
 		self.hosters = None
 		self.hosts = None
-		# self.headers = {'User-Agent': USER_AGENT}
 		self.headers = {'User-Agent': USER_AGENT, 'Authorization': 'Bearer %s' % self.token}
 		self.cache_check_results = {}
-		# self.cache_check_results = []
 
 
 	def get_media_url(self, host, media_id, retry=False, cached_only=False):
