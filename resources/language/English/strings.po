@@ -1222,7 +1222,7 @@ msgid "[B][COLOR red]UpNext[/COLOR][/B] Settings"
 msgstr ""
 
 msgctxt "#32506"
-msgid ""
+msgid "[B][COLOR red]Venom Global Context[/COLOR][/B] Settings"
 msgstr ""
 
 msgctxt "#32507"

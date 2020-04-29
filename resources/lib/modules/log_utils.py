@@ -1,11 +1,12 @@
 # -*- coding: UTF-8 -*-
 
+
+import StringIO
 import cProfile
 import inspect
 import json
 import os
 import pstats
-import StringIO
 import time
 import xbmc
 from datetime import datetime

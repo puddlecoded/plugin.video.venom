@@ -510,7 +510,6 @@ class Sources:
 					d_sd_label = total_format % ('red', d_source_sd) if d_source_sd == 0 else total_format % (pdpc, d_source_sd)
 					d_total_label = total_format % ('red', d_total) if d_total == 0 else total_format % (pdpc, d_total)
 
-
 				if (i / 2) < timeout:
 					try:
 						mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() is True and x.getName() in mainsourceDict]
@@ -1108,31 +1107,17 @@ class Sources:
 			if sec_identify2 == 'magnet title':
 				if 'magnet:' in u:
 					link_title = self.sources[i]['name']
-
-					# link_title = u.split('&dn=')[1]
-					# link_title = urllib.unquote_plus(link_title).replace('&amp;', '&').replace(' ', '.').replace('.-.', '.')
-					# if '&tr=' in link_title:
-						# link_title = link_title.split('&tr=')[0]
-					# if link_title.startswith('['):
-						# link_title = re.sub(r'\[.*?\]\.', '', link_title).replace('./.', '')
-					# if link_title.startswith('www'):
-						# link_title = re.sub(r'.*?'+self.title, self.title, link_title)
 					size = ''
 					if f:
 						size = f.split(' /', 1)[0]
 						l1 += '[COLOR %s]  |  %s[/COLOR]' % (prem_color, size)
 						l1l = len(l1)-58
-						# log_utils.log('l1l = %s' % str(l1l), __name__, log_utils.LOGDEBUG)
-						# log_utils.log('l1 = %s' % str(l1), __name__, log_utils.LOGDEBUG)
 						l2 = '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_identify, link_title)
 						l2l = len(l2)-27
-						# log_utils.log('l2l = %s' % str(l2l), __name__, log_utils.LOGDEBUG)
-						# log_utils.log('l2 = %s' % l2, __name__, log_utils.LOGDEBUG)
 						if l2l > l1l:
 							adjust = l2l - l1l
 							l1 = l1.ljust(l1l+76+adjust)
 					multiline_label = l1 + l2
-					# multiline_label = mLabel + '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_identify, link_title)
 
 			self.sources[i]['multiline_label'] = multiline_label
 			self.sources[i]['label'] = label
@@ -1465,8 +1450,9 @@ class Sources:
 		self.hostprDict = ['1fichier.com', 'filefactory.com', 'filefreak.com', 'multiup.org', 'nitroflare.com', 'oboom.com', 'rapidgator.net', 'rg.to', 'turbobit.net',
 									'uploaded.net', 'uploaded.to', 'uploadgig.com', 'ul.to', 'uploadrocket.net']
 
-		self.hostcapDict = ['flashx.tv', 'flashx.to', 'flashx.sx', 'flashx.bz', 'flashx.cc', 'hugefiles.cc', 'hugefiles.net', 'kingfiles.net', 'streamin.to',
-									'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io', 'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
+		self.hostcapDict = ['flashx.tv', 'flashx.to', 'flashx.sx', 'flashx.bz', 'flashx.cc', 'hugefiles.cc', 'hugefiles.net', 'jetload.net', 'jetload.tv',
+									'jetload.to''kingfiles.net', 'streamin.to', 'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io',
+									'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
 
 		self.hosthqDict = ['gvideo', 'google.com', 'thevideo.me', 'rapidvideo.com', 'raptu.com', 'filez.tv', 'uptobox.com', 'uptostream.com',
 									'xvidstage.com', 'xstreamcdn.com', 'idtbox.com', 'streamvid.co']
@@ -1474,7 +1460,6 @@ class Sources:
 		self.hostblockDict = ['divxme.com', 'divxstage.eu', 'estream.to', 'facebook.com', 'oload.download', 'oload.fun', 'oload.icu', 'oload.info',
 									'oload.life', 'oload.space', 'oload.stream', 'oload.tv', 'oload.win', 'openload.co', 'openload.io', 'openload.pw', 'rapidvideo.com',
 									'rapidvideo.is', 'rapidvid.to', 'streamango.com', 'streamcherry.com', 'twitch.tv', 'youtube.com', 'zippyshare.com']
-
 
 	def getPremColor(self, n):
 		if n == '0': n = 'blue'

@@ -4,6 +4,8 @@
 	Venom Add-on
 '''
 
+import xbmcaddon, xbmcgui
+
 from urlparse import parse_qsl
 from urllib import quote_plus
 from sys import argv
@@ -39,6 +41,34 @@ list_name = params.get('list_name')
 windowedtrailer = params.get('windowedtrailer')
 windowedtrailer = int(windowedtrailer) if windowedtrailer in ("0","1") else 0
 notificationSound = False if control.setting('notification.sound') == 'false' else True
+
+homeWindow = xbmcgui.Window(10000)
+
+contextSettings = xbmcaddon.Addon('context.venom').getSetting('context.venom.settings')
+traktManager = xbmcaddon.Addon('context.venom').getSetting('context.venom.traktManager')
+clearProviders = xbmcaddon.Addon('context.venom').getSetting('context.venom.clearProviders')
+rescrape = xbmcaddon.Addon('context.venom').getSetting('context.venom.rescrape')
+playFromHere = xbmcaddon.Addon('context.venom').getSetting('context.venom.playFromHere')
+playAction = xbmcaddon.Addon('plugin.video.venom').getSetting('hosts.mode')
+autoPlay = 'true' if playAction == '2' else ''
+cm_autoPlay = xbmcaddon.Addon('context.venom').getSetting('context.venom.autoPlay')
+sourceSelect = xbmcaddon.Addon('context.venom').getSetting('context.venom.sourceSelect')
+findSimilar = xbmcaddon.Addon('context.venom').getSetting('context.venom.findSimilar')
+browseSeries = xbmcaddon.Addon('context.venom').getSetting('context.venom.browseSeries')
+browseEpisodes = xbmcaddon.Addon('context.venom').getSetting('context.venom.browseEpisodes')
+
+homeWindow.setProperty('context.venom.settings', contextSettings)
+homeWindow.setProperty('context.venom.traktManager', traktManager)
+homeWindow.setProperty('context.venom.clearProviders', clearProviders)
+homeWindow.setProperty('context.venom.rescrape', rescrape)
+homeWindow.setProperty('context.venom.playFromHere', playFromHere)
+homeWindow.setProperty('plugin.video.venom.autoPlay', autoPlay)
+homeWindow.setProperty('context.venom.autoPlay', cm_autoPlay)
+homeWindow.setProperty('context.venom.sourceSelect', sourceSelect)
+homeWindow.setProperty('context.venom.findSimilar', findSimilar)
+homeWindow.setProperty('context.venom.browseSeries', browseSeries)
+homeWindow.setProperty('context.venom.browseEpisodes', browseEpisodes)
+
 
 if action is None:
 	from resources.lib.menus import navigator
@@ -456,6 +486,12 @@ elif action == 'UpNextSettings':
 	if params.get('opensettings') == 'true':
 		control.openSettings('0.0', "plugin.video.venom")
 
+elif action == 'contextVenomSettings':
+	control.openSettings('0.0', 'context.venom')
+	if params.get('opensettings') == 'true':
+		control.openSettings('0.0', "plugin.video.venom")
+	control.trigger_widget_refresh()
+
 elif action == 'openscrapersSettings':
 	control.openSettings('0.0', 'script.module.openscrapers')
 	if params.get('opensettings') == 'true':
@@ -650,8 +686,8 @@ elif action == 'movieToLibrary':
 
 elif action == 'moviesToLibrary':
 	from resources.lib.modules import libtools
-	xbmc.log('url=%s' % url, 2)
-	xbmc.log('list_name=%s' % list_name, 2)
+	# xbmc.log('url=%s' % url, 2)
+	# xbmc.log('list_name=%s' % list_name, 2)
 	libtools.libmovies().range(url, list_name)
 
 elif action == 'moviesListToLibrary':

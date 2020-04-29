@@ -398,7 +398,7 @@ class TVshows:
 		k = control.keyboard('', t)
 		k.doModal()
 		q = k.getText().strip() if k.isConfirmed() else None
-		if not q:
+		if (q is None or q == ''):
 			return
 		url = self.persons_link + urllib.quote_plus(q)
 		self.persons(url)
@@ -491,11 +491,9 @@ class TVshows:
 			self.list = cache.get(self.imdb_person_list, 24, self.personlist_link)
 		else:
 			self.list = cache.get(self.imdb_person_list, 1, url)
-
 		if len(self.list) == 0:
 			control.hide()
 			control.notification(title = 32010, message = 33049, icon = 'INFO', sound=notificationSound)
-
 		for i in range(0, len(self.list)):
 			self.list[i].update({'icon': 'DefaultActor.png', 'action': 'tvshows'})
 		self.addDirectory(self.list)
@@ -936,18 +934,17 @@ class TVshows:
 		list = []
 		try:
 			result = client.request(url)
-			result = result.decode('iso-8859-1').encode('utf-8')
-			items = client.parseDOM(result, 'div', attrs = {'class': '.+? lister-item'}) + client.parseDOM(result, 'div', attrs = {'class': 'lister-item .+?'})
+			items = client.parseDOM(result, 'div', attrs = {'class': '.+? mode-detail'})
 		except:
 			log_utils.error()
+			return
 
 		for item in items:
 			try:
-				name = client.parseDOM(item, 'a')[1]
-				name = client.replaceHTMLCodes(name)
+				name = client.parseDOM(item, 'img', ret='alt')[0]
 				name = name.encode('utf-8')
 
-				url = client.parseDOM(item, 'a', ret='href')[1]
+				url = client.parseDOM(item, 'a', ret='href')[0]
 				url = re.findall('(nm\d*)', url, re.I)[0]
 				url = self.person_link % url
 				url = client.replaceHTMLCodes(url)
@@ -961,6 +958,7 @@ class TVshows:
 				list.append({'name': name, 'url': url, 'image': image})
 			except:
 				log_utils.error()
+				pass
 		return list
 
 

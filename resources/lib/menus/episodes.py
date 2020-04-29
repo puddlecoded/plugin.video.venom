@@ -217,7 +217,7 @@ class Episodes:
 					# self.list = cache.get(self.trakt_list, 0, url, self.trakt_user, False)
 					self.list = cache.get(self.trakt_episodes_list, 0, url, self.trakt_user, self.lang)
 
-			self.sort(type = 'calendar')
+			self.sort(type = 'progress')
 			self.episodeDirectory(self.list, unfinished=True, next=False)
 
 			return self.list
@@ -259,10 +259,14 @@ class Episodes:
 				self.list = cache.get(self.trakt_episodes_list, 0.3, url, self.trakt_user, self.lang)
 				self.sort(type = 'calendar')
 
+			elif self.trakt_link in url and url == self.trakthistory_link:
+				self.list = cache.get(self.trakt_episodes_list, 0.3, url, self.trakt_user, self.lang)
+				self.sort(type = 'progress')
+
 			elif self.trakt_link in url and '/users/' in url:
 				# self.list = cache.get(self.trakt_list, 0.3, url, self.trakt_user, True)
-				self.list = cache.get(self.trakt_episodes_list, 0.3, url, self.trakt_user, self.lang)
 				# self.list = self.list[::-1]
+				self.list = cache.get(self.trakt_episodes_list, 0.3, url, self.trakt_user, self.lang)
 				self.sort(type = 'calendar')
 
 			elif self.trakt_link in url:

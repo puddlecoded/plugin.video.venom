@@ -175,8 +175,6 @@ class Player(xbmc.Player):
 				self.DBID = meta.get('movieid')
 
 			poster = thumb = meta.get('thumbnail')
-
-			# return (poster, thumb, '', '', '', '', '', '', meta)
 			return (poster, '', '', '', '', '', '', '', meta)
 		except:
 			log_utils.error()
@@ -220,7 +218,6 @@ class Player(xbmc.Player):
 				self.DBID = meta.get('episodeid')
 
 			thumb = meta['thumbnail']
-			# return (poster, thumb, '', '', '', '', '', '', meta) # poster gets dropped if also passed thumb from episode
 			return (poster, '', '', '', '', '', '', '', meta)
 		except:
 			log_utils.error()
@@ -419,7 +416,6 @@ class Player(xbmc.Player):
 				xbmc.sleep(1000)
 
 		if self.offset != '0' and self.playback_resumed is False:
-			# log_utils.log('Seeking %.2f minutes' % (float(self.offset) / 60), __name__, log_utils.LOGDEBUG)
 			self.seekTime(float(self.offset))
 			self.playback_resumed = True
 
@@ -655,7 +651,6 @@ class Bookmarks:
 
 		dbcon = database.connect(control.bookmarksFile)
 		dbcur = dbcon.cursor()
-		# dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""UNIQUE(idFile)"");")
 		dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""Name TEXT, ""year TEXT, ""UNIQUE(idFile)"");")
 		dbcur.execute("SELECT * FROM bookmark WHERE idFile = '%s'" % idFile)
 		match = dbcur.fetchone()
@@ -704,14 +699,11 @@ class Bookmarks:
 		control.makeFile(control.dataPath)
 		dbcon = database.connect(control.bookmarksFile)
 		dbcur = dbcon.cursor()
-		# dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""UNIQUE(idFile)"");")
 		dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""Name TEXT, ""year TEXT, ""UNIQUE(idFile)"");")
 		dbcur.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
 
 		if ok:
-			# dbcur.execute("INSERT INTO bookmark Values (?, ?)", (idFile, timeInSeconds))
 			dbcur.execute("INSERT INTO bookmark Values (?, ?, ?, ?)", (idFile, timeInSeconds, name, year))
-
 
 			minutes, seconds = divmod(float(timeInSeconds), 60)
 			hours, minutes = divmod(minutes, 60)

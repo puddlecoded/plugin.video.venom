@@ -1,3 +1,9 @@
+[B][COLOR red]Update - v3.6.2 - April 29, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Code changes for new integration with Venom global
+    context menu changes.[/I]
+[COLOR yellow]--[/COLOR][I] Changed trakt history to now follow "Progress sorting"
+    method from settings.[/I]
+
 [B][COLOR red]Update - v3.6.1 - April 14, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed Calendar show titles.[/I]
 [COLOR yellow]--[/COLOR][I] fixed typo with RD uncached torrent removal

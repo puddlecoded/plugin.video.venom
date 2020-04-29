@@ -22,6 +22,7 @@ class Trailer:
 		else:
 			self.key_link = '&key=%s' % self.rckey_link
 		self.search_link = 'https://www.googleapis.com/youtube/v3/search?part=id&type=video&maxResults=5&q=%s' + self.key_link
+		# self.search_link = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=%s' + self.key_link
 		self.youtube_watch = 'https://www.youtube.com/watch?v=%s'
 
 

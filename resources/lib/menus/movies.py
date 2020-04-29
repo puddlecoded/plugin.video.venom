@@ -468,10 +468,8 @@ class Movies:
 		k = control.keyboard('', t)
 		k.doModal()
 		q = k.getText().strip() if k.isConfirmed() else None
-
-		if not q:
+		if (q is None or q == ''):
 			return
-
 		url = self.persons_link + urllib.quote_plus(q)
 		self.persons(url)
 
@@ -984,21 +982,17 @@ class Movies:
 		self.list = []
 		try:
 			result = client.request(url)
-			result = result.decode('iso-8859-1').encode('utf-8')
-			# items = client.parseDOM(result, 'div', attrs = {'class': '.+?etail'})
-			items = client.parseDOM(result, 'div', attrs = {'class': '.+? lister-item'}) + client.parseDOM(result, 'div', attrs = {'class': 'lister-item .+?'})
+			items = client.parseDOM(result, 'div', attrs = {'class': '.+?etail'})
 		except:
 			log_utils.error()
-			pass
+			return
 
 		for item in items:
 			try:
-				name = client.parseDOM(item, 'a')[1]
-				name = client.replaceHTMLCodes(name)
+				name = client.parseDOM(item, 'img', ret='alt')[0]
 				name = name.encode('utf-8')
 
-				# url = client.parseDOM(item, 'a', ret='href')[0]
-				url = client.parseDOM(item, 'a', ret='href')[1]
+				url = client.parseDOM(item, 'a', ret='href')[0]
 				url = re.findall('(nm\d*)', url, re.I)[0]
 				url = self.person_link % url
 				url = client.replaceHTMLCodes(url)
@@ -1011,8 +1005,8 @@ class Movies:
 
 				self.list.append({'name': name, 'url': url, 'image': image})
 			except:
+				log_utils.error()
 				pass
-
 		return self.list
 
 
@@ -1454,6 +1448,7 @@ class Movies:
 
 		control.content(syshandle, 'movies')
 		control.directory(syshandle, cacheToDisc=True)
+		control.sleep(500)
 		views.setView('movies', {'skin.estuary': 55, 'skin.confluence': 500})
 
 
