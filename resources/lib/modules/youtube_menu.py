@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import sys
+"""
+	Venom Add-on
+"""
+
 import re
-# import urllib
-import urllib2
+import sys
+try:
+	from urllib.request import urlopen
+	from urllib.request import Request
+except ImportError:
+	from urllib2 import urlopen
+	from urllib2 import Request
 
 from resources.lib.modules import control
 
@@ -17,9 +25,9 @@ class youtube_menu(object):
 
 
 	def openMenuFile(self, menuFile):
-		req = urllib2.Request(menuFile)
+		req = Request(menuFile)
 		req.add_header('User-Agent', self.agent)
-		response = urllib2.urlopen(req)
+		response = urlopen(req)
 		link=response.read()
 		response.close()
 		return link
@@ -83,7 +91,6 @@ class youtube_menu(object):
 		work_url = "plugin://plugin.video.youtube/play/?video_id=%s" % video_id
 		liz = control.item(name)
 		liz.setInfo( type='video', infoLabels={'title': name})
-		# liz.setPath(work_url)
 		liz.setArt({'thumb': icon, 'banner': 'DefaultVideo.png', 'fanart': fanart})
 		liz.setProperty('IsPlayable', 'true')
 		control.addItem(handle=syshandle, url=work_url, listitem=liz, isFolder=False)

@@ -1,24 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import base64
-import urlparse
-import urllib
-import hashlib
-import re
-
-from resources.lib.modules import client
-from resources.lib.modules import directstream
-from resources.lib.modules import pyaes
-
+"""
+	Venom Add-on
+"""
 
 HDCAM = ['hdcam', 'hd cam', 'hd-cam', 'hd.cam', 'hdts', 'hd ts', 'hd-ts', 'hd.ts']
 
 CODEC_H265 = ['hevc', 'h265', 'h.265', 'x265', 'x.265']
 CODEC_H264 = ['avc', 'h264', 'h.264', 'x264', 'x.264']
 CODEC_XVID = ['xvid', 'x.vid', 'x-vid']
-CODEC_DIVX = ['divx', 'divx ', 'div2', 'div2 ', 'div3']
+CODEC_DIVX = ['divx', 'div2', 'div2 ', 'div3']
 CODEC_MPEG = ['mp4', 'mpeg', 'm4v', 'mpg', 'mpg1', 'mpg2', 'mpg3', 'mpg4', 'mp4 ', 'mpeg ', 'msmpeg', 'msmpeg4', 'mpegurl']
-CODEC_AVI = ['avi']
 CODEC_MKV = ['mkv', '.mkv', 'matroska']
 
 AUDIO_8CH = ['ch8', '8ch', '7.1', '7-1']
@@ -36,7 +28,6 @@ MULTI_LANG = ['hindi.eng', 'ara.eng', 'ces.eng', 'chi.eng', 'cze.eng', 'dan.eng'
 
 SUBS = ['subs', 'subtitula', 'subfrench', 'subspanish', 'swesub']
 ADDS = ['1xbet', 'betwin']
-
 
 
 def getFileType(url):
@@ -92,9 +83,11 @@ def getFileType(url):
 		type += ' 7CH /'
 	if any(value in url for value in AUDIO_6CH):
 		type += ' 6CH /'
-	if 'xvid' in url:
+	if any(value in url for value in AUDIO_2CH):
+		type += ' 2CH /'
+	if any(value in url for value in CODEC_XVID):
 		type += ' XVID /'
-	if 'divx' in url:
+	if any(value in url for value in CODEC_DIVX):
 		type += ' DIVX /'
 	if any(value in url for value in CODEC_MPEG):
 		type += ' MPEG /'

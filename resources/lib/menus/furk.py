@@ -1,9 +1,15 @@
+# -*- coding: utf-8 -*-
+
 '''
 	Venom Add-on
 '''
 
 import sys, os
-import requests, json, urllib, urlparse
+import requests, json
+try:
+	from urllib import quote_plus
+except:
+	from urllib.parse import quote_plus
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -113,8 +119,8 @@ class Furk:
 			dbcon.commit()
 			dbcur.close()
 
-			url = urllib.quote_plus(q)
-			url = '%s?action=furkMetaSearch&url=%s' % (sys.argv[0], urllib.quote_plus(url))
+			url = quote_plus(q)
+			url = '%s?action=furkMetaSearch&url=%s' % (sys.argv[0], quote_plus(url))
 			control.execute('Container.Update(%s)' % url)
 
 	def furk_meta_search(self, url):

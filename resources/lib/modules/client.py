@@ -1,8 +1,27 @@
 # -*- coding: utf-8 -*-
 
-import re, sys, time, cookielib
-import urllib, urllib2, urlparse, gzip
-import StringIO, HTMLParser, random, base64
+"""
+	Venom Add-on
+"""
+
+import base64
+import cookielib
+import gzip
+import random
+import re
+import StringIO
+import sys
+import time
+import urllib2
+try:
+	from HTMLParser import HTMLParser
+except:
+	from html.parser import HTMLParser
+try:
+	from urllib import quote_plus, urlencode
+	from urlparse import parse_qs, urlparse, urljoin
+except:
+	from urllib.parse import quote_plus, urlencode, parse_qs, urlparse, urljoin
 
 from resources.lib.modules import cache
 from resources.lib.modules import control
@@ -101,7 +120,7 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 				except:
 					pass
 
-			post = urllib.urlencode(post)
+			post = urlencode(post)
 
 		request = urllib2.Request(url, data=post)
 		_add_request_header(request, headers)
@@ -133,7 +152,7 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 								data = post
 							else:
 								try:
-									data = urlparse.parse_qs(post)
+									data = parse_qs(post)
 								except:
 									data = None
 
@@ -149,7 +168,7 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 							log_utils.error()
 
 					elif 'cf-browser-verification' in cf_result:
-						netloc = '%s://%s' % (urlparse.urlparse(url).scheme, urlparse.urlparse(url).netloc)
+						netloc = '%s://%s' % (urlparse(url).scheme, urlparse(url).netloc)
 						ua = headers['User-Agent']
 						cf = cache.get(cfcookie().get, 168, netloc, ua, timeout)
 						headers['Cookie'] = cf
@@ -246,7 +265,7 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 				result = gzip.GzipFile(fileobj=StringIO.StringIO(result)).read()
 
 		if 'Blazingfast.io' in result and 'xhr.open' in result:
-			netloc = '%s://%s' % (urlparse.urlparse(url).scheme, urlparse.urlparse(url).netloc)
+			netloc = '%s://%s' % (urlparse(url).scheme, urlparse(url).netloc)
 			ua = headers['User-Agent']
 			headers['Cookie'] = cache.get(bfcookie().get, 168, netloc, ua, timeout)
 			result = _basic_request(url, headers=headers, post=post, timeout=timeout, limit=limit)
@@ -292,7 +311,6 @@ def _basic_request(url, headers=None, post=None, timeout='30', limit=None):
 			headers.update(headers)
 		except:
 			headers = {}
-
 		request = urllib2.Request(url, data=post)
 		_add_request_header(request, headers)
 		response = urllib2.urlopen(request, timeout=int(timeout))
@@ -309,7 +327,6 @@ def _add_request_header(_request, headers):
 			scheme = _request.get_type()
 		except:
 			scheme = 'http'
-
 		referer = headers.get('Referer') if 'Referer' in headers else '%s://%s' % (scheme, _request.get_host())
 		_request.add_unredirected_header('Host', _request.get_host())
 		_request.add_unredirected_header('Referer', referer)
@@ -327,7 +344,6 @@ def _get_result(response, limit=None):
 		result = response.read(int(limit) * 1024)
 	else:
 		result = response.read(5242880)
-
 	try:
 		encoding = response.info().getheader('Content-Encoding')
 	except:
@@ -342,7 +358,6 @@ def parseDOM(html, name='', attrs=None, ret=False):
 	if attrs:
 		attrs = dict((key, re.compile(value + ('$' if value else ''))) for key, value in attrs.iteritems())
 	results = dom_parser.parse_dom(html, name, attrs, ret)
-
 	if ret:
 		results = [result.attrs[ret.lower()] for result in results]
 	else:
@@ -357,9 +372,11 @@ def replaceHTMLCodes(txt):
 
 def _replaceHTMLCodes(txt):
 	txt = re.sub("(&#[0-9]+)([^;^0-9]+)", "\\1;\\2", txt)
-	txt = HTMLParser.HTMLParser().unescape(txt)
+	txt = HTMLParser().unescape(txt)
 	txt = txt.replace("&quot;", "\"")
 	txt = txt.replace("&amp;", "&")
+	txt = txt.replace("&lt;", "<")
+	txt = txt.replace("&gt;", ">")
 	txt = txt.strip()
 	return txt
 
@@ -435,12 +452,12 @@ class cfcookie:
 					line_val = self.parseJSString(sections[1])
 					decryptVal = int(eval(str(decryptVal)+sections[0][-1]+str(line_val)))
 
-			answer = decryptVal + len(urlparse.urlparse(netloc).netloc)
+			answer = decryptVal + len(urlparse(netloc).netloc)
 			query = '%s/cdn-cgi/l/chk_jschl?jschl_vc=%s&jschl_answer=%s' % (netloc, jschl, answer)
 
 			if 'type="hidden" name="pass"' in result:
 				passval = re.findall('name="pass" value="(.*?)"', result)[0]
-				query = '%s/cdn-cgi/l/chk_jschl?pass=%s&jschl_vc=%s&jschl_answer=%s' % (netloc, urllib.quote_plus(passval), jschl, answer)
+				query = '%s/cdn-cgi/l/chk_jschl?pass=%s&jschl_vc=%s&jschl_answer=%s' % (netloc, quote_plus(passval), jschl, answer)
 				time.sleep(6)
 
 			cookies = cookielib.LWPCookieJar()
@@ -486,7 +503,7 @@ class bfcookie:
 				return False
 			url_Parts = match[0].split('"')
 			url_Parts[1] = '1680'
-			url = urlparse.urljoin(netloc, ''.join(url_Parts))
+			url = urljoin(netloc, ''.join(url_Parts))
 			match = re.findall('rid=([0-9a-zA-Z]+)', url_Parts[0])
 			if not match:
 				return False

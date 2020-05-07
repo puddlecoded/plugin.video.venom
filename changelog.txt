@@ -1,3 +1,10 @@
+[B][COLOR red]Update - v3.6.3 - May 6, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Integration with new "Play from Here" option in Global
+    Context Menu. See "What's New" for more info in addon.[/I]
+[COLOR yellow]--[/COLOR][I] Code changes per cProfile function testing for speed
+    inprovements. Movie menus should now load faster
+    and more to follow.[/I]
+
 [B][COLOR red]Update - v3.6.2 - April 29, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Code changes for new integration with Venom global
     context menu changes.[/I]

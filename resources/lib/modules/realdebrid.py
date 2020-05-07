@@ -1,20 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import re
-import urllib2
-import requests
+'''
+	Venom Add-on
+'''
+
 import json
-
-
-# from lib import helpers
-# from resolveurl import common
-# from resolveurl.common import i18n
-# from resolveurl.resolver import ResolveUrl, ResolverError
+import re
+import requests
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 from resources.lib.modules import workers
-
 try:
 	from resolveurl.plugins.realdebrid import RealDebridResolver
 except:
@@ -23,14 +19,9 @@ except:
 
 CLIENT_ID = 'X245A4XAIBGVM'
 USER_AGENT = 'ResolveURL for Kodi/%s' % control.getKodiVersion()
-INTERVALS = 5  # seconds
 
-# Supported video formats
-FORMATS = ['.aac', '.asf', '.avi', '.flv', '.m4a', '.m4v', '.mka', '.mkv', '.mp4', '.mpeg', '.nut', '.ogg']
 
-STALLED = ['magnet_error', 'error', 'virus', 'dead']
-
-rest_base_url = 'https://api.real-debrid.com/rest/1.0'
+rest_base_url = 'https://api.real-debrid.com/rest/1.0/'
 oauth_base_url = 'https://api.real-debrid.com/oauth/v2'
 unrestrict_link_path = 'unrestrict/link'
 device_endpoint_path = 'device/code'
@@ -55,191 +46,58 @@ class RealDebrid:
 		self.cache_check_results = {}
 
 
-	def get_media_url(self, host, media_id, retry=False, cached_only=False):
-		try:
-			# self.headers.update({'Authorization': 'Bearer %s' % self.get_setting('self.token')})
-			if media_id.lower().startswith('magnet:'):
-				cached = self.check_cache(media_id)
-				if not cached and (self.get_setting('cached_only') == 'true' or cached_only):
-					raise ResolverError('Real-Debrid: Cached torrents only allowed to be initiated')
-				torrent_id = self.__add_magnet(media_id)
-				if not torrent_id == "":
-					torrent_info = self.__torrent_info(torrent_id)
-					heading = 'Resolve URL Real-Debrid Transfer'
-					line1 = torrent_info.get('filename')
-					status = torrent_info.get('status')
-					if status == 'magnet_conversion':
-						line2 = 'Converting MAGNET...'
-						line3 = '%s seeders' % torrent_info.get('seeders')
-						_TIMEOUT = 100	# seconds
-						with common.kodi.ProgressDialog(heading, line1, line2, line3) as cd:
-							while status == 'magnet_conversion' and _TIMEOUT > 0:
-								cd.update(_TIMEOUT, line1=line1, line3=line3)
-								if cd.is_canceled():
-									self.__delete_torrent(torrent_id)
-									raise ResolverError('Real-Debrid: Torrent ID %s canceled by user' % torrent_id)
-								elif any(x in status for x in STALLED):
-									self.__delete_torrent(torrent_id)
-									raise ResolverError('Real-Debrid: Torrent ID %s has stalled | REASON: %s' % (torrent_id, status))
-								_TIMEOUT -= INTERVALS
-								common.kodi.sleep(1000 * INTERVALS)
-								torrent_info = self.__torrent_info(torrent_id)
-								status = torrent_info.get('status')
-								line1 = torrent_info.get('filename')
-								line3 = '%s seeders' % torrent_info.get('seeders')
-						if status == 'magnet_conversion':
-							self.__delete_torrent(torrent_id)
-							raise ResolverError('Real-Debrid Error: MAGNET Conversion exceeded time limit')
-					if status == 'waiting_files_selection':
-						_videos = []
-						for _file in torrent_info.get('files'):
-							if any(_file.get('path').lower().endswith(x) for x in FORMATS):
-								_videos.append(_file)
-						try:
-							_video = max(_videos, key=lambda x: x.get('bytes'))
-							file_id = _video.get('id', 0)
-						except ValueError:
-							self.__delete_torrent(torrent_id)
-							raise ResolverError('Real-Debrid Error: Failed to locate largest video file')
-						file_selected = self.__select_file(torrent_id, file_id)
-						if not file_selected:
-							self.__delete_torrent(torrent_id)
-							raise ResolverError('Real-Debrid Error: Failed to select file')
-						else:
-							torrent_info = self.__torrent_info(torrent_id)
-							status = torrent_info.get('status')
-							if not status == 'downloaded':
-								file_size = round(float(_video.get('bytes')) / (1000 ** 3), 2)
-								if cached:
-									line2 = 'Getting torrent from the Real-Debrid Cloud'
-								else:
-									line2 = 'Saving torrent to the Real-Debrid Cloud'
-								line3 = status
-								with common.kodi.ProgressDialog(heading, line1, line2, line3) as pd:
-									while not status == 'downloaded':
-										common.kodi.sleep(1000 * INTERVALS)
-										torrent_info = self.__torrent_info(torrent_id)
-										line1 = torrent_info.get('filename')
-										status = torrent_info.get('status')
-										if status == 'downloading':
-											line3 = 'Downloading %s GB @ %s mbps from %s peers, %s %% completed' % (file_size, round(float(torrent_info.get('speed')) / (1000**2), 2), torrent_info.get("seeders"), torrent_info.get('progress'))
-										else:
-											line3 = status
-										log_utils.log(line3, __name__, log_utils.LOGDEBUG)
-										pd.update(int(float(torrent_info.get('progress'))), line1=line1, line3=line3)
-										if pd.is_canceled():
-											self.__delete_torrent(torrent_id)
-											raise ResolverError('Real-Debrid: Torrent ID %s canceled by user' % torrent_id)
-										elif any(x in status for x in STALLED):
-											self.__delete_torrent(torrent_id)
-											raise ResolverError('Real-Debrid: Torrent ID %s has stalled | REASON: %s' % (torrent_id, status))
-							# xbmc.sleep(1000 * INTERVALS)	# allow api time to generate the stream_link
-							media_id = torrent_info.get('links')[0]
-					self.__delete_torrent(torrent_id)
-				if media_id.lower().startswith('magnet:'):
-					self.__delete_torrent(torrent_id)  # clean up just incase
-					raise ResolverError('Real-Debrid Error: Failed to transfer torrent to/from the cloud')
-
-			url = '%s/%s' % (rest_base_url, unrestrict_link_path)
-			postData = {'link': media_id}
-			# result = self.net.http_POST(url, form_data=data, headers=self.headers).content
-			result = requests.post(url, data=postData, headers=self.headers, timeout=10).json()
-		except urllib2.HTTPError as e:
-			if not retry and e.code == 401:
-				if self.get_setting('refresh'):
-					self.refresh_token()
-					return self.get_media_url(host, media_id, retry=True)
-				else:
-					self.reset_authorization()
-					raise ResolverError('Real Debrid Auth Failed & No Refresh Token')
-			else:
-				try:
-					js_result = json.loads(e.read())
-					if 'error' in js_result:
-						msg = js_result['error']
-					else:
-						msg = 'Unknown Error (1)'
-				except:
-					msg = 'Unknown Error (2)'
-				raise ResolverError('Real Debrid Error: %s (%s)' % (msg, e.code))
-		except Exception as e:
-			raise ResolverError('Unexpected Exception during RD Unrestrict: %s' % e)
+	def get_url(self, url, fail_check=False, token_ck=False):
+		original_url = url
+		url = rest_base_url + url
+		if self.token == '':
+			log_utils.log('No Real Debrid Token Found', __name__, log_utils.LOGDEBUG)
+			return None
+		# if not fail_check: # with fail_check=True new token does not get added
+		if '?' not in url:
+			url += "?auth_token=%s" % self.token
 		else:
-			js_result = json.loads(result)
-			links = []
-			link = self.__get_link(js_result)
-			if link is not None:
-				links.append(link)
-			if 'alternative' in js_result:
-				for alt in js_result['alternative']:
-					link = self.__get_link(alt)
-					if link is not None:
-						links.append(link)
-			return helpers.pick_source(links)
+			url += "&auth_token=%s" % self.token
 
+		response = requests.get(url, timeout=5).text
 
-	def check_cache(self, media_id):
-		r = re.search('''magnet:.+?urn:([a-zA-Z0-9]+):([a-zA-Z0-9]+)''', media_id, re.I)
-		if r:
-			_hash, _format = r.group(2).lower(), r.group(1)
-			try:
-				# url = '%s/%s/%s' % (rest_base_url, check_cache_path, _hash)
-				url = '%s/%s/%s?auth_token=%s' % (rest_base_url, check_cache_path, _hash, self.token)
-
-				# response = requests.get(url, headers=self.headers).json()
-				response = requests.get(url).text
-
-				if 'bad_token' in response or 'Bad Request' in response:
-					log_utils.log('Refreshing RD Token', __name__, log_utils.LOGDEBUG)
-					self.refresh_token()
-					response = self.check_cache(media_id)
-
-				try:
-					response = json.loads(response)
-				except:
-					pass
-
-				_hash_info = response.get(_hash, {})
-
-				if isinstance(_hash_info, dict):
-					if len(_hash_info.get('rd')) > 0:
-						log_utils.log('Real-Debrid: %s is cached' % _hash, __name__, log_utils.LOGDEBUG)
-						return _hash_info
-
-			except Exception as e:
-				log_utils.log('Real-Debrid Error: CHECK CACHE | %s' % e, __name__, log_utils.LOGDEBUG)
-				raise
-		return {}
+		if 'bad_token' in response or 'Bad Request' in response:
+			if not fail_check:
+				if self.refresh_token() and token_ck:
+					return
+				response = self.get_url(original_url, fail_check=True)
+		try:
+			return json.loads(response)
+		except:
+			return response
 
 
 	def check_cache_list(self, hashList):
 		if isinstance(hashList, list):
 			hashList = [hashList[x:x+100] for x in range(0, len(hashList), 100)]
+			# Need to check token, and refresh if needed, before blasting threads at it
+			ck_token = self.get_url('user', token_ck=True)
+
 			threads = []
-			for i in hashList:
-				threads.append(workers.Thread(self.check_hash_thread, i))
+			for section in hashList:
+				threads.append(workers.Thread(self.check_hash_thread, section))
 			[i.start() for i in threads]
 			[i.join() for i in threads]
 
 			return self.cache_check_results
 		else:
 			hashString = "/" + hashList
-			# return self.get_url("torrents/instantAvailability" + hashString)
+			return self.get_url("torrents/instantAvailability" + hashString)
 
 
 	def check_hash_thread(self, hashes):
-		hashString = '/' + '/'.join(hashes)
-		url = '%s/%s%s?auth_token=%s' % (rest_base_url, check_cache_path, hashString, self.token)
-		response = requests.get(url, timeout=10).text
-		if 'bad_token' in response or 'Bad Request' in response:
-			log_utils.log('Refreshing RD Token', __name__, log_utils.LOGDEBUG)
-			self.refresh_token()
-			response = self.check_hash_thread(hashes)
 		try:
-			response = json.loads(response)
+			hashString = '/' + '/'.join(hashes)
+			response = self.get_url("torrents/instantAvailability" + hashString)
+			# log_utils.log('response = %s' % response, __name__, log_utils.LOGDEBUG)
+			self.cache_check_results.update(response)
 		except:
+			log_utils.error()
 			pass
-		self.cache_check_results.update(response)
 
 
 	def __torrent_info(self, torrent_id):
@@ -306,17 +164,22 @@ class RealDebrid:
 
 
 	def refresh_token(self):
-		client_id = RealDebridResolver.get_setting('client_id')
-		client_secret = RealDebridResolver.get_setting('client_secret')
-		refresh_token = RealDebridResolver.get_setting('refresh')
+		try:
+			client_id = RealDebridResolver.get_setting('client_id')
+			client_secret = RealDebridResolver.get_setting('client_secret')
+			refresh_token = RealDebridResolver.get_setting('refresh')
 
-		log_utils.log('Refreshing Expired Real Debrid Token: |%s|%s|' % (client_id, refresh_token), __name__, log_utils.LOGDEBUG)
+			log_utils.log('Refreshing Expired Real Debrid Token: |%s|%s|' % (client_id, refresh_token), __name__, log_utils.LOGDEBUG)
 
-		if not self.__get_token(client_id, client_secret, refresh_token):
-			# empty all auth settings to force a re-auth on next use
-			self.reset_authorization()
-			raise ResolverError('Unable to Refresh Real Debrid Token')
-
+			if not self.__get_token(client_id, client_secret, refresh_token):
+				# empty all auth settings to force a re-auth on next use
+				self.reset_authorization()
+				log_utils.log('Unable to Refresh Real Debrid Token', __name__, log_utils.LOGDEBUG)
+			else:
+				log_utils.log('Real Debrid Token Successfully Refreshed', __name__, log_utils.LOGDEBUG)
+				return True
+		except:
+			return False
 
 	def authorize_resolver(self):
 		url = '%s/%s?client_id=%s&new_credentials=yes' % (oauth_base_url, device_endpoint_path, CLIENT_ID)
@@ -371,10 +234,6 @@ class RealDebrid:
 		RealDebridResolver.set_setting('client_secret', '')
 		RealDebridResolver.set_setting('token', '')
 		RealDebridResolver.set_setting('refresh', '')
-
-
-	def get_url(self, host, media_id):
-		return media_id
 
 
 	def get_host_and_id(self, url):

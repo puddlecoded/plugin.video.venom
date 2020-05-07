@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 	Venom Add-on
-'''
+"""
 
-import re, json, urlparse, datetime
+import datetime
+import json
+import re
+try:
+	from urlparse import urlparse
+except:
+	from urllib.parse import urlparse
 
 from resources.lib.modules import cache
 from resources.lib.modules import client
@@ -74,7 +80,7 @@ class movies:
 				next = zip(client.parseDOM(next, 'a', ret='href'), client.parseDOM(next, 'a'))
 				next = [i[0] for i in next if 'Next' in i[1]]
 
-			next = url.replace(urlparse.urlparse(url).query, urlparse.urlparse(next[0]).query)
+			next = url.replace(urlparse(url).query, urlparse(next[0]).query)
 			next = client.replaceHTMLCodes(next)
 			next = next.encode('utf-8')
 		except:
@@ -208,9 +214,9 @@ class movies:
 
 				# fanart_thread = threading.Thread
 				from resources.lib.indexers import fanarttv
-				# extended_art = fanarttv.get_movie_art(imdb, tmdb)
-				extended_art = cache.get(fanarttv.get_movie_art, 168, imdb, tmdb)
-				if extended_art is not None:
+				extended_art = fanarttv.get_movie_art(imdb, tmdb)
+				# extended_art = cache.get(fanarttv.get_movie_art, 168, imdb, tmdb)
+				if extended_art:
 					item.update(extended_art)
 					meta.update(item)
 
@@ -287,7 +293,8 @@ class movies:
 
 	def super_info(self, i):
 		try:
-			if self.list[i]['metacache'] is True:
+			# if self.list[i]['metacache'] is True:
+			if self.list[i]['metacache']:
 				raise Exception()
 
 			imdb = self.list[i]['imdb']

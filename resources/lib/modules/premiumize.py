@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 
+'''
+	Venom Add-on
+'''
+
 import re
-import urllib
 import requests
+try:
+	from urllib import quote_plus, urlencode
+except:
+	from urllib.parse import quote_plus, urlencode
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
-
 
 try:
 	from resolveurl.plugins.premiumize_me import PremiumizeMeResolver
@@ -16,9 +22,6 @@ except:
 
 CLIENT_ID = '522962560'
 USER_AGENT = 'ResolveURL for Kodi/%s' % control.getKodiVersion()
-
-# Supported video formats
-FORMATS = ['.aac', '.asf', '.avi', '.flv', '.m4a', '.m4v', '.mka', '.mkv', '.mp4', '.mpeg', '.nut', '.ogg']
 
 BaseUrl = "https://www.premiumize.me/api"
 DirectDownload = '%s/transfer/directdl' % BaseUrl
@@ -58,14 +61,14 @@ class Premiumize:
 			# self.__delete_folder()
 
 		link = self.__direct_dl(media_id, torrent=torrent)
-		if link is not None:
+		if link:
 			log_utils.log('Premiumize.me: Resolved to %s' % link, __name__, log_utils.LOGDEBUG)
 			return link + self.append_headers(self.headers)
 		raise ResolverError('Link Not Found')
 
 
 	def append_headers(self, headers):
-		return '|%s' % '&'.join(['%s=%s' % (key, urllib.quote_plus(headers[key])) for key in headers])
+		return '|%s' % '&'.join(['%s=%s' % (key, quote_plus(headers[key])) for key in headers])
 
 
 	def get_url(self, host, media_id):
@@ -163,7 +166,7 @@ class Premiumize:
 		folder_id = self.__create_folder()
 		if not folder_id == "":
 			try:
-				data = urllib.urlencode({'src': media_id, 'folder_id': folder_id})
+				data = urlencode({'src': media_id, 'folder_id': folder_id})
 				result = request.post(TransferCreate, data=data, headers=self.headers).json()
 				if 'status' in result:
 					if result.get('status') == 'success':

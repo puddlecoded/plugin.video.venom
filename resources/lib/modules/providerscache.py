@@ -8,14 +8,13 @@ import ast
 import hashlib
 import re
 import time
-
-from resources.lib.modules import control
-from resources.lib.modules import log_utils
-
 try:
 	from sqlite3 import dbapi2 as db, OperationalError
 except ImportError:
 	from pysqlite2 import dbapi2 as db, OperationalError
+
+from resources.lib.modules import control
+from resources.lib.modules import log_utils
 
 cache_table = 'cache'
 notificationSound = False if control.setting('notification.sound') == 'false' else True
@@ -29,7 +28,6 @@ def get(function, duration, *args):
 	:param duration: Duration of validity of cache in hours
 	:param args: Optional arguments for the provided function
 	"""
-
 	try:
 		key = _hash_function(function, args)
 		cache_result = cache_get(key)
@@ -154,4 +152,3 @@ def _is_cache_valid(cached_time, cache_timeout):
 	now = int(time.time())
 	diff = now - cached_time
 	return (cache_timeout * 3600) > diff
-

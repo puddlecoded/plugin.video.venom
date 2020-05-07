@@ -1,13 +1,21 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 	Venom Add-on
-'''
+"""
 
-import sys, re, json, zipfile
-import StringIO, urllib, urllib2, urlparse
 import datetime
+import json
+import re
 import requests
+import StringIO
+import sys
+import zipfile
+try:
+	from urllib import quote_plus
+	from urlparse import parse_qsl
+except:
+	from urllib.parse import quote_plus, parse_qsl
 
 from resources.lib.modules import cleantitle
 from resources.lib.modules import cache
@@ -24,7 +32,7 @@ from resources.lib.menus import tvshows as tvshowsx
 sysaddon = sys.argv[0]
 syshandle = int(sys.argv[1])
 
-params = dict(urlparse.parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
+params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
 action = params.get('action')
 notificationSound = False if control.setting('notification.sound') == 'false' else True
 is_widget = False if 'plugin' in control.infoLabel('Container.PluginName') else True
@@ -55,28 +63,7 @@ class Seasons:
 
 		self.showunaired = control.setting('showunaired') or 'true'
 		self.unairedcolor = control.setting('unaired.identify')
-		self.unairedcolor = self.getUnairedColor(self.unairedcolor)
-
-
-	def getUnairedColor(self, n):
-		if n == '0': n = 'blue'
-		elif n == '1': n = 'red'
-		elif n == '2': n = 'yellow'
-		elif n == '3': n = 'deeppink'
-		elif n == '4': n = 'cyan'
-		elif n == '5': n = 'lawngreen'
-		elif n == '6': n = 'gold'
-		elif n == '7': n = 'magenta'
-		elif n == '8': n = 'yellowgreen'
-		elif n == '9': n = 'skyblue'
-		elif n == '10': n = 'lime'
-		elif n == '11': n = 'limegreen'
-		elif n == '12': n = 'deepskyblue'
-		elif n == '13': n = 'white'
-		elif n == '14': n = 'whitesmoke'
-		elif n == '15': n = 'nocolor'
-		else: n == 'skyblue'
-		return n
+		self.unairedcolor = control.getColor(self.unairedcolor)
 
 
 	@classmethod
@@ -104,7 +91,7 @@ class Seasons:
 
 
 	def get(self, tvshowtitle, year, imdb, tmdb, tvdb, idx=True):
-		if idx is True:
+		if idx:
 			self.list = cache.get(self.tvdb_list, 24, tvshowtitle, year, imdb, tmdb, tvdb, self.lang)
 			self.seasonDirectory(self.list)
 			return self.list
@@ -147,14 +134,14 @@ class Seasons:
 		userlists = []
 
 		try:
-			if self.traktCredentials is False:
+			if not self.traktCredentials:
 				raise Exception()
 			activity = trakt.getActivity()
 		except:
 			pass
 
 		try:
-			if self.traktCredentials is False:
+			if not self.traktCredentials:
 				raise Exception()
 			self.list = []
 			try:
@@ -167,7 +154,7 @@ class Seasons:
 			pass
 
 		try:
-			if self.traktCredentials is False:
+			if not self.traktCredentials:
 				raise Exception()
 			self.list = []
 			try:
@@ -194,7 +181,7 @@ class Seasons:
 		for i in range(0, len(self.list)): self.list[i].update({'image': 'traktlists.png', 'action': 'seasonsList'})
 
 		# Watchlist
-		if self.traktCredentials is True:
+		if self.traktCredentials:
 			self.list.insert(0, {'name': control.lang(32033).encode('utf-8'), 'url': self.traktwatchlist_link, 'image': 'traktwatch.png', 'action': 'seasons'})
 
 		episodes.addDirectory(self.list, queue = True)
@@ -204,7 +191,7 @@ class Seasons:
 	def tvdb_list(self, tvshowtitle, year, imdb, tmdb, tvdb, lang, limit = ''):
 		if (tvdb == '0' or tmdb == '0') and imdb != '0':
 			try:
-				trakt_ids = trakt.IdLookup('show', 'imdb', imdb)
+				trakt_ids = trakt.IdLookup('imdb', imdb, 'show')
 				if not trakt_ids:
 					raise Exception()
 				if tvdb == '0':
@@ -221,7 +208,7 @@ class Seasons:
 
 		if imdb == '0' or tmdb == '0' or tvdb == '0':
 			try:
-				trakt_ids = trakt.SearchTVShow(urllib.quote_plus(tvshowtitle), year, full=False)
+				trakt_ids = trakt.SearchTVShow(quote_plus(tvshowtitle), year, full=False)
 				if not trakt_ids:
 					raise Exception()
 				trakt_ids = trakt_ids[0].get('show', '0')
@@ -278,7 +265,7 @@ class Seasons:
 		if tvdb == '0':
 			try:
 				years = [str(year), str(int(year)+1), str(int(year)-1)]
-				url = self.tvdb_by_query % (urllib.quote_plus(tvshowtitle))
+				url = self.tvdb_by_query % (quote_plus(tvshowtitle))
 				# tvdb = client.request(url, timeout='10', error=True)
 				tvdb = requests.get(url).content
 				tvdb = re.sub(r'[^\x00-\x7F]+', '', tvdb)
@@ -501,7 +488,8 @@ class Seasons:
 			label = label.encode('utf-8')
 
 			try:
-				plot = client.parseDOM(item2, 'Overview')[0]
+				# plot = client.parseDOM(item2, 'Overview')[0]
+				plot = client.parseDOM(item2, 'Overview')[0].encode('ascii', errors='ignore').decode('ascii', errors='ignore')
 			except:
 				plot = ''
 			if plot == '':
@@ -684,7 +672,8 @@ class Seasons:
 				label = label.encode('utf-8')
 
 				try:
-					episodeplot = client.parseDOM(local, 'Overview')[0]
+					# episodeplot = client.parseDOM(local, 'Overview')[0]
+					episodeplot = client.parseDOM(local, 'Overview')[0].encode('ascii', errors='ignore').decode('ascii', errors='ignore')
 				except:
 					episodeplot = ''
 				if episodeplot == '':
@@ -767,7 +756,7 @@ class Seasons:
 	def _seasonCount(self, tvshowtitle, year, imdb, tvdb):
 		if imdb == '0':
 			try:
-				imdb = trakt.SearchTVShow(urllib.quote_plus(tvshowtitle), year, full=False)[0]
+				imdb = trakt.SearchTVShow(quote_plus(tvshowtitle), year, full=False)[0]
 				imdb = imdb.get('show', '0')
 				imdb = imdb.get('ids', {}).get('imdb', '0')
 				imdb = 'tt' + re.sub('[^0-9]', '', str(imdb))
@@ -806,7 +795,7 @@ class Seasons:
 		if tvdb == '0':
 			try:
 				years = [str(year), str(int(year)+1), str(int(year)-1)]
-				url = self.tvdb_by_query % (urllib.quote_plus(tvshowtitle))
+				url = self.tvdb_by_query % (quote_plus(tvshowtitle))
 				# tvdb = client.request(url, timeout='10', error=True)
 				tvdb = requests.get(url).content
 				tvdb = re.sub(r'[^\x00-\x7F]+', '', tvdb)
@@ -828,7 +817,6 @@ class Seasons:
 
 		try:
 			url = self.tvdb_info_link % (tvdb, 'en')
-			# data = urllib2.urlopen(url, timeout=30).read()
 			data = requests.get(url).content
 			zip = zipfile.ZipFile(StringIO.StringIO(data))
 			result = zip.read('%s.xml' % 'en')
@@ -840,7 +828,6 @@ class Seasons:
 			if len(dupe) > 0:
 				tvdb = str(dupe[0]).encode('utf-8')
 				url = self.tvdb_info_link % (tvdb, 'en')
-				# data = urllib2.urlopen(url, timeout=30).read()
 				data = requests.get(url).content
 				zip = zipfile.ZipFile(StringIO.StringIO(data))
 
@@ -855,7 +842,8 @@ class Seasons:
 
 
 	def seasonDirectory(self, items):
-		if items is None or len(items) == 0:
+		# if items is None or len(items) == 0:
+		if not items:
 			control.hide()
 			control.notification(title = 32054, message = 33049, icon = 'INFO', sound=notificationSound)
 			sys.exit()
@@ -874,7 +862,7 @@ class Seasons:
 		unwatchedLimit = False
 		seasoncountEnabled = control.setting('tvshows.seasoncount.enabled')
 
-		if trakt.getTraktIndicatorsInfo() is True:
+		if trakt.getTraktIndicatorsInfo():
 			watchedMenu = control.lang(32068).encode('utf-8')
 			unwatchedMenu = control.lang(32069).encode('utf-8')
 		else:
@@ -903,7 +891,8 @@ class Seasons:
 				title = i['tvshowtitle']
 				label = '%s %s' % (labelMenu, i['season'])
 
-				if self.season_special is False and control.setting('tv.specials') == 'true':
+				# if self.season_special is False and control.setting('tv.specials') == 'true':
+				if not self.season_special and control.setting('tv.specials') == 'true':
 					self.season_special = True if int(season) == 0 else False
 
 				try:
@@ -912,7 +901,7 @@ class Seasons:
 				except:
 					pass
 
-				systitle = urllib.quote_plus(title)
+				systitle = quote_plus(title)
 
 				meta = dict((k, v) for k, v in i.iteritems() if v != '0')
 				meta.update({'code': imdb, 'imdbnumber': imdb})
@@ -977,7 +966,7 @@ class Seasons:
 
 ####-Context Menu and Overlays-####
 				cm = []
-				if self.traktCredentials is True:
+				if self.traktCredentials:
 					cm.append((traktManagerMenu, 'RunPlugin(%s?action=traktManager&name=%s&imdb=%s&tvdb=%s&season=%s)' % (sysaddon, systitle, imdb, tvdb, season)))
 
 				try:
@@ -992,10 +981,10 @@ class Seasons:
 				except:
 					pass
 
-				# sysmeta = urllib.quote_plus(json.dumps(meta))
-				# sysart = urllib.quote_plus(json.dumps(art))
+				# sysmeta = quote_plus(json.dumps(meta))
+				# sysart = quote_plus(json.dumps(art))
 				url = '%s?action=episodes&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s' % (sysaddon, systitle, year, imdb, tmdb, tvdb, season)
-				# sysurl = urllib.quote_plus(url)
+				# sysurl = quote_plus(url)
 
 				cm.append((playRandom, 'RunPlugin(%s?action=random&rtype=episode&tvshowtitle=%s&year=%s&imdb=%s&tvdb=%s&season=%s)' % (
 									sysaddon, systitle, year, imdb, tvdb, season)))
@@ -1012,7 +1001,7 @@ class Seasons:
 ####################################
 
 				if not i.get('trailer'):
-					meta.update({'trailer': '%s?action=trailer&type=%s&name=%s&year=%s&imdb=%s' % (sysaddon, 'show', urllib.quote_plus(title), year, imdb)})
+					meta.update({'trailer': '%s?action=trailer&type=%s&name=%s&year=%s&imdb=%s' % (sysaddon, 'show', quote_plus(title), year, imdb)})
 
 				item = control.item(label = label)
 				if 'castandart' in i:
@@ -1028,13 +1017,13 @@ class Seasons:
 						item.setProperty('WatchedEpisodes', str(count['watched']))
 						item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
 
-				if seasoncountEnabled == 'true' and self.traktCredentials is True:
+				if seasoncountEnabled == 'true' and self.traktCredentials:
 					total_seasons = trakt.getSeasons(imdb, full=False)
-					if total_seasons is not None:
+					if total_seasons:
 						total_seasons = [i['number'] for i in total_seasons]
 						season_special = True if 0 in total_seasons else False
 						total_seasons = len(total_seasons)
-						if control.setting('tv.specials') == 'false' and season_special is True:
+						if control.setting('tv.specials') == 'false' and season_special:
 							total_seasons = total_seasons - 1
 						item.setProperty('TotalSeasons', str(total_seasons))
 

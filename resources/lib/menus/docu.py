@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import os, sys, re, datetime
-import requests, urlparse, json, xbmcgui, xbmcplugin
+'''
+	Venom Add-on
+'''
+
+import sys
+import re
+import requests, json, xbmcgui
+try:
+	from urllib import quote_plus
+except:
+	from urllib.parse import quote_plus
 
 from resources.lib.modules import log_utils
 from resources.lib.modules import cache
@@ -160,7 +169,7 @@ class documentary:
 					if '.m3u8?auth' in m_url:
 						rr = requests.get(m_url,cookies=r.cookies.get_dict() ,headers=headers)
 						if rr.headers.get('set-cookie'):
-							print 'adding cookie to url'
+							print('adding cookie to url')
 							strurl = re.findall('(http.+)',rr.text)[0].split('#cell')[0]+'|Cookie='+rr.headers['set-cookie']
 						else:
 							strurl = re.findall('(http.+)',rr.text)[0].split('#cell')[0]
@@ -171,13 +180,13 @@ class documentary:
 		try: name = control.lang(name).encode('utf-8')
 		except: pass
 		url = '%s?action=%s' % (sysaddon, query) if isAction is True else query
-		thumb = os.path.join(artPath, thumb) if artPath is not None else icon
+		thumb = control.joinPath(artPath, thumb) if artPath is not None else icon
 		cm = []
 
-		if queue is True:
+		if queue:
 			cm.append((queueMenu, 'RunPlugin(%s?action=queueItem)' % sysaddon))
 
-		if context is not None:
+		if context:
 			cm.append((control.lang(context[0]).encode('utf-8'), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
 
 		item = control.item(label=name)
@@ -213,8 +222,8 @@ class documentary:
 
 				if i['image'].startswith('http'):
 					thumb = i['image']
-				elif artPath is not None:
-					thumb = os.path.join(artPath, i['image'])
+				elif artPath:
+					thumb = control.joinPath(artPath, i['image'])
 				else:
 					thumb = addonThumb
 
@@ -222,7 +231,7 @@ class documentary:
 
 				if isFolder:
 					url = '%s?action=%s' % (sysaddon, i['action'])
-					try: url += '&url=%s' % urllib.quote_plus(i['url'])
+					try: url += '&url=%s' % quote_plus(i['url'])
 					except: pass
 					item.setProperty('IsPlayable', 'false')
 				else:

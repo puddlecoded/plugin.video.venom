@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import ast
 import hashlib
 import re
 import time
-
-from resources.lib.modules import control
-from resources.lib.modules import log_utils
-
 try:
 	from sqlite3 import dbapi2 as db, OperationalError
 except ImportError:
 	from pysqlite2 import dbapi2 as db, OperationalError
+
+from resources.lib.modules import control
+from resources.lib.modules import log_utils
 
 cache_table = 'cache'
 notificationSound = False if control.setting('notification.sound') == 'false' else True
@@ -329,9 +328,8 @@ def _find_cache_version():
 			f = open(versionFile, 'w')
 			f.close()
 	except:
-		import xbmc
-		print 'Venom Addon Data Path Does not Exist. Creating Folder....'
-		ad_folder = xbmc.translatePath('special://home/userdata/addon_data/plugin.video.venom')
+		print('Venom Addon Data Path Does not Exist. Creating Folder....')
+		ad_folder = control.transPath('special://home/userdata/addon_data/plugin.video.venom')
 		os.makedirs(ad_folder)
 
 	try:

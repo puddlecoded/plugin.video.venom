@@ -4,10 +4,19 @@
 	Venom Add-on
 """
 
-import os, sys, urllib, re, glob
-import xbmc, xbmcaddon, xbmcplugin, xbmcvfs, xbmcgui
-
-from sqlite3 import dbapi2
+import glob
+import os
+import re
+import sys
+try:
+	from urllib import urlencode
+except:
+	from urllib.parse import urlencode
+import xbmc
+import xbmcaddon
+import xbmcgui
+import xbmcplugin
+import xbmcvfs
 from xml.etree import ElementTree
 
 integer = 1000
@@ -67,6 +76,9 @@ try:
 except:
 	addonPath = xbmcaddon.Addon().getAddonInfo('path')
 
+joinPath = os.path.join
+existsPath = os.path.exists
+
 menus_path = os.path.join(addonPath, 'resources', 'lib', 'menus')
 SETTINGS_PATH = xbmc.translatePath(os.path.join(addonInfo('path'), 'resources', 'settings.xml'))
 
@@ -91,7 +103,7 @@ deleteFile = xbmcvfs.delete
 listDir = xbmcvfs.listdir
 deleteDir = xbmcvfs.rmdir
 transPath = xbmc.translatePath
-existsPath =  xbmcvfs.exists
+existsPath = xbmcvfs.exists
 
 key = "RgUkXp2s5v8x/A?D(G+KbPeShVmYq3t6"
 iv = "p2s5v8y/B?E(H+Mb"
@@ -162,12 +174,12 @@ def addonVersion(addon):
 
 def get_plugin_url(queries):
 	try:
-		query = urllib.urlencode(queries)
+		query = urlencode(queries)
 	except UnicodeEncodeError:
 		for k in queries:
 			if isinstance(queries[k], unicode):
 				queries[k] = queries[k].encode('utf-8')
-		query = urllib.urlencode(queries)
+		query = urlencode(queries)
 	addon_id = sys.argv[0]
 	if not addon_id:
 		addon_id = addonId()
@@ -336,7 +348,7 @@ def okDialog(title=None, message=None):
 	return dialog.ok(heading, body)
 
 
-def context(items = None, labels = None):
+def context(items=None, labels=None):
 	if items:
 		labels = [i[0] for i in items]
 		choice = xbmcgui.Dialog().contextmenu(labels)
@@ -396,7 +408,7 @@ def openSettings(query=None, id=addonInfo('id')):
 	try:
 		hide()
 		execute('Addon.OpenSettings(%s)' % id)
-		if query is None:
+		if not query:
 			return
 		c, f = query.split('.')
 		if int(getKodiVersion()) >= 18:
@@ -488,6 +500,15 @@ def getSettingDefault(id):
 		return value
 	except:
 		return None
+
+
+def getColor(n):
+	colorChart = ['blue', 'red', 'yellow', 'deeppink', 'cyan', 'lawngreen', 'gold', 'magenta', 'yellowgreen', 'skyblue', 
+						'lime', 'limegreen', 'deepskyblue', 'white', 'whitesmoke', 'nocolor']
+	if not n:
+		n = '8'
+	color = colorChart[int(n)]
+	return color
 
 
 def getMenuEnabled(menu_title):
@@ -622,6 +643,10 @@ def _db_execute(db_name, command):
 	databaseFile = _get_database(db_name)
 	if not databaseFile:
 		return False
+	try:
+		from sqlite3 import dbapi2
+	except:
+		from pysqlite2 import dbapi2
 	dbcon = dbapi2.connect(databaseFile)
 	dbcur = dbcon.cursor()
 	dbcur.execute(command)
@@ -650,7 +675,6 @@ def _set_source_content(content):
 
 
 def clean_settings():
-	import xml.etree.ElementTree as ET
 	def _make_content(dict_object):
 		if kodi_version >= 18:
 			content = '<settings version="2">'
@@ -682,13 +706,13 @@ def clean_settings():
 			addon_dir = xbmc.translatePath(addon.getAddonInfo('path'))
 			profile_dir = xbmc.translatePath(addon.getAddonInfo('profile'))
 			active_settings_xml = os.path.join(addon_dir, 'resources', 'settings.xml')
-			root = ET.parse(active_settings_xml).getroot()
+			root = ElementTree.parse(active_settings_xml).getroot()
 			for item in root.findall('./category/setting'):
 				setting_id = item.get('id')
 				if setting_id:
 					active_settings.append(setting_id)
 			settings_xml = os.path.join(profile_dir, 'settings.xml')
-			root = ET.parse(settings_xml).getroot()
+			root = ElementTree.parse(settings_xml).getroot()
 			for item in root:
 				dict_item = {}
 				setting_id = item.get('id')

@@ -1,20 +1,40 @@
 # -*- coding: utf-8 -*-
 
-import sys, time, datetime, os
-import xbmc, xbmcgui
-import re, urllib, urlparse, random, json
+"""
+	Venom Add-on
+"""
 
-from resources.lib.modules import client, cleantitle, control, workers
-from resources.lib.modules import trakt, source_utils, log_utils
-from resources.lib.modules import debrid, cache, providerscache
+import datetime
+import json
+import random
+import re
+import sys
+import time
+
+try:
+	from urllib import quote_plus
+	from urlparse import parse_qsl
+except:
+	from urllib.parse import quote_plus, parse_qsl
+import xbmc
+
+from resources.lib.modules import cache
+from resources.lib.modules import cleantitle
+from resources.lib.modules import client
+from resources.lib.modules import control
+from resources.lib.modules import debrid
+from resources.lib.modules import log_utils
 from resources.lib.modules import premiumize
+from resources.lib.modules import providerscache
 from resources.lib.modules import realdebrid
+from resources.lib.modules import source_utils
+from resources.lib.modules import trakt
+from resources.lib.modules import workers
 
 try:
 	from sqlite3 import dbapi2 as database
 except:
 	from pysqlite2 import dbapi2 as database
-
 try:
 	import resolveurl
 except:
@@ -37,7 +57,8 @@ class Sources:
 			else:
 				items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 
-			if items is None:
+			# if items is None:
+			if not items:
 				self.url = url
 				return self.errorForSources()
 
@@ -63,11 +84,8 @@ class Sources:
 					control.window.setProperty(self.itemProperty, json.dumps(items))
 					control.window.clearProperty(self.metaProperty)
 					control.window.setProperty(self.metaProperty, meta)
-
 					control.sleep(200)
-
-					return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], urllib.quote_plus(title)))
-
+					return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], quote_plus(title)))
 				elif select == '0' or select == '1':
 					url = self.sourcesDialog(items)
 				else:
@@ -115,22 +133,22 @@ class Sources:
 		syshandle = int(sys.argv[1])
 
 		downloads = True if control.setting('downloads') == 'true' and (control.setting(
-			'movie.download.path') != '' or control.setting('tv.download.path') == '') else False
+			'movie.download.path') != '' or control.setting('tv.download.path') != '') else False
 
-		systitle = sysname = urllib.quote_plus(title)
+		systitle = sysname = quote_plus(title)
 
 		poster = meta.get('poster') or control.addonPoster()
 		if 'tvshowtitle' in meta and 'season' in meta and 'episode' in meta:
 			poster = meta.get('season_poster') or control.addonPoster()
-			sysname += urllib.quote_plus(' S%02dE%02d' % (int(meta['season']), int(meta['episode'])))
+			sysname += quote_plus(' S%02dE%02d' % (int(meta['season']), int(meta['episode'])))
 		elif 'year' in meta:
-			sysname += urllib.quote_plus(' (%s)' % meta['year'])
+			sysname += quote_plus(' (%s)' % meta['year'])
 
 		fanart = meta.get('fanart')
 		if control.setting('fanart') != 'true':
 			fanart = '0'
 
-		sysimage = urllib.quote_plus(poster.encode('utf-8'))
+		sysimage = quote_plus(poster.encode('utf-8'))
 		downloadMenu = control.lang(32403).encode('utf-8')
 
 		multiline = control.setting('sourcelist.multiline')
@@ -142,11 +160,11 @@ class Sources:
 				else:
 					label = str(items[i]['label'])
 
-				syssource = urllib.quote_plus(json.dumps([items[i]]))
+				syssource = quote_plus(json.dumps([items[i]]))
 				sysurl = '%s?action=playItem&title=%s&source=%s' % (sysaddon, systitle, syssource)
 
 				cm = []
-				if downloads is True:
+				if downloads:
 					cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&source=%s)' %
 							(sysaddon, sysname, sysimage, syssource)))
 
@@ -154,8 +172,7 @@ class Sources:
 					quality = items[i]['quality']
 					thumb = '%s%s' % (quality, '.png')
 					artPath = control.artPath()
-					thumb = os.path.join(artPath, thumb) if artPath is not None else ''
-
+					thumb = control.joinPath(artPath, thumb) if artPath else ''
 				else:
 					thumb = meta.get('thumb')
 					thumb = thumb or poster or fanart or control.addonThumb()
@@ -204,7 +221,7 @@ class Sources:
 					if u in total:
 						raise Exception()
 					total.append(u)
-					u = dict(urlparse.parse_qsl(u.replace('?', '')))
+					u = dict(parse_qsl(u.replace('?', '')))
 					u = json.loads(u['source'])[0]
 					next.append(u)
 				except:
@@ -216,7 +233,7 @@ class Sources:
 					if u in total:
 						raise Exception()
 					total.append(u)
-					u = dict(urlparse.parse_qsl(u.replace('?', '')))
+					u = dict(parse_qsl(u.replace('?', '')))
 					u = json.loads(u['source'])[0]
 					prev.append(u)
 				except:
@@ -262,7 +279,7 @@ class Sources:
 					m = ''
 					for x in range(3600):
 						try:
-							if xbmc.abortRequested is True:
+							if xbmc.abortRequested:
 								return sys.exit()
 							if progressDialog.iscanceled():
 								return progressDialog.close()
@@ -273,19 +290,21 @@ class Sources:
 						if k:
 							m += '1'
 							m = m[-1]
-						if (w.is_alive() is False or x > 30 + offset) and not k:
+						# if (w.is_alive() is False or x > 30 + offset) and not k:
+						if (not w.is_alive() or x > 30 + offset) and not k:
 							break
 						k = control.condVisibility('Window.IsActive(yesnoDialog)')
 						if k:
 							m += '1'
 							m = m[-1]
-						if (w.is_alive() is False or x > 30 + offset) and not k:
+						# if (w.is_alive() is False or x > 30 + offset) and not k:
+						if (not w.is_alive() or x > 30 + offset) and not k:
 							break
 						time.sleep(0.5)
 
 					for x in range(30):
 						try:
-							if xbmc.abortRequested is True:
+							if xbmc.abortRequested:
 								return sys.exit()
 							if progressDialog.iscanceled():
 								return progressDialog.close()
@@ -294,11 +313,13 @@ class Sources:
 
 						if m == '':
 							break
-						if w.is_alive() is False:
+						# if w.is_alive() is False:
+						if not w.is_alive():
 							break
 						time.sleep(0.5)
 
-					if w.is_alive() is True:
+					# if w.is_alive() is True:
+					if w.is_alive():
 						block = items[i]['source']
 
 					if self.url is None:
@@ -451,7 +472,7 @@ class Sources:
 					if (source_sd + d_source_sd) >= pre_emp_limit:
 						break
 			try:
-				if xbmc.abortRequested is True:
+				if xbmc.abortRequested:
 					return sys.exit()
 
 				try:
@@ -512,8 +533,10 @@ class Sources:
 
 				if (i / 2) < timeout:
 					try:
-						mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() is True and x.getName() in mainsourceDict]
-						info = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() is True]
+						# mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() is True and x.getName() in mainsourceDict]
+						mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() and x.getName() in mainsourceDict]
+						# info = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() is True]
+						info = [sourcelabelDict[x.getName()] for x in threads if x.is_alive()]
 						if i >= timeout and len(mainleft) == 0 and len(self.sources) >= 100 * len(info):
 							break
 
@@ -586,7 +609,8 @@ class Sources:
 						log_utils.log('Exception Raised: %s' % str(e), log_utils.LOGERROR)
 				else:
 					try:
-						mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() is True and x.getName() in mainsourceDict]
+						# mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() is True and x.getName() in mainsourceDict]
+						mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() and x.getName() in mainsourceDict]
 						info = mainleft
 
 						if debrid_status:
@@ -675,7 +699,7 @@ class Sources:
 				"SELECT * FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 				source, imdb, '', ''))
 			match = dbcur.fetchone()
-			if match is not None:
+			if match:
 				t1 = int(re.sub('[^0-9]', '', str(match[5])))
 				t2 = int(datetime.datetime.now().strftime("%Y%m%d%H%M"))
 				update = abs(t2 - t1) > 60
@@ -692,16 +716,16 @@ class Sources:
 				"SELECT * FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 				source, imdb, '', ''))
 			url = dbcur.fetchone()
-			if url is not None:
+			if url:
 				url = eval(url[4].encode('utf-8'))
 		except:
 			log_utils.error()
 			pass
 
 		try:
-			if url is None:
+			if not url:
 				url = call.movie(imdb, title, localtitle, aliases, year)
-			if url is not None:
+			if url:
 				dbcur.execute(
 					"DELETE FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 					source, imdb, '', ''))
@@ -744,7 +768,7 @@ class Sources:
 				"SELECT * FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 				source, imdb, season, episode))
 			match = dbcur.fetchone()
-			if match is not None:
+			if match:
 				t1 = int(re.sub('[^0-9]', '', str(match[5])))
 				t2 = int(datetime.datetime.now().strftime("%Y%m%d%H%M"))
 				update = abs(t2 - t1) > 60
@@ -760,16 +784,19 @@ class Sources:
 			dbcur.execute(
 				"SELECT * FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (source, imdb, '', ''))
 			url = dbcur.fetchone()
-			if url is not None:
+			# if url is not None:
+			if url:
 				url = eval(url[4].encode('utf-8'))
 		except:
 			log_utils.error()
 			pass
 
 		try:
-			if url is None:
+			# if url is None:
+			if not url:
 				url = call.tvshow(imdb, tvdb, tvshowtitle, localtvshowtitle, aliases, year)
-			if url is not None:
+			# if url is not None:
+			if url:
 				dbcur.execute(
 					"DELETE FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 					source, imdb, '', ''))
@@ -786,17 +813,21 @@ class Sources:
 				"SELECT * FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 				source, imdb, season, episode))
 			ep_url = dbcur.fetchone()
-			if ep_url is not None:
+			# if ep_url is not None:
+			if ep_url:
 				ep_url = eval(ep_url[4].encode('utf-8'))
 		except:
 			log_utils.error()
 			pass
 
 		try:
-			if url is not None:
-				if ep_url is None:
+			# if url is not None:
+			if url:
+				# if ep_url is None:
+				if not ep_url:
 					ep_url = call.episode(url, imdb, tvdb, title, premiered, season, episode)
-				if ep_url is not None:
+				# if ep_url is not None:
+				if ep_url:
 					dbcur.execute(
 						"DELETE FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 						source, imdb, season, episode))
@@ -867,7 +898,7 @@ class Sources:
 				a = i['url'].lower()
 				for sublist in filter:
 					b = sublist['url'].lower()
-					if 'magnet:' in a and debrid.status() is True:
+					if 'magnet:' in a and debrid.status():
 						info_hash = re.search('magnet:.+?urn:\w+:([a-z0-9]+)', a)
 						# info_hash = i['hash'].lower()
 						if info_hash:
@@ -885,7 +916,6 @@ class Sources:
 				filter.append(i)
 			log_utils.log('Removed %s duplicate sources from list' % (len(self.sources) - len(filter)), log_utils.LOGDEBUG)
 			self.sources = filter
-			# log_utils.log('self.sources = %s' % str(self.sources), log_utils.LOGDEBUG)
 		###---------
 
 		if control.setting('HEVC') != 'true':
@@ -939,6 +969,7 @@ class Sources:
 						else:
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if 'magnet:' in i['url']]
 					except:
+						log_utils.error()
 						pass
 				else:
 					filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
@@ -957,6 +988,7 @@ class Sources:
 						else:
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if 'magnet:' in i['url']]
 					except:
+						log_utils.error()
 						pass
 				else:
 					filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
@@ -1018,7 +1050,7 @@ class Sources:
 		multi = [x for y, x in enumerate(multi) if x not in multi[:y]]
 		multi = True if len(multi) > 1 else False
 
-		if multi is True:
+		if multi:
 			self.sources = [i for i in self.sources if i['language'] != 'en'] + [i for i in self.sources if i['language'] == 'en']
 
 		self.sources = self.sources[:4000]
@@ -1166,8 +1198,8 @@ class Sources:
 			except:
 				headers = ''
 
-			headers = urllib.quote_plus(headers).replace('%3D', '=') if ' ' in headers else headers
-			headers = dict(urlparse.parse_qsl(headers))
+			headers = quote_plus(headers).replace('%3D', '=') if ' ' in headers else headers
+			headers = dict(parse_qsl(headers))
 
 			if url.startswith('http') and '.m3u8' in url:
 				result = client.request(url.split('|')[0], headers=headers, output='geturl', timeout='20')
@@ -1182,7 +1214,7 @@ class Sources:
 			self.url = url
 			return url
 		except:
-			if info is True:
+			if info:
 				control.infoDialog('Skipping unplayable resolveURL link', sound=False, icon='INFO')
 			log_utils.error()
 			return
@@ -1244,7 +1276,7 @@ class Sources:
 
 					for x in range(3600):
 						try:
-							if xbmc.abortRequested is True:
+							if xbmc.abortRequested:
 								control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
 								return sys.exit()
 							if progressDialog.iscanceled():
@@ -1257,20 +1289,22 @@ class Sources:
 						if k:
 							m += '1'
 							m = m[-1]
-						if (w.is_alive() == False or x > 30 + offset) and not k:
+						# if (w.is_alive() is False or x > 30 + offset) and not k:
+						if (not w.is_alive() or x > 30 + offset) and not k:
 							break
 
 						k = control.condVisibility('Window.IsActive(yesnoDialog)')
 						if k:
 							m += '1'
 							m = m[-1]
-						if (w.is_alive() == False or x > 30 + offset) and not k:
+						# if (w.is_alive() is False or x > 30 + offset) and not k:
+						if (not w.is_alive() or x > 30 + offset) and not k:
 							break
 						time.sleep(0.5)
 
 					for x in range(30):
 						try:
-							if xbmc.abortRequested is True:
+							if xbmc.abortRequested:
 								control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
 								return sys.exit()
 							if progressDialog.iscanceled():
@@ -1282,11 +1316,13 @@ class Sources:
 						if m == '':
 							break
 
-						if w.is_alive() is False:
+						# if w.is_alive() is False:
+						if not w.is_alive():
 							break
 						time.sleep(0.5)
 
-					if w.is_alive() is True:
+					# if w.is_alive() is True:
+					if w.is_alive():
 						block = items[i]['source']
 
 					if self.url is None:
@@ -1356,13 +1392,15 @@ class Sources:
 				pass
 
 			try:
-				if xbmc.abortRequested is True:
+				if xbmc.abortRequested:
 					return sys.exit()
 
 				url = self.sourcesResolve(items[i])
-				if u is None:
+				# if u is None:
+				if not u:
 					u = url
-				if url is not None:
+				# if url is not None:
+				if url:
 					break
 			except:
 				pass
@@ -1478,7 +1516,7 @@ class Sources:
 		elif n == '13': n = 'white'
 		elif n == '14': n = 'whitesmoke'
 		elif n == '15': n = 'nocolor'
-		else: n == 'skyblue'
+		else: n = 'skyblue'
 		return n
 
 

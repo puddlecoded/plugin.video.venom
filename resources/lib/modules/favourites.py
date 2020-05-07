@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import json, os, xbmc, xbmcaddon
+import json
+import xbmc
+import xbmcaddon
 
 try:
 	from sqlite3 import dbapi2 as database
@@ -11,8 +13,8 @@ from resources.lib.modules import control
 
 addonInfo = xbmcaddon.Addon().getAddonInfo
 dataPath = xbmc.translatePath(addonInfo('profile')).decode('utf-8')
-favouritesFile = os.path.join(dataPath, 'favourites.db')
-progressFile = os.path.join(dataPath, 'progress.db')
+favouritesFile = control.joinPath(dataPath, 'favourites.db')
+progressFile = control.joinPath(dataPath, 'progress.db')
 notificationSound = False if control.setting('notification.sound') == 'false' else True
 
 
@@ -48,7 +50,7 @@ def addFavourite(meta, content):
 	try:
 		item = dict()
 		meta = json.loads(meta)
-		# print "META DUMP FAVOURITES %s" % meta
+		# print("META DUMP FAVOURITES %s" % meta)
 
 		try:
 			id = meta['imdb']

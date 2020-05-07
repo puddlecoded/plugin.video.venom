@@ -5,10 +5,13 @@
 '''
 
 import xbmcaddon, xbmcgui
-
-from urlparse import parse_qsl
-from urllib import quote_plus
 from sys import argv
+
+try:
+	from urlparse import parse_qsl
+	from urllib import quote_plus
+except:
+	from urllib.parse import parse_qsl, quote_plus
 
 from resources.lib.modules import control
 
@@ -362,6 +365,32 @@ elif action == 'seasonsList':
 ####################################################
 #---EPISODES
 ####################################################
+elif action == 'playEpisodesList':
+	import json
+	from resources.lib.menus import episodes
+	items = episodes.Episodes().get(tvshowtitle, year, imdb, tmdb, tvdb, season, episode, idx=False)
+	control.playlist.clear()
+	for i in items:
+		# xbmc.log('i = %s' % i, 2)
+		title = i['title']
+		systitle = quote_plus(title)
+		year = i['year']
+		imdb = i['imdb']
+		tvdb = i['tvdb']
+		season = i['season']
+		episode = i['episode']
+		tvshowtitle = i['tvshowtitle']
+		systvshowtitle = quote_plus(tvshowtitle)
+		premiered = i['premiered']
+
+		sysmeta = quote_plus(json.dumps(i))
+		url = 'plugin://plugin.video.venom/?action=play&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&select="2"' % (
+								systitle, year, imdb, tvdb, season, episode, systvshowtitle, premiered, sysmeta)
+		item = control.item(label=title)
+		control.playlist.add(url=url, listitem=item)
+	control.player2().play(control.playlist)
+
+
 elif action == 'episodes':
 	from resources.lib.menus import episodes
 	episodes.Episodes().get(tvshowtitle, year, imdb, tmdb, tvdb, season, episode)
@@ -483,19 +512,13 @@ elif action == 'artwork':
 
 elif action == 'UpNextSettings':
 	control.openSettings('0.0', 'service.upnext')
-	if params.get('opensettings') == 'true':
-		control.openSettings('0.0', "plugin.video.venom")
 
 elif action == 'contextVenomSettings':
 	control.openSettings('0.0', 'context.venom')
-	if params.get('opensettings') == 'true':
-		control.openSettings('0.0', "plugin.video.venom")
 	control.trigger_widget_refresh()
 
 elif action == 'openscrapersSettings':
 	control.openSettings('0.0', 'script.module.openscrapers')
-	if params.get('opensettings') == 'true':
-		control.openSettings(query, "plugin.video.venom")
 
 elif action == 'urlResolver':
 	try:

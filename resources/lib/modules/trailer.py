@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import sys
+"""
+	Venom Add-on
+"""
+
 import base64
 import json
 import random
 import re
-import urllib
+import sys
+try:
+	from urllib import quote_plus
+except:
+	from urllib.parse import quote_plus
 
 from resources.lib.modules import client
 from resources.lib.modules import control
@@ -66,7 +73,7 @@ class Trailer:
 				raise Exception()
 		except:
 			query = name + ' trailer'
-			query = self.search_link % urllib.quote_plus(query)
+			query = self.search_link % quote_plus(query)
 			return self.search(query, type, name, year, imdb)
 
 

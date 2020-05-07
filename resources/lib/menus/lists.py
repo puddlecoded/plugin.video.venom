@@ -1,9 +1,23 @@
 # -*- coding: utf-8 -*-
 
+'''
+	Venom Add-on
+'''
 
-import os, re, sys, hashlib, urllib
-import urlparse, json, base64, random, datetime
+import base64
+import datetime
+import hashlib
+import json
+import random
+import re
+import sys
 import xbmc
+
+try:
+	from urllib import quote_plus, unquote_plus
+	from urlparse import parse_qsl, parse_qs, urlparse
+except:
+	from urllib.parse import quote_plus, unquote_plus, parse_qsl, parse_qs, urlparse
 
 try:
 	from sqlite3 import dbapi2 as database
@@ -21,12 +35,10 @@ from resources.lib.modules import youtube
 from resources.lib.modules import views
 
 
-
 class indexer:
 	def __init__(self):
 		self.list = [] ; self.hash = []
 
-#please dont share link
 
 	def root(self):
 		try:
@@ -255,7 +267,7 @@ class indexer:
 		try:
 			r, x = re.findall('(.+?)\|regex=(.+?)$', url)[0]
 			x = regex.fetch(x)
-			r += urllib.unquote_plus(x)
+			r += unquote_plus(x)
 			url = regex.resolve(r)
 			self.list = self.it_list('', result=url)
 			self.addDirectory(self.list)
@@ -266,7 +278,7 @@ class indexer:
 
 	def developer(self):
 		try:
-			url = os.path.join(control.dataPath, 'testings.xml')
+			url = control.joinPath(control.dataPath, 'testings.xml')
 			f = control.openFile(url) ; result = f.read() ; f.close()
 			self.list = self.it_list('', result=result)
 			for i in self.list: i.update({'content': 'videos'})
@@ -495,7 +507,7 @@ class indexer:
 				regdata = re.compile('(<regex>.+?</regex>)', re.MULTILINE|re.DOTALL).findall(item)
 				regdata = ''.join(regdata)
 				reglist = re.compile('(<listrepeat>.+?</listrepeat>)', re.MULTILINE|re.DOTALL).findall(regdata)
-				regdata = urllib.quote_plus(regdata)
+				regdata = quote_plus(regdata)
 
 				reghash = hashlib.md5()
 				for i in regdata: reghash.update(str(i))
@@ -532,7 +544,7 @@ class indexer:
 
 					if any(f for f in ['all','data'] if f == tmdb_get.lower()):         
 						try:
-							if item_json['original_title'] is not None: 
+							if item_json['original_title']: 
 							title = item_json['original_title']
 							name = title
 							else:
@@ -556,7 +568,8 @@ class indexer:
 							item = item.replace('<title></title>','<title>'+title+'</title>')
 
 						try:
-							if item_json['release_date'] is not None: year = item_json['release_date']; year = year.split('-')[0]; name = title + ' (' + year + ')'
+							if item_json['release_date']:
+								year = item_json['release_date']; year = year.split('-')[0]; name = title + ' (' + year + ')'
 							else: 
 								try: year = re.findall('<year>(.+?)</year>', meta)[0]
 								except: year = '0'
@@ -582,7 +595,8 @@ class indexer:
 					if any(f for f in ['all','images'] if f == tmdb_get.lower()):         
 
 						try:
-							if item_json['backdrop_path'] is not None: fanart2 = 'https://image.tmdb.org/t/p/original/' + item_json['backdrop_path']
+							if item_json['backdrop_path']:
+								fanart2 = 'https://image.tmdb.org/t/p/original/' + item_json['backdrop_path']
 							else: 
 								try: fanart2 = re.findall('<fanart>(.+?)</fanart>', item)[0]
 								except: fanart2 = fanart
@@ -591,7 +605,8 @@ class indexer:
 							except: fanart2 = fanart
 
 						try:
-							if item_json['poster_path'] is not None: image2 = 'https://image.tmdb.org/t/p/original/' + item_json['poster_path']
+							if item_json['poster_path']:
+								image2 = 'https://image.tmdb.org/t/p/original/' + item_json['poster_path']
 							else: 
 								try: image2 = re.findall('<thumbnail>(.+?)</thumbnail>', item)[0]
 								except: image2 = image
@@ -930,14 +945,14 @@ class indexer:
 					name = i['name']
 
 				url = '%s?action=%s' % (sysaddon, i['action'])
-				try: url += '&url=%s' % urllib.quote_plus(i['url'])
+				try: url += '&url=%s' % quote_plus(i['url'])
 				except: pass
-				try: url += '&content=%s' % urllib.quote_plus(i['content'])
+				try: url += '&content=%s' % quote_plus(i['content'])
 				except: pass
 
 				if i['action'] == 'plugin' and 'url' in i: url = i['url']
 
-				try: devurl = dict(urlparse.parse_qsl(urlparse.urlparse(url).query))['action']
+				try: devurl = dict(parse_qsl(urlparse(url).query))['action']
 				except: devurl = None
 				if devurl == 'developer' and not devmode is True: raise Exception()
 
@@ -957,8 +972,8 @@ class indexer:
 				cm = []
 
 				if content in ['movies', 'tvshows']:
-					meta.update({'trailer': '%s?action=trailer&name=%s' % (sysaddon, urllib.quote_plus(name))})
-					cm.append((control.lang(30707).encode('utf-8'), 'RunPlugin(%s?action=trailer&name=%s)' % (sysaddon, urllib.quote_plus(name))))
+					meta.update({'trailer': '%s?action=trailer&name=%s' % (sysaddon, quote_plus(name))})
+					cm.append((control.lang(30707).encode('utf-8'), 'RunPlugin(%s?action=trailer&name=%s)' % (sysaddon, quote_plus(name))))
 
 				if content in ['movies', 'tvshows', 'seasons', 'episodes']:
 					cm.append((control.lang(30708).encode('utf-8'), 'XBMC.Action(Info)'))
@@ -969,15 +984,15 @@ class indexer:
 				if content == 'movies':
 					try: dfile = '%s (%s)' % (i['title'], i['year'])
 					except: dfile = name
-					try: cm.append((control.lang(30722).encode('utf-8'), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, urllib.quote_plus(dfile), urllib.quote_plus(i['url']), urllib.quote_plus(poster))))
+					try: cm.append((control.lang(30722).encode('utf-8'), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, quote_plus(dfile), quote_plus(i['url']), quote_plus(poster))))
 					except: pass
 				elif content == 'episodes':
 					try: dfile = '%s S%02dE%02d' % (i['tvshowtitle'], int(i['season']), int(i['episode']))
 					except: dfile = name
-					try: cm.append((control.lang(30722).encode('utf-8'), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, urllib.quote_plus(dfile), urllib.quote_plus(i['url']), urllib.quote_plus(poster))))
+					try: cm.append((control.lang(30722).encode('utf-8'), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, quote_plus(dfile), quote_plus(i['url']), quote_plus(poster))))
 					except: pass
 				elif content == 'songs':
-					try: cm.append((control.lang(30722).encode('utf-8'), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, urllib.quote_plus(name), urllib.quote_plus(i['url']), urllib.quote_plus(poster))))
+					try: cm.append((control.lang(30722).encode('utf-8'), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, quote_plus(name), quote_plus(i['url']), quote_plus(poster))))
 					except: pass
 
 				if mode == 'movies':
@@ -990,7 +1005,7 @@ class indexer:
 					cm.append((control.lang(30714).encode('utf-8'), 'RunPlugin(%s?action=addView&content=episodes)' % sysaddon))
 
 				if devmode is True:
-					try: cm.append(('Open in browser', 'RunPlugin(%s?action=browser&url=%s)' % (sysaddon, urllib.quote_plus(i['url']))))
+					try: cm.append(('Open in browser', 'RunPlugin(%s?action=browser&url=%s)' % (sysaddon, quote_plus(i['url']))))
 					except: pass
 
 				item = control.item(label=name, iconImage=poster, thumbnailImage=poster)
@@ -1023,7 +1038,7 @@ class indexer:
 				# page = '  [I](%s)[/I]' % str(url.split('&page=', 1)[1])
 				# nextMenu = '[COLOR skyblue]' + nextMenu + page + '[/COLOR]'
 
-			url = '%s?action=%s&url=%s' % (sysaddon, i['nextaction'], urllib.quote_plus(i['next']))
+			url = '%s?action=%s&url=%s' % (sysaddon, i['nextaction'], quote_plus(i['next']))
 			item = control.item(label=control.lang(30500).encode('utf-8'))
 			item.setArt({'addonPoster': addonPoster, 'thumb': addonPoster, 'poster': addonPoster, 'fanart': addonFanart, 'tvshow.poster': addonPoster, 'season.poster': addonPoster, 'banner': addonPoster, 'tvshow.banner': addonPoster, 'season.banner': addonPoster})
 			control.addItem(handle=int(sys.argv[1]), url=url, listitem=item, isFolder=True)
@@ -1041,7 +1056,7 @@ class resolver:
 		try:
 			url = self.get(url)
 			if url is False: return
-			control.execute('RunPlugin(plugin://plugin.program.chrome.launcher/?url=%s&mode=showSite&stopPlayback=no)' % urllib.quote_plus(url))
+			control.execute('RunPlugin(plugin://plugin.program.chrome.launcher/?url=%s&mode=showSite&stopPlayback=no)' % quote_plus(url))
 		except:
 			pass
 
@@ -1084,7 +1099,7 @@ class resolver:
 				ext = url.split('?')[0].split('&')[0].split('|')[0].rsplit('.')[-1].replace('/', '').lower()
 				if not ext in ['f4m', 'ts']: raise Exception()
 
-				params = urlparse.parse_qs(url)
+				params = parse_qs(url)
 
 				try: proxy = params['proxy'][0]
 				except: proxy = None
@@ -1119,7 +1134,7 @@ class resolver:
 			ext = url.split('?')[0].split('&')[0].split('|')[0].rsplit('.')[-1].replace('/', '').lower()
 			if not ext in ['jpg', 'png', 'gif']: raise Exception()
 			try:
-				i = os.path.join(control.dataPath,'img')
+				i = control.joinPath(control.dataPath,'img')
 				control.deleteFile(i)
 				f = control.openFile(i, 'w')
 				f.write(client.request(url))
@@ -1134,7 +1149,7 @@ class resolver:
 		try:
 			r, x = re.findall('(.+?)\|regex=(.+?)$', url)[0]
 			x = regex.fetch(x)
-			r += urllib.unquote_plus(x)
+			r += unquote_plus(x)
 			if not '</regex>' in r: raise Exception()
 			u = regex.resolve(r)
 			if not u is None: url = u
@@ -1171,27 +1186,25 @@ class resolver:
 			quality = 'HD' if not preset == 'searchsd' else 'SD'
 
 			from resources.lib.modules import sources
-
 			u = sources.Sources().getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, quality)
-
-			if not u is None: return u
+			if u:
+				return u
 		except:
 			pass
 
 		try:
 			from resources.lib.modules import sources
-
 			u = sources.Sources().getURISource(url)
 
-			if not u is False: direct = False
-			if u is None or u is False: raise Exception()
+			if u: direct = False
 
+			if not u: raise Exception()
 			return u
 		except:
 			pass
 
 		try:
-			if not '.google.com' in url: raise Exception()
+			if '.google.com' not in url: raise Exception()
 			from resources.lib.modules import directstream
 			u = directstream.google(url)[0]['url']
 			return u
@@ -1207,7 +1220,7 @@ class resolver:
 			pass
 
 		try:
-			try: headers = dict(urlparse.parse_qsl(url.rsplit('|', 1)[1]))
+			try: headers = dict(parse_qsl(url.rsplit('|', 1)[1]))
 			except: headers = dict('')
 			if not url.startswith('http'): raise Exception()
 			result = client.request(url.split('|')[0], headers=headers, output='headers', timeout='20')

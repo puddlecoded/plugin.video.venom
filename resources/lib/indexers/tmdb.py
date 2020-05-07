@@ -40,7 +40,7 @@ def get_request(url):
 	if '200' in str(response):
 		return response.json()
 	elif 'Retry-After' in response.headers:
-		# API REQUESTS ARE BEING THROTTLED, INTRODUCE WAIT TIME
+		# API REQUESTS ARE BEING THROTTLED, INTRODUCE WAIT TIME (removed 12-6-20)
 		throttleTime = response.headers['Retry-After']
 		control.notification(title='default', message='TMDB Throttling Applied, Sleeping for %s seconds' % throttleTime, icon='INFO')
 		sleep(int(throttleTime) + 1)
@@ -109,7 +109,7 @@ class Movies:
 		self.lang = control.apiLanguage()['trakt']
 
 		self.tmdb_info_link = base_link + '/3/movie/%s?api_key=%s&language=%s&append_to_response=credits,release_dates,videos' % ('%s', API_key, self.lang)
-###                                                                             other "append_to_response" options                             external_ids,alternative_titles,videos,images
+###                                                                             other "append_to_response" options                             external_ids,alternative_titles,images
 
 		self.tmdb_art_link = base_link + '/3/movie/%s/images?api_key=%s&include_image_language=en,%s,null' % ('%s', API_key, self.lang)
 		self.tmdb_external_ids = base_link + '/3/movie/%s/external_ids?api_key=%s' % ('%s', API_key)
@@ -139,12 +139,12 @@ class Movies:
 
 		for item in items:
 			try:
-				title = (item.get('title')).encode('utf-8')
+				title = item.get('title').encode('utf-8')
 			except:
 				title = item.get('title')
 
 			try: 
-				originaltitle = (item.get('original_title')).encode('utf-8')
+				originaltitle = item.get('original_title').encode('utf-8')
 			except:
 				originaltitle = title
 
@@ -176,7 +176,8 @@ class Movies:
 			self.list.append(values)
 
 		def items_list(i):
-			if i['metacache'] is True:
+			# if i['metacache'] is True:
+			if i['metacache']:
 				return
 
 			try:
@@ -233,7 +234,8 @@ class Movies:
 					if len(castandart) == 150: break
 
 				try:
-					trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube'][0]['key']
+					# trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube'][0]['key']
+					trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube' and i['type'] == 'Trailer'][0]['key']
 					trailer = control.trailer % trailer
 				except:
 					trailer = ''
@@ -249,7 +251,7 @@ class Movies:
 				if disable_fanarttv != 'true':
 					from resources.lib.indexers import fanarttv
 					extended_art = cache.get(fanarttv.get_movie_art, 168, imdb, tmdb)
-					if extended_art is not None:
+					if extended_art:
 						values.update(extended_art)
 						meta.update(values)
 
@@ -402,7 +404,8 @@ class Movies:
 					if len(castandart) == 150: break
 
 				try:
-					trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube'][0]['key']
+					# trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube'][0]['key']
+					trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube' and i['type'] == 'Trailer'][0]['key']
 					trailer = control.trailer % trailer
 				except:
 					trailer = ''
@@ -418,7 +421,7 @@ class Movies:
 				if disable_fanarttv != 'true':
 					from resources.lib.indexers import fanarttv
 					extended_art = cache.get(fanarttv.get_movie_art, 168, imdb, tmdb)
-					if extended_art is not None:
+					if extended_art:
 						values.update(extended_art)
 						meta.update(values)
 
@@ -444,25 +447,31 @@ class Movies:
 
 
 	def get_details(self, tmdb, imdb):
-		item = get_request(self.tmdb_info_link % tmdb)
-		if item is None:
-			item = get_request(self.tmdb_info_link % imdb)
+		item = None
+		if tmdb != '0':
+			item = get_request(self.tmdb_info_link % tmdb)
+		if not item:
+			if imdb != '0':
+				item = get_request(self.tmdb_info_link % imdb)
 		return item
 
 
 	def get_external_ids(self, tmdb, imdb):
-		items = get_request(self.tmdb_external_ids % tmdb)
-		if item is None:
-			item = get_request(self.tmdb_external_ids % imdb)
+		item = None
+		if tmdb != '0':
+			items = get_request(self.tmdb_external_ids % tmdb)
+		if not item:
+			if imdb != '0':
+				item = get_request(self.tmdb_external_ids % imdb)
 		return item
 
 
 	def get_art(self, tmdb):
-		if API_key == '' or (tmdb == '0' or tmdb is None):
+		if API_key == '' or (tmdb == '0' or tmdb == 'None' or tmdb is None):
 			return None
 
 		art3 = get_request(self.tmdb_art_link % tmdb)
-		if art3 is None:
+		if not art3:
 			return None
 
 		try:
@@ -490,7 +499,7 @@ class Movies:
 		if API_key == '' or (tmdb == '0' or tmdb is None):
 			return None
 		people = get_request(url % tmdb)
-		if people is None:
+		if not people:
 			return None
 		return people
 
@@ -626,7 +635,7 @@ class TVshows:
 				if disable_fanarttv != 'true':
 					from resources.lib.indexers import fanarttv
 					extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
-					if extended_art is not None:
+					if extended_art:
 						values.update(extended_art)
 						meta.update(values)
 
@@ -779,7 +788,7 @@ class TVshows:
 				if disable_fanarttv != 'true':
 					from resources.lib.indexers import fanarttv
 					extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
-					if extended_art is not None:
+					if extended_art:
 						values.update(extended_art)
 						meta.update(values)
 
@@ -808,18 +817,21 @@ class TVshows:
 
 
 	def get_details(self, tmdb, imdb):
-		item = get_request(self.tmdb_info_link % tmdb)
-		if item is None:
-			item = get_request(self.tmdb_info_link % imdb)
+		item = None
+		if tmdb != '0':
+			item = get_request(self.tmdb_info_link % tmdb)
+		if not item:
+			if imdb != '0':
+				item = get_request(self.tmdb_info_link % imdb)
 		return item
 
 
 	def get_art(self, tmdb):
-		if API_key == '' or (tmdb == '0' or tmdb is None):
+		if API_key == '' or (tmdb == '0' or tmdb == 'None' or tmdb is None):
 			return None
 
 		art3 = get_request(self.tmdb_art_link % tmdb)
-		if art3 is None:
+		if not art3:
 			return None
 
 		try:
@@ -847,7 +859,7 @@ class TVshows:
 		if API_key == '' or (tmdb == '0' or tmdb is None):
 			return None
 		people = get_request(url % tmdb)
-		if people is None:
+		if not people:
 			return None
 		return people
 

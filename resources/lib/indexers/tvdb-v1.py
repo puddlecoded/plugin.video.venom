@@ -5,9 +5,13 @@
 '''
 
 import re, zipfile
-import StringIO, urllib, urllib2
+import StringIO
 import time
 import requests
+try:
+	from urllib import quote_plus
+except:
+	from urllib.parse import quote_plus
 
 from resources.lib.modules import cache
 from resources.lib.modules import cleantitle
@@ -819,7 +823,7 @@ def getSeries_ByIMDB(title, year, imdb):
 
 def getSeries_ByName(title, year):
 	try:
-		url = by_seriesname % (urllib.quote_plus(title))
+		url = by_seriesname % (quote_plus(title))
 		result = requests.get(url).content
 		result = re.sub(r'[^\x00-\x7F]+', '', result)
 		result = client.replaceHTMLCodes(result)

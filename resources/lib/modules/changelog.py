@@ -1,6 +1,13 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 
-import os, xbmc, xbmcgui, xbmcaddon
+'''
+	Venom Add-on
+'''
+
+import os
+import xbmc
+import xbmcaddon
+import xbmcgui
 
 def get():
 		addonInfo = xbmcaddon.Addon().getAddonInfo

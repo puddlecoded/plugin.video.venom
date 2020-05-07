@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os, xbmc
+"""
+	Venom Add-on
+"""
 
 try:
 	from sqlite3 import dbapi2 as database
@@ -31,16 +33,18 @@ def clearViews():
 				dbcur.connection.commit()
 				dbcon.close()
 			except:
+				log_utils.error()
 				pass
 		try:
-			kodiDB = xbmc.translatePath('special://home/userdata/Database')
-			kodiViewsDB = os.path.join(kodiDB, 'ViewModes6.db')
+			kodiDB = control.transPath('special://home/userdata/Database')
+			kodiViewsDB = control.joinPath(kodiDB, 'ViewModes6.db')
 			dbcon = database.connect(kodiViewsDB)
 			dbcur = dbcon.cursor()
 			dbcur.execute("DELETE FROM view WHERE path LIKE 'plugin://plugin.video.venom/%'")
 			dbcur.connection.commit()
 			dbcon.close()
 		except:
+			log_utils.error()
 			pass
 		skinName = control.addon(skin).getAddonInfo('name')
 		skinIcon = control.addon(skin).getAddonInfo('icon')
@@ -81,13 +85,17 @@ def setView(content, viewDict=None):
 				dbcur = dbcon.cursor()
 				dbcur.execute("SELECT * FROM views WHERE skin = '%s' AND view_type = '%s'" % (record[0], record[1]))
 				view = dbcur.fetchone()
-				view = view[2]
-				if view is None:
+				if not view:
 					raise Exception()
+				view = view[2]
 				return control.execute('Container.SetViewMode(%s)' % str(view))
 			except:
+				log_utils.error()
 				try:
+					if skin not in viewDict:
+						return
 					return control.execute('Container.SetViewMode(%s)' % str(viewDict[skin]))
 				except:
+					log_utils.error()
 					return
 		control.sleep(100)

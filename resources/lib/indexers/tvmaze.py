@@ -4,11 +4,14 @@
 	Venom Add-on
 '''
 
-import re
-import urllib
-# import json
 import datetime
+import re
 import requests
+
+try:
+	from urllib import quote_plus
+except:
+	from urllib.parse import quote_plus
 
 from resources.lib.modules import cache
 from resources.lib.modules import cleantitle
@@ -216,7 +219,7 @@ class tvshows:
 		self.type = type
 		self.lang = control.apiLanguage()['tvdb']
 		self.notifications = notifications
-		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
+		# self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
 		self.disable_fanarttv = control.setting('disable.fanarttv')
 
 		self.tvmaze_link = 'https://www.tvmaze.com'
@@ -338,7 +341,7 @@ class tvshows:
 
 				if (tvdb == '0' or tmdb == '0') and imdb != '0':
 					from resources.lib.modules import trakt
-					trakt_ids = trakt.IdLookup('show', 'imdb', imdb)
+					trakt_ids = trakt.IdLookup('imdb', imdb, 'show')
 					if tvdb == '0':
 						tvdb = str(trakt_ids.get('tvdb', '0'))
 						if tvdb == '' or tvdb is None or tvdb == 'None':
@@ -374,7 +377,7 @@ class tvshows:
 ###--Check TVDb by seriesname
 				if tvdb == '0' or imdb == '0':
 					try:
-						url = self.tvdb_by_query % (urllib.quote_plus(title))
+						url = self.tvdb_by_query % (quote_plus(title))
 						result = requests.get(url).content
 						result = re.sub(r'[^\x00-\x7F]+', '', result)
 						result = client.replaceHTMLCodes(result)
@@ -408,7 +411,7 @@ class tvshows:
 				except:
 					item3 = None
 
-				if item3 is not None:
+				if item3:
 					if poster == '0':
 						poster = client.parseDOM(item3, 'poster')[0]
 						poster = '%s%s' % (self.tvdb_image, poster) if poster else '0'
@@ -459,7 +462,7 @@ class tvshows:
 					from resources.lib.indexers import fanarttv
 					# extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
 					extended_art = fanarttv.get_tvshow_art(tvdb)
-					if extended_art is not None:
+					if extended_art:
 						item.update(extended_art)
 						meta.update(item)
 

@@ -1,13 +1,21 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import urllib, hashlib, json
-import xbmc
+"""
+	Venom Add-on
+"""
 
+try: import AddonSignals
+except: pass
+import hashlib
+import json
+try: from sqlite3 import dbapi2 as database
+except: from pysqlite2 import dbapi2 as database
+import sys
 try:
-	import AddonSignals
+	from urllib import quote_plus, unquote_plus
 except:
-	pass
+	from urllib.parse import quote_plus, unquote_plus
+import xbmc
 
 from resources.lib.modules import cleantitle, control, playcount, log_utils
 
@@ -16,11 +24,6 @@ try:
 	syshandle = int(sys.argv[1])
 except:
 	pass
-
-try:
-	from sqlite3 import dbapi2 as database
-except:
-	from pysqlite2 import dbapi2 as database
 
 notificationSound = False if control.setting('notification.sound') == 'false' else True
 
@@ -52,16 +55,16 @@ class Player(xbmc.Player):
 			self.year = str(year)
 
 			if self.media_type == 'movie':
-				self.name = urllib.quote_plus(title) + urllib.quote_plus(' (%s)' % self.year) 
+				self.name = quote_plus(title) + quote_plus(' (%s)' % self.year) 
 				self.season = None
 				self.episode = None
 
 			elif self.media_type == 'episode':
-				self.name = urllib.quote_plus(title) + urllib.quote_plus(' S%02dE%02d' % (int(season), int(episode)))
+				self.name = quote_plus(title) + quote_plus(' S%02dE%02d' % (int(season), int(episode)))
 				self.season = '%01d' % int(season)
 				self.episode = '%01d' % int(episode)
 
-			self.name = urllib.unquote_plus(self.name)
+			self.name = unquote_plus(self.name)
 
 			self.DBID = None
 
@@ -290,7 +293,8 @@ class Player(xbmc.Player):
 
 				if self.media_type == 'movie':
 					try:
-						if watcher is True and property != '7':
+						# if watcher is True and property != '7':
+						if watcher and property != '7':
 							control.window.setProperty(pname, '7')
 							playcount.markMovieDuringPlayback(self.imdb, '7')
 						# elif watcher is False and property != '6':
@@ -302,7 +306,8 @@ class Player(xbmc.Player):
 
 				elif self.media_type == 'episode':
 					try:
-						if watcher is True and property != '7':
+						# if watcher is True and property != '7':
+						if watcher and property != '7':
 							control.window.setProperty(pname, '7')
 							playcount.markEpisodeDuringPlayback(self.imdb, self.tvdb, self.season, self.episode, '7')
 						# elif watcher is False and property != '6':
@@ -540,7 +545,7 @@ class Player(xbmc.Player):
 class Subtitles:
 	def get(self, name, imdb, season, episode):
 		import gzip, StringIO, codecs
-		import xmlrpclib, os, re, base64
+		import xmlrpclib, re, base64
 
 		try:
 			langDict = {'Afrikaans': 'afr', 'Albanian': 'alb', 'Arabic': 'ara', 'Armenian': 'arm', 'Basque': 'baq', 'Bengali': 'ben', 'Bosnian': 'bos', 'Breton': 'bre', 'Bulgarian': 'bul', 'Burmese': 'bur', 'Catalan': 'cat', 'Chinese': 'chi', 'Croatian': 'hrv', 'Czech': 'cze', 'Danish': 'dan', 'Dutch': 'dut', 'English': 'eng', 'Esperanto': 'epo', 'Estonian': 'est', 'Finnish': 'fin', 'French': 'fre', 'Galician': 'glg', 'Georgian': 'geo', 'German': 'ger', 'Greek': 'ell', 'Hebrew': 'heb', 'Hindi': 'hin', 'Hungarian': 'hun', 'Icelandic': 'ice', 'Indonesian': 'ind', 'Italian': 'ita', 'Japanese': 'jpn', 'Kazakh': 'kaz', 'Khmer': 'khm', 'Korean': 'kor', 'Latvian': 'lav', 'Lithuanian': 'lit', 'Luxembourgish': 'ltz', 'Macedonian': 'mac', 'Malay': 'may', 'Malayalam': 'mal', 'Manipuri': 'mni', 'Mongolian': 'mon', 'Montenegrin': 'mne', 'Norwegian': 'nor', 'Occitan': 'oci', 'Persian': 'per', 'Polish': 'pol', 'Portuguese': 'por,pob', 'Portuguese(Brazil)': 'pob,por', 'Romanian': 'rum', 'Russian': 'rus', 'Serbian': 'scc', 'Sinhalese': 'sin', 'Slovak': 'slo', 'Slovenian': 'slv', 'Spanish': 'spa', 'Swahili': 'swa', 'Swedish': 'swe', 'Syriac': 'syr', 'Tagalog': 'tgl', 'Tamil': 'tam', 'Telugu': 'tel', 'Thai': 'tha', 'Turkish': 'tur', 'Ukrainian': 'ukr', 'Urdu': 'urd'}
@@ -610,7 +615,7 @@ class Subtitles:
 			content = gzip.GzipFile(fileobj=StringIO.StringIO(content)).read()
 
 			subtitle = xbmc.translatePath('special://temp/')
-			subtitle = os.path.join(subtitle, 'TemporarySubs.%s.srt' % lang)
+			subtitle = control.joinPath(subtitle, 'TemporarySubs.%s.srt' % lang)
 
 			codepage = codePageDict.get(lang, '')
 			if codepage and control.setting('subtitles.utf') == 'true':
@@ -656,7 +661,8 @@ class Bookmarks:
 		match = dbcur.fetchone()
 		dbcon.close()
 
-		if match is None:
+		# if match is None:
+		if not match:
 			return self.offset
 
 		self.offset = str(match[1])

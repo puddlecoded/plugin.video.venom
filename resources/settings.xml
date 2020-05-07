@@ -25,6 +25,8 @@
 	<!-- Navigation - 1 -->
 	<category label="32621">
 		<setting type="lsep" label="32005" />
+<!-- 		<setting type="bool" visible="false" /> --> <!-- Ensures that a separator is drawn. -->
+<!-- 		<setting type="sep" /> -->
 		<setting id="mylists.widget" type="bool" label="32329" default="true" />
 		<setting id="navi.anime" type="bool" label="40068" default="false" />
 		<setting id="navi.youtube" type="bool" label="40061" default="false" />
@@ -80,7 +82,7 @@
 	<!-- TV Shows - 2 -->
 	<category label="32641">
 		<setting id="flatten.tvshows" type="bool" label="32317" default="false" />
-		<setting id="trakt.userHidden" type="text" default="" visible="hidden" />
+		<setting id="trakt.userHidden" type="text" default="" visible="false" />
 		<setting id="tv.widget" type="enum" label="32325" lvalues="32302|32326" default="1" visible="eq(-1,)" />
 		<setting id="tv.widget.alt" type="select" label="32325" lvalues="32302|32326|32327|32328" default="2" visible="!eq(-2,)" />
 		<setting id="tv.specials" type="bool" label="32649" default="true" />
@@ -108,8 +110,6 @@
 		<setting id="sort.progress.order" type="enum" label="33679" lvalues="33649|33650" default="1" subsetting="true" visible="!eq(-21,)" enable="!eq(-1,0)" />
 		<setting id="sort.calendar.type" type="select" label="35573" lvalues="33564|33039|35187|35188|35391|35392|35393" default="4" visible="!eq(-22,)" />
 		<setting id="sort.calendar.order" type="enum" label="33679" lvalues="33649|33650" default="1" subsetting="true" visible="!eq(-23,)" enable="!eq(-1,0)" />
-
-
 		<setting id="tvshows.air.enabled" type="bool" label="35017" default="false" subsetting="false" />
 		<setting id="tvshows.air.zone" type="select" label="35018" lvalues="32314|35022|35023" default="0" subsetting="true" visible="eq(-1,true)" />
 		<setting id="tvshows.air.location" type="select" label="35019" lvalues="35024|35025|35026|35027" default="0" subsetting="true" visible="eq(-2,true)" />
@@ -147,14 +147,14 @@
 		<setting id="sec.identify2" type="select" label="   Secondary Line Torrent content" values="std info line|magnet title" default="magnet title" enable="!eq(-3,2) + eq(-2,true)" />
 		<setting id="enable.resquality.icons" type="bool" label="32052" default="false" />
 		<setting id="progress.dialog" type="enum" label="32335" lvalues="32336|32337" default="0" />
-		<setting id="progress.dialog.prem.color" type="select" label="Progress Dialog Premium Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671" default="5" enable="eq(-1,0)" />
-		<setting id="progress.dialog.free.color" type="select" label="Progress Dialog Free Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671" default="1" enable="eq(-2,0)" />
+		<setting id="progress.dialog.prem.color" type="select" label="Progress Dialog Premium Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="5" enable="eq(-1,0)" />
+		<setting id="progress.dialog.free.color" type="select" label="Progress Dialog Free Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="1" enable="eq(-2,0)" />
 		<setting type="lsep" label="32338" />
 		<setting id="hosts.quality" type="enum" label="32339" values="4K|1080p|720p|480p" default="0" />
 		<setting id="preemptive.termination" type="bool" label="32654" default="false" />
 		<setting id="preemptive.limit" type="slider" label="32655" default="25" range="1,50" option="int" visible="eq(-1,true)" />
 		<setting id="preemptive.res" type="enum" label="32659" values="4K|1080p|720p|480p" default="2" visible="eq(-2,true)" />
-		<setting id="prem.identify" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32598" default="6" />
+		<setting id="prem.identify" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="6" />
 		<setting id="autoplay.sd" type="bool" label="32656" default="false" />
 		<setting id="sources.extrainfo" type="bool" label="32587" default="true" />
 		<setting id="HEVC" type="bool" label="32363" default="true" />

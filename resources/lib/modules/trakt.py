@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 	Venom Add-on
-'''
+"""
 
-import os, re, imp, json, urlparse
-import time, threading
+import json
+import imp
+import re
+import threading
+import time
+try:
+	from urlparse import urljoin
+except:
+	from urllib.parse import urljoin
 
 from resources.lib.modules import cache
 from resources.lib.modules import cleandate
@@ -29,11 +36,11 @@ general_notification = False if control.setting('trakt.general.notifications') =
 notificationSound = False if control.setting('notification.sound') == 'false' else True
 
 
-def getTrakt(url, post = None, cache = True, check = False, timestamp = None, extended = False, direct = False, authentication = None):
+def getTrakt(url, post=None, cache=True, check=False, timestamp=None, extended=False, direct=False, authentication=None):
 # def getTrakt(url, post = None, cache = True, check = True, timestamp = None, extended = False, direct = False, authentication = None):
 	try:
 		if not url.startswith(BASE_URL):
-			url = urlparse.urljoin(BASE_URL, url)
+			url = urljoin(BASE_URL, url)
 
 		if authentication:
 			valid = True
@@ -72,7 +79,7 @@ def getTrakt(url, post = None, cache = True, check = False, timestamp = None, ex
 		if code.startswith('5') or (result and isinstance(result, basestring) and '<html' in result) or not result:
 			return _error(url = url, post = post, timestamp = timestamp, message = 33676)
 
-		oauth = urlparse.urljoin(BASE_URL, '/oauth/token')
+		oauth = urljoin(BASE_URL, '/oauth/token')
 		opost = {'client_id': V2_API_KEY, 'client_secret': CLIENT_SECRET, 'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob', 'grant_type': 'refresh_token', 'refresh_token': refresh}
 
 		result = client.request(oauth, post = json.dumps(opost), headers = headers, error = True)
@@ -110,7 +117,7 @@ def getTrakt(url, post = None, cache = True, check = False, timestamp = None, ex
 	return None
 
 
-def getTraktAsJson(url, post = None, authentication = None):
+def getTraktAsJson(url, post=None, authentication=None):
 	try:
 		res_headers = {}
 		r = getTrakt(url = url, post = post, extended = True, authentication = authentication)
@@ -134,7 +141,7 @@ def _error(url, post, timestamp, message):
 	return None
 
 
-def _cache(url, post = None, timestamp = None):
+def _cache(url, post=None, timestamp=None):
 	try:
 		# Only cache the requests that change something on the Trakt account.
 		# Trakt uses JSON post data to set things and only uses GET parameters to retrieve things.
@@ -212,7 +219,7 @@ def _cacheClear():
 
 def authTrakt():
 	try:
-		if getTraktCredentialsInfo() is True:
+		if getTraktCredentialsInfo():
 			if control.yesnoDialog(control.lang(32511).encode('utf-8'), control.lang(32512).encode('utf-8'), '', 'Trakt'):
 				control.setSetting(id='trakt.user', value='')
 				control.setSetting(id='trakt.userHidden', value='')
@@ -250,7 +257,7 @@ def authTrakt():
 		token, refresh = r['access_token'], r['refresh_token']
 		headers = {'Content-Type': 'application/json', 'trakt-api-key': V2_API_KEY, 'trakt-api-version': 2, 'Authorization': 'Bearer %s' % token}
 
-		result = client.request(urlparse.urljoin(BASE_URL, '/users/me'), headers=headers)
+		result = client.request(urljoin(BASE_URL, '/users/me'), headers=headers)
 		result = utils.json_loads_as_str(result)
 
 		user = result['username']
@@ -317,7 +324,7 @@ def getTraktAddonEpisodeInfo():
 		return False
 
 
-def watch(name, imdb = None, tvdb = None, season = None, episode = None, refresh = True):
+def watch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
 	if tvdb is None:
 		markMovieAsWatched(imdb)
 		cachesyncMovies()
@@ -344,7 +351,7 @@ def watch(name, imdb = None, tvdb = None, season = None, episode = None, refresh
 		control.notification(title = 32315, message = control.lang(35502) % name, icon = 'INFO', sound = notificationSound)
 
 
-def unwatch(name, imdb = None, tvdb = None, season = None, episode = None, refresh = True):
+def unwatch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
 	if tvdb is None:
 		markMovieAsNotWatched(imdb)
 		cachesyncMovies()
@@ -371,20 +378,20 @@ def unwatch(name, imdb = None, tvdb = None, season = None, episode = None, refre
 		control.notification(title = 32315, message = control.lang(35503) % name, icon = 'INFO', sound = notificationSound)
 
 
-def rate(imdb = None, tvdb = None, season = None, episode = None):
+def rate(imdb=None, tvdb=None, season=None, episode=None):
 	return _rating(action = 'rate', imdb = imdb, tvdb = tvdb, season = season, episode = episode)
 
 
-def unrate(imdb = None, tvdb = None, season = None, episode = None):
+def unrate(imdb=None, tvdb=None, season=None, episode=None):
 	return _rating(action = 'unrate', imdb = imdb, tvdb = tvdb, season = season, episode = episode)
 
 
-def rateShow(imdb = None, tvdb = None, season = None, episode = None):
+def rateShow(imdb=None, tvdb=None, season=None, episode=None):
 	if control.setting('trakt.rating') == 1:
 		rate(imdb = imdb, tvdb = tvdb, season = season, episode = episode)
 
 
-def _rating(action, imdb = None, tvdb = None, season = None, episode = None):
+def _rating(action, imdb=None, tvdb=None, season=None, episode=None):
 	try:
 		addon = 'script.trakt'
 		if control.condVisibility('System.HasAddon(%s)' % addon):
@@ -409,7 +416,7 @@ def _rating(action, imdb = None, tvdb = None, season = None, episode = None):
 				data['media_type'] = 'movie'
 				data['dbid'] = 4
 
-			script = os.path.join(control.addonPath(addon), 'resources', 'lib', 'sqlitequeue.py')
+			script = control.joinPath(control.addonPath(addon), 'resources', 'lib', 'sqlitequeue.py')
 			sqlitequeue = imp.load_source('sqlitequeue', script)
 			data = {'action': 'manualRating', 'ratingData': data}
 			sqlitequeue.SqliteQueue().append(data)
@@ -419,7 +426,7 @@ def _rating(action, imdb = None, tvdb = None, season = None, episode = None):
 		pass
 
 
-def hideItem(name, imdb = None, tvdb = None, season = None, episode = None, refresh = True):
+def hideItem(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
 	sections = ['progress_watched', 'calendar']
 	sections_display = [control.lang(40072).encode('utf-8'), control.lang(40073).encode('utf-8')]
 	selection = control.selectDialog([i for i in sections_display], heading = control.addonInfo('name') + ' - ' + control.lang(40074).encode('utf-8'))
@@ -443,7 +450,7 @@ def hideItem(name, imdb = None, tvdb = None, season = None, episode = None, refr
 		control.notification(title = 32315, message = control.lang(33053) % (name, sections_display[selection]), icon = 'INFO', sound = notificationSound)
 
 
-def manager(name, imdb = None, tvdb = None, season = None, episode = None, refresh = True):
+def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
 	lists = []
 	try:
 		if season is not None:
@@ -553,7 +560,7 @@ def manager(name, imdb = None, tvdb = None, season = None, episode = None, refre
 		control.hide()
 
 
-def listAdd(successNotification = True):
+def listAdd(successNotification=True):
 	t = control.lang(32520).encode('utf-8')
 	k = control.keyboard('', t) ; k.doModal()
 	new = k.getText() if k.isConfirmed() else None
@@ -573,7 +580,7 @@ def listAdd(successNotification = True):
 		return None
 
 
-def lists(id = None):
+def lists(id=None):
 	return cache.get(getTraktAsJson, 48, 'https://api.trakt.tv/users/me/lists' + ('' if id is None else ('/' + str(id))))
 
 
@@ -589,9 +596,9 @@ def slug(name):
 	return name
 
 
-def verify(authentication = None):
+def verify(authentication=None):
 	try:
-		if getTraktAsJson('/sync/last_activities', authentication = authentication):
+		if getTraktAsJson('/sync/last_activities', authentication=authentication):
 			return True
 	except:
 		pass
@@ -688,7 +695,7 @@ def watchedMoviesTime(imdb):
 
 
 def cachesyncTV(imdb):
-	threads = [threading.Thread(target = cachesyncTVShows), threading.Thread(target = cachesyncSeason, args = (imdb,))]
+	threads = [threading.Thread(target = cachesyncTVShows), threading.Thread(target=cachesyncSeason, args=(imdb,))]
 	[i.start() for i in threads]
 	[i.join() for i in threads]
 
@@ -778,7 +785,7 @@ def syncSeason(imdb):
 		# pass
 
 
-def showCount(imdb, refresh = True, wait = False):
+def showCount(imdb, refresh=True, wait=False):
 	try:
 		if not imdb:
 			return None
@@ -801,7 +808,7 @@ def showCount(imdb, refresh = True, wait = False):
 		return None
 
 
-def seasonCount(imdb, refresh = True, wait = False):
+def seasonCount(imdb, refresh=True, wait=False):
 	try:
 		if not imdb:
 			return None
@@ -813,7 +820,7 @@ def seasonCount(imdb, refresh = True, wait = False):
 
 		if refresh:
 			# NB: Do not retrieve a fresh count, otherwise loading show/season menus are slow.
-			thread = threading.Thread(target = _seasonCountCache, args = (imdb,))
+			thread = threading.Thread(target=_seasonCountCache, args=(imdb,))
 			thread.start()
 			if wait:
 				thread.join()
@@ -1071,9 +1078,9 @@ def getGenre(content, type, type_id):
 		return []
 
 
-def IdLookup(content, type, type_id):
+def IdLookup(id_type, id, type):
 	try:
-		r = '/search/%s/%s?type=%s' % (type, type_id, content)
+		r = '/search/%s/%s?type=%s' % (id_type, id, type)
 		r = cache.get(getTraktAsJson, 48, r)
 		return r[0].get(content, {}).get('ids', [])
 	except:
@@ -1087,7 +1094,7 @@ def _scrobbleType(type):
 		return 'movie'
 
 
-def scrobbleProgress(type, imdb = None, tvdb = None, season = None, episode = None):
+def scrobbleProgress(type, imdb=None, tvdb=None, season=None, episode=None):
 	try:
 		type = _scrobbleType(type)
 		if imdb is not None:
@@ -1121,7 +1128,7 @@ def scrobbleProgress(type, imdb = None, tvdb = None, season = None, episode = No
 	return 0
 
 
-def scrobbleUpdate(action, type, imdb = None, tvdb = None, season = None, episode = None, progress = 0):
+def scrobbleUpdate(action, type, imdb=None, tvdb=None, season=None, episode=None, progress=0):
 	try:
 		if action:
 			type = _scrobbleType(type)
