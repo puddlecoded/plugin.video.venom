@@ -1499,6 +1499,12 @@ class Sources:
 									'oload.life', 'oload.space', 'oload.stream', 'oload.tv', 'oload.win', 'openload.co', 'openload.io', 'openload.pw', 'rapidvideo.com',
 									'rapidvideo.is', 'rapidvid.to', 'streamango.com', 'streamcherry.com', 'twitch.tv', 'youtube.com', 'zippyshare.com']
 
+		self.sourcecfDict = ['1putlocker', '123movies', '123movieshubz', 'animebase', 'animetoon', 'cartoonhdto', 'cmovieshd', 'extramovies', 'filmpalast',
+									'filmxy', 'fmovies', 'ganoolcam', 'gomoviesonl', 'hdfilme', 'iload', 'movietown', 'projectfreetv', 'putlockeronl', 'seehd', 'series9',
+									'streamdreams', 'timewatch', 'xwatchseries', 'ganool', 'maxrls', 'mkvhub', 'rapidmoviez', 'rlsbb', 'scenerls', 'tvdownload', 'btdb',
+									'extratorrent', 'limetorrents', 'moviemagnet', 'torrentgalaxy', 'torrentz']
+
+
 	def getPremColor(self, n):
 		if n == '0': n = 'blue'
 		elif n == '1': n = 'red'

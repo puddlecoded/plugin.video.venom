@@ -1817,8 +1817,11 @@ class Episodes:
 				resumetime = Bookmarks().get(blabel, str(year), ck=True)
 				# item.setProperty('totaltime', str(meta['duration']))
 				item.setProperty('resumetime', str(resumetime))
+				item.setProperty('venom_resumetime', str(resumetime))
+
 				# watched_percent = int(float(resumetime) / float(meta['duration']) * 100)
 				# item.setProperty('percentplayed', str(watched_percent))
+
 
 				item.setInfo(type='video', infoLabels=control.metadataClean(meta))
 				video_streaminfo = {'codec': 'h264'}
@@ -1872,7 +1875,6 @@ class Episodes:
 
 
 	def addDirectory(self, items, queue=False):
-		# if items is None or len(items) == 0:
 		if not items:
 			control.hide()
 			control.notification(title=32326, message=33049, icon='INFO', sound=notificationSound)

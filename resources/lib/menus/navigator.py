@@ -499,6 +499,20 @@ class Navigator:
 			pass
 
 
+	def clearBookmark(self, name, year):
+		control.hide()
+		yes = control.yesnoDialog(control.lang(32056).encode('utf-8'), '', '')
+		if not yes:
+			return
+		try:
+			from resources.lib.modules import cache
+			cache.cache_clear_bookmark(name, year)
+			control.notification(title = name, message = 'Bookmark Successfully Cleared!', icon = 'default', sound = notificationSound)
+		except:
+			log_utils.error()
+			pass
+
+
 	def addDirectoryItem(self, name, query, thumb, icon, context=None, queue=False, isAction=True, isFolder=True, isPlayable=False, isSearch=False, table=''):
 		try:
 			if type(name) is str or type(name) is unicode:

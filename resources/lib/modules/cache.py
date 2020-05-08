@@ -230,6 +230,23 @@ def cache_clear_bookmarks():
 	cursor.close()
 
 
+def cache_clear_bookmark(name, year='0'):
+	cursor = _get_connection_cursor_bookmarks()
+	idFile = hashlib.md5()
+	for i in name:
+		idFile.update(str(i))
+	for i in year:
+		idFile.update(str(i))
+	idFile = str(idFile.hexdigest())
+	try:
+		cursor.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
+		cursor.connection.commit()
+	except:
+		log_utils.error()
+		pass
+	cursor.close()
+
+
 def _get_connection_cursor():
 	conn = _get_connection()
 	return conn.cursor()

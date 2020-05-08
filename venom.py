@@ -50,6 +50,7 @@ homeWindow = xbmcgui.Window(10000)
 contextSettings = xbmcaddon.Addon('context.venom').getSetting('context.venom.settings')
 traktManager = xbmcaddon.Addon('context.venom').getSetting('context.venom.traktManager')
 clearProviders = xbmcaddon.Addon('context.venom').getSetting('context.venom.clearProviders')
+clearBookmark = xbmcaddon.Addon('context.venom').getSetting('context.venom.clearBookmark')
 rescrape = xbmcaddon.Addon('context.venom').getSetting('context.venom.rescrape')
 playFromHere = xbmcaddon.Addon('context.venom').getSetting('context.venom.playFromHere')
 playAction = xbmcaddon.Addon('plugin.video.venom').getSetting('hosts.mode')
@@ -63,6 +64,7 @@ browseEpisodes = xbmcaddon.Addon('context.venom').getSetting('context.venom.brow
 homeWindow.setProperty('context.venom.settings', contextSettings)
 homeWindow.setProperty('context.venom.traktManager', traktManager)
 homeWindow.setProperty('context.venom.clearProviders', clearProviders)
+homeWindow.setProperty('context.venom.clearBookmark', clearBookmark)
 homeWindow.setProperty('context.venom.rescrape', rescrape)
 homeWindow.setProperty('context.venom.playFromHere', playFromHere)
 homeWindow.setProperty('plugin.video.venom.autoPlay', autoPlay)
@@ -803,6 +805,15 @@ elif action == 'clearBookmarks':
 	if params.get('opensettings') == 'true':
 		control.openSettings(query, 'plugin.video.venom')
 
+elif action == 'clearBookmark':
+	from resources.lib.menus import navigator
+	navigator.Navigator().clearBookmark(name, year)
+	if params.get('opensettings') == 'true':
+		control.openSettings(query, 'plugin.video.venom')
+
 elif action == 'clearResolveURLcache':
 	if control.condVisibility('System.HasAddon(script.module.resolveurl)'):
 		control.execute('RunPlugin(plugin://script.module.resolveurl/?mode=reset_cache)')
+
+elif action == 'widgetRefresh':
+	control.trigger_widget_refresh()

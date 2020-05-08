@@ -12,9 +12,9 @@ import sys
 
 try:
 	from urllib import quote_plus, unquote_plus
-	from urlparse import parse_qsl
+	from urlparse import parse_qsl, urlparse
 except:
-	from urllib.parse import quote_plus, unquote_plus, parse_qsl
+	from urllib.parse import quote_plus, unquote_plus, parse_qsl, urlparse
 try:
 	from urllib.request import urlopen
 	from urllib.request import Request
