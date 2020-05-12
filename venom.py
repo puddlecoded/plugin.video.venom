@@ -373,7 +373,6 @@ elif action == 'playEpisodesList':
 	items = episodes.Episodes().get(tvshowtitle, year, imdb, tmdb, tvdb, season, episode, idx=False)
 	control.playlist.clear()
 	for i in items:
-		# xbmc.log('i = %s' % i, 2)
 		title = i['title']
 		systitle = quote_plus(title)
 		year = i['year']
@@ -614,10 +613,8 @@ elif action == 'queueItem':
 #---Player
 ####################################################
 elif action == 'play':
-	# control.busy()
 	from resources.lib.modules import sources
 	sources.Sources().play(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=False)
-	# control.hide()
 
 elif action == 'playAll':
 	control.player2().play(control.playlist)
@@ -627,10 +624,8 @@ elif action == 'playItem':
 	sources.Sources().playItem(title, source)
 
 elif action == 'reScrape':
-	# control.busy()
 	from resources.lib.modules import sources
 	sources.Sources().play(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=True)
-	# control.hide()
 
 elif action == 'addItem':
 	from resources.lib.modules import sources
@@ -711,8 +706,6 @@ elif action == 'movieToLibrary':
 
 elif action == 'moviesToLibrary':
 	from resources.lib.modules import libtools
-	# xbmc.log('url=%s' % url, 2)
-	# xbmc.log('list_name=%s' % list_name, 2)
 	libtools.libmovies().range(url, list_name)
 
 elif action == 'moviesListToLibrary':

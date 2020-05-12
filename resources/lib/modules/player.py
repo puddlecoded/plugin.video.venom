@@ -17,7 +17,12 @@ except:
 	from urllib.parse import quote_plus, unquote_plus
 import xbmc
 
-from resources.lib.modules import cleantitle, control, playcount, log_utils
+from resources.lib.modules import cleantitle
+from resources.lib.modules import control
+from resources.lib.modules import log_utils
+from resources.lib.modules import metacache
+from resources.lib.modules import playcount
+
 
 try:
 	sysaddon = sys.argv[0]
@@ -75,9 +80,35 @@ class Player(xbmc.Player):
 
 			self.meta = meta
 			self.offset = Bookmarks().get(self.name, self.year)
-			poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta = self.getMeta(meta)
+			# poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta = self.getMeta(meta)
 
 			item = control.item(path=url)
+
+
+
+			self.imdb_user = control.setting('imdb.user').replace('ur', '')
+			self.tmdb_key = control.setting('tm.user')
+			if self.tmdb_key == '' or self.tmdb_key is None:
+				self.tmdb_key = '3320855e65a9758297fec4f7c9717698'
+			self.tvdb_key = 'N1I4U1paWDkwVUE5WU1CVQ=='
+
+			if self.media_type == 'episode':
+				self.user = str(self.imdb_user) + str(self.tvdb_key)
+			else:
+				self.user = str(self.tmdb_key)
+			self.lang = control.apiLanguage()['tvdb']
+			items = [{'imdb': imdb, 'tvdb': tvdb}] # need to add tmdb but it's not passed as of now
+			meta1 = meta
+			meta2 = metacache.fetch(items, self.lang, self.user)[0]
+			# log_utils.log('metacache = %s' % meta2, __name__, log_utils.LOGDEBUG)
+			if len(meta2) > len(meta1):
+				meta = meta2
+			else:
+				meta = meta1
+
+
+			poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta = self.getMeta(meta)
+
 
 			if self.media_type == 'episode':
 				self.episodeIDS = meta.get('episodeIDS', '0')
@@ -92,18 +123,6 @@ class Player(xbmc.Player):
 					item.setArt({'thumb': thumb, 'poster': poster, 'fanart': fanart})
 				else:
 					item.setArt({'clearart': clearart, 'clearlogo': clearlogo, 'discart': discart, 'thumb': thumb, 'poster': poster, 'fanart': fanart})
-
-			# self.tvdb_key = 'N1I4U1paWDkwVUE5WU1CVQ=='
-			# self.imdb_user = control.setting('imdb.user').replace('ur', '')
-			# self.user = str(self.imdb_user) + str(self.tvdb_key)
-			# self.lang = control.apiLanguage()['tvdb']
-			# items = [{'imdb': imdb, 'tvdb': tvdb}]
-			# list = metacache.fetch(items, self.lang, self.user)
-			# if 'castandart' in str(list):
-				# item.setCast(list[0].get('castandart', ''))
-
-			# test = control.infoLabel('ListItem.thumb')
-			# log_utils.log('thumb = %s' % test, __name__, log_utils.LOGDEBUG)
 
 			if 'castandart' in meta:
 				item.setCast(meta.get('castandart', ''))
@@ -131,7 +150,7 @@ class Player(xbmc.Player):
 		try:
 			if meta is None:
 				raise Exception()
-			poster = meta.get('poster')
+			poster = meta.get('poster3') or meta.get('poster2') or meta.get('poster')
 			thumb = meta.get('thumb')
 			thumb = thumb or poster or control.addonThumb()
 			season_poster = meta.get('season_poster') or poster
@@ -141,7 +160,14 @@ class Player(xbmc.Player):
 			clearlogo = meta.get('clearlogo')
 			discart = meta.get('discart')
 			if 'mediatype' not in meta:
-				meta.update({'mediatype': 'episode' if 'episode' in meta and meta['episode'] else 'movie'})
+				# meta.update({'mediatype': 'episode' if 'episode' in meta and meta['episode'] else 'movie'})
+				meta.update({'mediatype': 'episode' if self.episode else 'movie'})
+				meta.update({'season': self.season})
+				meta.update({'episode': self.episode})
+				meta.update({'tvshowtitle': self.title})
+				meta.update({'title': self.meta.get('title')})
+				meta.update({'premiered': self.meta.get('premiered')})
+				# meta.update({'plot': self.meta.get('plot')})
 
 			return (poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta)
 		except:

@@ -1240,7 +1240,7 @@ class TVshows:
 			else:
 				fanart = self.list[i]['fanart']
 
-			item = {'extended': True, 'title': title, 'year': year, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration,
+			item = {'extended': True, 'tvshowtitle': title, 'title': title, 'tvshowyear': year, 'year': year, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration,
 						'rating': rating, 'votes': votes, 'mpaa': mpaa, 'castandart': castandart, 'plot': plot, 'status': status, 'poster': poster, 'poster2': '0', 'poster3': '0', 'banner': banner,
 						'banner2': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0', 'landscape': fanart, 'metacache': False}
 
@@ -1339,10 +1339,10 @@ class TVshows:
 				try: meta.update({'genre': cleangenre.lang(meta['genre'], self.lang)})
 				except: pass
 				try:
-					if not 'tvshowtitle' in meta: meta.update({'tvshowtitle': title})
+					if 'tvshowtitle' not in meta: meta.update({'tvshowtitle': title})
 				except: pass
 				try:
-					if not 'tvshowyear' in meta: meta.update({'tvshowyear': year})
+					if 'tvshowyear' not in meta: meta.update({'tvshowyear': year})
 				except: pass
 
 				poster1 = meta.get('poster')
@@ -1405,7 +1405,7 @@ class TVshows:
 				cm.append((clearPlaylistMenu, 'RunPlugin(%s?action=clearPlaylist)' % sysaddon))
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (sysaddon, systitle, year, imdb, tmdb, tvdb)))
-				cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
+				# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 ####################################
 
@@ -1486,7 +1486,6 @@ class TVshows:
 
 
 	def addDirectory(self, items, queue=False):
-		# if items is None or len(items) == 0: 
 		if not items: 
 			control.hide()
 			control.notification(title = 32002, message = 33049, icon = 'INFO', sound=notificationSound)
@@ -1530,7 +1529,7 @@ class TVshows:
 					if control.setting('library.service.update') == 'true':
 						cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowsToLibrary&url=%s&list_name=%s)' % (sysaddon, quote_plus(i['context']), name)))
 				except: pass
-				cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
+				# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 
 				item = control.item(label=name)

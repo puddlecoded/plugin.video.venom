@@ -25,7 +25,7 @@
 	<!-- Navigation - 1 -->
 	<category label="32621">
 		<setting type="lsep" label="32005" />
-<!-- 		<setting type="bool" visible="false" /> --> <!-- Ensures that a separator is drawn. -->
+<!-- 		<setting type="bool" visible="false" /> --> <!-- trick to ensures that a separator is drawn. -->
 <!-- 		<setting type="sep" /> -->
 		<setting id="mylists.widget" type="bool" label="32329" default="true" />
 		<setting id="navi.anime" type="bool" label="40068" default="false" />
@@ -90,7 +90,6 @@
 		<setting id="unaired.identify" type="select" label="32608" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="8" enable="eq(-1,true)" />
 		<setting id="tvshows.seasoncount.enabled" type="bool" label="33890" default="false" />
 		<setting id="tvshows.unwatched.enabled" type="bool" label="33891" default="false" />
-		<!-- <setting id="tvshows.unwatched.limit" type="bool" label="33892" default="true" subsetting="false" visible="eq(-1,true)" /> -->
 		<setting id="tvshows.calendar.extended" type="bool" label="32023" default="false" />
 		<setting type="lsep" label="40025" />
 		<setting type="action" action="InstallAddon(service.upnext)" label="40027" option="close" visible="!System.HasAddon(service.upnext)" />
@@ -139,31 +138,33 @@
 	<!-- Source Options - 5 -->
 	<category label="Source Options">
 		<setting id="providers.lang" type="select" label="32360" values="English|German|Greek|Polish|Spanish|German+English|Greek+English|Polish+English|Spanish+English" default="English" />
+		<setting id="cf.disable" type="bool" label="32364" default="false" />
 		<setting id="scrapers.timeout.1" type="slider" label="32312" default="30" range="10,60" option="int" />
-		<setting id="debrid.only" type="bool" label="32653" default="false" />
+		<setting id="preemptive.termination" type="bool" label="32654" default="false" />
+		<setting id="preemptive.limit" type="slider" label="32655" default="25" range="1,50" option="int" visible="eq(-1,true)" />
+		<setting id="preemptive.res" type="enum" label="32659" values="4K|1080p|720p|480p" default="2" visible="eq(-2,true)" />
+		<setting id="progress.dialog" type="enum" label="32335" lvalues="32336|32337" default="0" />
+		<setting id="progress.dialog.prem.color" type="select" label="Progress Dialog Premium Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="5" enable="eq(-1,0)" />
+		<setting id="progress.dialog.free.color" type="select" label="Progress Dialog Free Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="1" enable="eq(-2,0)" />
+		<setting id="autoplay.sd" type="bool" label="32656" default="false" />
 		<setting id="hosts.mode" type="select" label="32331" lvalues="32332|32333|32334" default="1" />
 		<setting id="sourcelist.multiline" type="bool" label="Multiline source list" default="true" enable="!eq(-1,2)" />
 		<setting id="sec.identify" type="select" label="   Secondary Line Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="4" enable="!eq(-2,2) + eq(-1,true)" />
 		<setting id="sec.identify2" type="select" label="   Secondary Line Torrent content" values="std info line|magnet title" default="magnet title" enable="!eq(-3,2) + eq(-2,true)" />
+		<setting id="prem.identify" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="6" />
 		<setting id="enable.resquality.icons" type="bool" label="32052" default="false" />
-		<setting id="progress.dialog" type="enum" label="32335" lvalues="32336|32337" default="0" />
-		<setting id="progress.dialog.prem.color" type="select" label="Progress Dialog Premium Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="5" enable="eq(-1,0)" />
-		<setting id="progress.dialog.free.color" type="select" label="Progress Dialog Free Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="1" enable="eq(-2,0)" />
+		<setting id="sources.extrainfo" type="bool" label="32587" default="true" />
+		<setting id="rescrape.clr.item.providers" type="bool" label="Allow Rescrape to first clear item providers" default="true" />
 		<setting type="lsep" label="32338" />
 		<setting id="hosts.quality" type="enum" label="32339" values="4K|1080p|720p|480p" default="0" />
-		<setting id="preemptive.termination" type="bool" label="32654" default="false" />
-		<setting id="preemptive.limit" type="slider" label="32655" default="25" range="1,50" option="int" visible="eq(-1,true)" />
-		<setting id="preemptive.res" type="enum" label="32659" values="4K|1080p|720p|480p" default="2" visible="eq(-2,true)" />
-		<setting id="prem.identify" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="6" />
-		<setting id="autoplay.sd" type="bool" label="32656" default="false" />
-		<setting id="sources.extrainfo" type="bool" label="32587" default="true" />
-		<setting id="HEVC" type="bool" label="32363" default="true" />
-		<setting id="hosts.captcha" type="bool" label="32341" default="false" />
 		<setting id="hosts.sort.provider" type="bool" label="32342" default="true" />
+		<setting id="debrid.only" type="bool" label="32653" default="false" />
 		<setting id="remove.duplicates" type="bool" label="32035" default="true" />
 		<setting id="remove.duplicates.logging" type="bool" label="   Do not spam log with removed duplicates" default="true" enable="eq(-1,true)" />
+		<setting id="remove.hevc" type="bool" label="32363" default="false" />
+		<setting id="remove.captcha" type="bool" label="32341" default="false" />
 		<setting id="remove.CamSd.sources" type="bool" label="32050" default="false" />
-		<setting id="remove.3D.sources" type="bool" label="32051" default="false" />
+		<setting id="remove.3D.sources" type="bool" label="32051" default="true" />
 	</category>
 
 	<!-- Torrent Settings - 6 -->
@@ -171,7 +172,6 @@
 		<setting id="torrent.enabled" type="bool" label="32636" default="true" visible = "false" /><!--  Option removed and not used by OpenScrapers so not visible for now -->
 		<setting id="torrent.identify" type="select" label="32634" enable="eq(-1,true)" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="5" visible = "true" />
 		<setting id="torrent.min.seeders" type="slider" label="32638" enable="eq(-2,true)" default="1" range="1,100" option="int" visible = "false" /> <!-- Hard coded to 1 by OpenScrapers so not visible for now-->
-<!-- 		<setting id="torrent.sort.them.up" type="bool" label="32639" enable="eq(-3,true)"  default="true" visible = "true" /> -->
 		<setting id="torrent.group.sort" type="select" label="Torent/Hoster sorting method" lvalues="32021|32022" enable="eq(-3,true)"  default="1" visible = "true" />
 		<setting id="torrent.size.sort" type="bool" label="Sort torrents by size" default="true" />
 		<setting id="torrent.resolveurl2" type="action" label="32640" enable="eq(-5,true)" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=urlResolverRDTorrent&amp;query=1.43)" />

@@ -105,12 +105,9 @@ class Movies:
 	def __init__(self):
 		self.list = []
 		self.meta = []
-
 		self.lang = control.apiLanguage()['trakt']
-
 		self.tmdb_info_link = base_link + '/3/movie/%s?api_key=%s&language=%s&append_to_response=credits,release_dates,videos' % ('%s', API_key, self.lang)
 ###                                                                             other "append_to_response" options                             external_ids,alternative_titles,images
-
 		self.tmdb_art_link = base_link + '/3/movie/%s/images?api_key=%s&include_image_language=en,%s,null' % ('%s', API_key, self.lang)
 		self.tmdb_external_ids = base_link + '/3/movie/%s/external_ids?api_key=%s' % ('%s', API_key)
 
@@ -176,7 +173,6 @@ class Movies:
 			self.list.append(values)
 
 		def items_list(i):
-			# if i['metacache'] is True:
 			if i['metacache']:
 				return
 
@@ -512,6 +508,9 @@ class TVshows:
 		self.tmdb_info_link = base_link + '/3/tv/%s?api_key=%s&language=%s&append_to_response=credits,content_ratings,external_ids' % ('%s', API_key, self.lang)
 ###                                                                                  other "append_to_response" options                                           alternative_titles,videos,images
 		self.tmdb_art_link = base_link + '/3/tv/%s/images?api_key=%s&include_image_language=en,%s,null' % ('%s', API_key, self.lang)
+		self.tvdb_key = 'N1I4U1paWDkwVUE5WU1CVQ=='
+		self.imdb_user = control.setting('imdb.user').replace('ur', '')
+		self.user = str(self.imdb_user) + str(self.tvdb_key)
 
 
 	def tmdb_list(self, url):
@@ -630,7 +629,7 @@ class TVshows:
 								'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'poster2': '0', 'banner': '0', 'banner2': '0', 'fanart': fanart, 'fanart2': '0', 'clearlogo': '0', 'clearart': '0', 'landscape': fanart,
 								'metacache': False, 'next': next}
 
-				meta = {'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'lang': self.lang, 'user': API_key, 'item': values}
+				meta = {'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'lang': self.lang, 'user': self.user, 'item': values}
 
 				if disable_fanarttv != 'true':
 					from resources.lib.indexers import fanarttv
@@ -783,8 +782,7 @@ class TVshows:
 								'mpaa': mpaa, 'status': status, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster,
 								'poster2': '0', 'poster3': '0', 'banner': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0', 'landscape': fanart, 'metacache': False, 'next': next}
 
-				meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'lang': self.lang, 'user': API_key, 'item': values}
-
+				meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'lang': self.lang, 'user': self.user, 'item': values}
 				if disable_fanarttv != 'true':
 					from resources.lib.indexers import fanarttv
 					extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)

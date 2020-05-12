@@ -336,11 +336,11 @@ msgid "Auto update User Lists"
 msgstr ""
 
 msgctxt "#32076"
-msgid ""
+msgid "Removing metacache results in excessive api requests and\nsystem slow down.\nAre you sure?"
 msgstr ""
 
 msgctxt "#32077"
-msgid ""
+msgid "This also wipes out your metacache and all meta must be\nfetched from scratch, resulting in excessive api requests\nand system slow down.\nBest to only use this unless ABSOLUTELY necessary.\nAre you sure?"
 msgstr ""
 
 msgctxt "#32078"
@@ -550,7 +550,7 @@ msgid "Background"
 msgstr ""
 
 msgctxt "#32338"
-msgid "File Hosting Filters"
+msgid "Results filtering options"
 msgstr ""
 
 msgctxt "#32339"
@@ -562,7 +562,7 @@ msgid "SD Hosters in Auto Play"
 msgstr ""
 
 msgctxt "#32341"
-msgid "Include Hosters with captchas"
+msgid "Remove pair/captcha hosts"
 msgstr ""
 
 msgctxt "#32342"
@@ -650,11 +650,11 @@ msgid "[B]SETTINGS[/B] : Navigation"
 msgstr ""
 
 msgctxt "#32363"
-msgid "Include HEVC"
+msgid "Remove HEVC streams"
 msgstr ""
 
 msgctxt "#32364"
-msgid ""
+msgid "Disable CloudFlare protected providers"
 msgstr ""
 
 msgctxt "#32365"

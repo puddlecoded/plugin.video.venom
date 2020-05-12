@@ -403,7 +403,7 @@ class Navigator:
 
 	def clearCacheAll(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32077).encode('utf-8'), '', '')
 		if not yes:
 			return
 		try:
@@ -431,7 +431,7 @@ class Navigator:
 
 	def clearCacheMeta(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32076).encode('utf-8'), '', '')
 		if not yes:
 			return
 		try:
@@ -533,7 +533,7 @@ class Navigator:
 			cm.append((control.lang(context[0]).encode('utf-8'), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
 		if isSearch:
 			cm.append(('Clear Search Phrase', 'RunPlugin(%s?action=clearSearchPhrase&table=%s&name=%s)' % (sysaddon, table, name)))
-		cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
+		# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 		cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 		item = control.item(label=name)
 		item.addContextMenuItems(cm)

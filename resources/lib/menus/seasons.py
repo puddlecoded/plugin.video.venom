@@ -672,8 +672,7 @@ class Seasons:
 				label = label.encode('utf-8')
 
 				try:
-					# episodeplot = client.parseDOM(local, 'Overview')[0]
-					episodeplot = client.parseDOM(local, 'Overview')[0].encode('ascii', errors='ignore').decode('ascii', errors='ignore')
+					episodeplot = client.parseDOM(local, 'Overview')[0]
 				except:
 					episodeplot = ''
 				if episodeplot == '':
@@ -770,7 +769,6 @@ class Seasons:
 		if tvdb == '0' and imdb != '0':
 			try:
 				url = self.tvdb_by_imdb % imdb
-				# result = client.request(url, timeout='10')
 				result = requests.get(url).content
 				result = re.sub(r'[^\x00-\x7F]+', '', result)
 				result = client.replaceHTMLCodes(result)
@@ -796,7 +794,6 @@ class Seasons:
 			try:
 				years = [str(year), str(int(year)+1), str(int(year)-1)]
 				url = self.tvdb_by_query % (quote_plus(tvshowtitle))
-				# tvdb = client.request(url, timeout='10', error=True)
 				tvdb = requests.get(url).content
 				tvdb = re.sub(r'[^\x00-\x7F]+', '', tvdb)
 				tvdb = client.replaceHTMLCodes(tvdb)
@@ -842,7 +839,6 @@ class Seasons:
 
 
 	def seasonDirectory(self, items):
-		# if items is None or len(items) == 0:
 		if not items:
 			control.hide()
 			control.notification(title = 32054, message = 33049, icon = 'INFO', sound=notificationSound)
@@ -948,7 +944,6 @@ class Seasons:
 					fanart3 = meta.get('fanart3')
 					fanart = fanart3 or fanart2 or fanart1 or addonFanart
 
-				# landscape = meta.get('landscape')
 				thumb = meta.get('thumb') or poster
 				icon = meta.get('icon') or poster
 
@@ -996,7 +991,7 @@ class Seasons:
 
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (sysaddon, systitle, year, imdb, tmdb, tvdb)))
-				cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
+				# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 ####################################
 

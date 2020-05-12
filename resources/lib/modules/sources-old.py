@@ -1,39 +1,20 @@
 # -*- coding: utf-8 -*-
 
-"""
-	Venom Add-on
-"""
+import sys, time, datetime, os
+import xbmc, xbmcgui
+import re, urllib, urlparse, random, json
 
-import datetime
-import json
-import random
-import re
-import sys
-import time
-
-try:
-	from urllib import quote_plus
-	from urlparse import parse_qsl
-except:
-	from urllib.parse import quote_plus, parse_qsl
-import xbmc
-
-from resources.lib.modules import cleantitle
-from resources.lib.modules import client
-from resources.lib.modules import control
-from resources.lib.modules import debrid
-from resources.lib.modules import log_utils
+from resources.lib.modules import client, cleantitle, control, workers
+from resources.lib.modules import trakt, source_utils, log_utils
+from resources.lib.modules import debrid, cache, providerscache
 from resources.lib.modules import premiumize
-from resources.lib.modules import providerscache
 from resources.lib.modules import realdebrid
-from resources.lib.modules import source_utils
-from resources.lib.modules import trakt
-from resources.lib.modules import workers
 
 try:
 	from sqlite3 import dbapi2 as database
 except:
 	from pysqlite2 import dbapi2 as database
+
 try:
 	import resolveurl
 except:
@@ -44,52 +25,19 @@ class Sources:
 	def __init__(self):
 		self.getConstants()
 		self.sources = []
-		self.sourceFile = control.providercacheFile
-
-	def timeIt(func):
-		import time
-		fnc_name = func.__name__
-		def wrap(*args, **kwargs):
-			started_at = time.time()
-			result = func(*args, **kwargs)
-			log_utils.log('%s.%s = %s' % (__name__ , fnc_name, time.time() - started_at), log_utils.LOGDEBUG)
-			return result
-		return wrap
-
-
-	def profileIt(func):
-		import cProfile, pstats
-		from io import BytesIO as StringIO
-		def wrapper(*args, **kwargs):
-			LOGPATH = control.transPath('special://logpath/')
-			datafn = func.__name__ + ".profile" # Name the data file sensibly
-			log_file = control.joinPath(LOGPATH, datafn)
-			prof = cProfile.Profile()
-			retval = prof.runcall(func, *args, **kwargs)
-			s = StringIO()
-			# sortby = 'cumulative'
- 			sortby = 'tottime'
-			ps = pstats.Stats(prof, stream=s).sort_stats(sortby)
-			ps.print_stats()
-			with open(log_file, 'a') as perf_file:
-				perf_file.write(s.getvalue())
-			return retval
-		return wrapper
 
 
 	def play(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=False):
-		control.busy()
 		try:
 			url = None
-			self.title = title
 
+			self.title = title
 			if rescrape:
-				if control.setting('rescrape.clr.item.providers') == 'true':
-					self.clr_item_providers(imdb, season, episode)
 				items = self.getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 			else:
 				items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-			if not items:
+
+			if items is None:
 				self.url = url
 				return self.errorForSources()
 
@@ -115,9 +63,11 @@ class Sources:
 					control.window.setProperty(self.itemProperty, json.dumps(items))
 					control.window.clearProperty(self.metaProperty)
 					control.window.setProperty(self.metaProperty, meta)
+
 					control.sleep(200)
-					control.hide()
-					return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], quote_plus(title)))
+
+					return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], urllib.quote_plus(title)))
+
 				elif select == '0' or select == '1':
 					url = self.sourcesDialog(items)
 				else:
@@ -133,28 +83,27 @@ class Sources:
 				pass
 
 			from resources.lib.modules import player
-			control.hide()
 			player.Player().play_source(title, year, season, episode, imdb, tvdb, url, meta, select)
 
 		except:
 			log_utils.error()
 			pass
 
-	# @timeIt
+
 	def addItem(self, title):
-		control.sleep(200)
-		control.hide()
 		def sourcesDirMeta(metadata):
-			if not metadata:
+			if metadata is None:
 				return metadata
+			# allowed = ['poster', 'season_poster', 'fanart', 'thumb', 'title', 'year', 'tvshowtitle', 'season', 'episode', 'rating', 'director', 'plot', 'mediatype']
 			allowed = ['poster', 'season_poster', 'fanart', 'thumb', 'title', 'year', 'tvshowtitle', 'season', 'episode']
+
 			return {k: v for k, v in metadata.iteritems() if k in allowed}
 
 		control.playlist.clear()
 		items = control.window.getProperty(self.itemProperty)
 		items = json.loads(items)
 
-		if not items:
+		if items is None or len(items) == 0:
 			control.hide()
 			sys.exit()
 
@@ -166,22 +115,22 @@ class Sources:
 		syshandle = int(sys.argv[1])
 
 		downloads = True if control.setting('downloads') == 'true' and (control.setting(
-			'movie.download.path') != '' or control.setting('tv.download.path') != '') else False
+			'movie.download.path') != '' or control.setting('tv.download.path') == '') else False
 
-		systitle = sysname = quote_plus(title)
+		systitle = sysname = urllib.quote_plus(title)
 
 		poster = meta.get('poster') or control.addonPoster()
 		if 'tvshowtitle' in meta and 'season' in meta and 'episode' in meta:
-			poster = meta.get('season_poster') or poster or control.addonPoster()
-			sysname += quote_plus(' S%02dE%02d' % (int(meta['season']), int(meta['episode'])))
+			poster = meta.get('season_poster') or control.addonPoster()
+			sysname += urllib.quote_plus(' S%02dE%02d' % (int(meta['season']), int(meta['episode'])))
 		elif 'year' in meta:
-			sysname += quote_plus(' (%s)' % meta['year'])
+			sysname += urllib.quote_plus(' (%s)' % meta['year'])
 
 		fanart = meta.get('fanart')
 		if control.setting('fanart') != 'true':
 			fanart = '0'
 
-		sysimage = quote_plus(poster.encode('utf-8'))
+		sysimage = urllib.quote_plus(poster.encode('utf-8'))
 		downloadMenu = control.lang(32403).encode('utf-8')
 
 		multiline = control.setting('sourcelist.multiline')
@@ -193,11 +142,11 @@ class Sources:
 				else:
 					label = str(items[i]['label'])
 
-				syssource = quote_plus(json.dumps([items[i]]))
+				syssource = urllib.quote_plus(json.dumps([items[i]]))
 				sysurl = '%s?action=playItem&title=%s&source=%s' % (sysaddon, systitle, syssource)
 
 				cm = []
-				if downloads:
+				if downloads is True:
 					cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&source=%s)' %
 							(sysaddon, sysname, sysimage, syssource)))
 
@@ -205,7 +154,8 @@ class Sources:
 					quality = items[i]['quality']
 					thumb = '%s%s' % (quality, '.png')
 					artPath = control.artPath()
-					thumb = control.joinPath(artPath, thumb) if artPath else ''
+					thumb = os.path.join(artPath, thumb) if artPath is not None else ''
+
 				else:
 					thumb = meta.get('thumb')
 					thumb = thumb or poster or fanart or control.addonThumb()
@@ -236,7 +186,7 @@ class Sources:
 
 			year = meta['year'] if 'year' in meta else None
 			if 'tvshowtitle' in meta:
-				year = meta['tvshowyear'] if 'tvshowyear' in meta else year
+				year = meta['tvshowyear'] if 'tvshowyear' in meta else None
 
 			season = meta['season'] if 'season' in meta else None
 			episode = meta['episode'] if 'episode' in meta else None
@@ -254,7 +204,7 @@ class Sources:
 					if u in total:
 						raise Exception()
 					total.append(u)
-					u = dict(parse_qsl(u.replace('?', '')))
+					u = dict(urlparse.parse_qsl(u.replace('?', '')))
 					u = json.loads(u['source'])[0]
 					next.append(u)
 				except:
@@ -266,7 +216,7 @@ class Sources:
 					if u in total:
 						raise Exception()
 					total.append(u)
-					u = dict(parse_qsl(u.replace('?', '')))
+					u = dict(urlparse.parse_qsl(u.replace('?', '')))
 					u = json.loads(u['source'])[0]
 					prev.append(u)
 				except:
@@ -302,9 +252,9 @@ class Sources:
 					w = workers.Thread(self.sourcesResolve, items[i])
 					w.start()
 
-					if items[i].get('source') in self.hostcapDict:
+					if items[i].get('source').lower() in self.hostcapDict:
 						offset = 60 * 2
-					elif items[i].get('source') == 'torrent':
+					elif items[i].get('source').lower() == 'torrent':
 						offset = float('inf')
 					else:
 						offset = 0
@@ -312,7 +262,7 @@ class Sources:
 					m = ''
 					for x in range(3600):
 						try:
-							if xbmc.abortRequested:
+							if xbmc.abortRequested is True:
 								return sys.exit()
 							if progressDialog.iscanceled():
 								return progressDialog.close()
@@ -323,19 +273,19 @@ class Sources:
 						if k:
 							m += '1'
 							m = m[-1]
-						if (not w.is_alive() or x > 30 + offset) and not k:
+						if (w.is_alive() is False or x > 30 + offset) and not k:
 							break
 						k = control.condVisibility('Window.IsActive(yesnoDialog)')
 						if k:
 							m += '1'
 							m = m[-1]
-						if (not w.is_alive() or x > 30 + offset) and not k:
+						if (w.is_alive() is False or x > 30 + offset) and not k:
 							break
 						time.sleep(0.5)
 
 					for x in range(30):
 						try:
-							if xbmc.abortRequested:
+							if xbmc.abortRequested is True:
 								return sys.exit()
 							if progressDialog.iscanceled():
 								return progressDialog.close()
@@ -344,11 +294,11 @@ class Sources:
 
 						if m == '':
 							break
-						if not w.is_alive():
+						if w.is_alive() is False:
 							break
 						time.sleep(0.5)
 
-					if w.is_alive():
+					if w.is_alive() is True:
 						block = items[i]['source']
 
 					if self.url is None:
@@ -364,7 +314,6 @@ class Sources:
 					control.execute('Dialog.Close(yesnoDialog)')
 
 					from resources.lib.modules import player
-					control.hide()
 					player.Player().play_source(title, year, season, episode, imdb, tvdb, self.url, meta, select='1')
 
 					return self.url
@@ -381,10 +330,8 @@ class Sources:
 			log_utils.error()
 			pass
 
-	# @timeIt
+
 	def getSources(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, quality='HD', timeout=30):
-		control.sleep(200)
-		control.hide()
 		progressDialog = control.progressDialog if control.setting(
 			'progress.dialog') == '0' else control.progressDialogBG
 		progressDialog.create(control.addonInfo('name'), '')
@@ -414,15 +361,12 @@ class Sources:
 			sourceDict = [(i[0], i[1], control.setting('provider.' + i[0])) for i in sourceDict]
 		except:
 			sourceDict = [(i[0], i[1], 'true') for i in sourceDict]
+
 		sourceDict = [(i[0], i[1]) for i in sourceDict if i[2] != 'false']
-
-		if control.setting('cf.disable') == 'true':
-			sourceDict = [(i[0], i[1]) for i in sourceDict if not any(x in i[0] for x in self.sourcecfDict)]
-
 		sourceDict = [(i[0], i[1], i[1].priority) for i in sourceDict]
 
-		# random.shuffle(sourceDict) # why?
-		sourceDict = sorted(sourceDict, key=lambda i: i[2]) # sorted by scraper priority num
+		random.shuffle(sourceDict)
+		sourceDict = sorted(sourceDict, key=lambda i: i[2])
 
 		threads = []
 		if content == 'movie':
@@ -448,10 +392,10 @@ class Sources:
 		[i.start() for i in threads]
 
 		pdpc = control.setting('progress.dialog.prem.color')
-		pdpc = control.getColor(pdpc)
+		pdpc = self.getPremColor(pdpc)
 
 		pdfc = control.setting('progress.dialog.free.color')
-		pdfc = control.getColor(pdfc)
+		pdfc = self.getPremColor(pdfc)
 
 		string1 = control.lang(32404).encode('utf-8')
 		string2 = control.lang(32405).encode('utf-8')
@@ -500,14 +444,14 @@ class Sources:
 				elif pre_emp_res == '2':
 					if (source_720 + d_source_720) >= pre_emp_limit:
 						break
-				elif pre_emp_res == '3':
+				elif pre_emp_res == ['3']:
 					if (source_sd + d_source_sd) >= pre_emp_limit:
 						break
 				else:
 					if (source_sd + d_source_sd) >= pre_emp_limit:
 						break
 			try:
-				if xbmc.abortRequested:
+				if xbmc.abortRequested is True:
 					return sys.exit()
 
 				try:
@@ -566,10 +510,11 @@ class Sources:
 					d_sd_label = total_format % ('red', d_source_sd) if d_source_sd == 0 else total_format % (pdpc, d_source_sd)
 					d_total_label = total_format % ('red', d_total) if d_total == 0 else total_format % (pdpc, d_total)
 
+
 				if (i / 2) < timeout:
 					try:
-						mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() and x.getName() in mainsourceDict]
-						info = [sourcelabelDict[x.getName()] for x in threads if x.is_alive()]
+						mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() is True and x.getName() in mainsourceDict]
+						info = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() is True]
 						if i >= timeout and len(mainleft) == 0 and len(self.sources) >= 100 * len(info):
 							break
 
@@ -642,7 +587,7 @@ class Sources:
 						log_utils.log('Exception Raised: %s' % str(e), log_utils.LOGERROR)
 				else:
 					try:
-						mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() and x.getName() in mainsourceDict]
+						mainleft = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() is True and x.getName() in mainsourceDict]
 						info = mainleft
 
 						if debrid_status:
@@ -685,10 +630,11 @@ class Sources:
 			self.sourcesFilter()
 		return self.sources
 
-	# @timeIt
+
 	def prepareSources(self):
 		try:
 			control.makeFile(control.dataPath)
+			self.sourceFile = control.providercacheFile
 			dbcon = database.connect(self.sourceFile)
 			dbcur = dbcon.cursor()
 			dbcur.execute(
@@ -701,7 +647,7 @@ class Sources:
 			log_utils.error()
 			pass
 
-	# @timeIt
+
 	def getMovieSource(self, title, localtitle, aliases, year, imdb, source, call):
 		try:
 			dbcon = database.connect(self.sourceFile)
@@ -730,7 +676,7 @@ class Sources:
 				"SELECT * FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 				source, imdb, '', ''))
 			match = dbcur.fetchone()
-			if match:
+			if match is not None:
 				t1 = int(re.sub('[^0-9]', '', str(match[5])))
 				t2 = int(datetime.datetime.now().strftime("%Y%m%d%H%M"))
 				update = abs(t2 - t1) > 60
@@ -747,17 +693,20 @@ class Sources:
 				"SELECT * FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 				source, imdb, '', ''))
 			url = dbcur.fetchone()
-			if url:
+			if url is not None:
 				url = eval(url[4].encode('utf-8'))
 		except:
 			log_utils.error()
 			pass
 
 		try:
-			if not url:
+			if url is None:
 				url = call.movie(imdb, title, localtitle, aliases, year)
-			if url:
-				dbcur.execute("INSERT OR REPLACE INTO rel_url Values (?, ?, ?, ?, ?)", (source, imdb, '', '', repr(url)))
+			if url is not None:
+				dbcur.execute(
+					"DELETE FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+					source, imdb, '', ''))
+				dbcur.execute("INSERT INTO rel_url Values (?, ?, ?, ?, ?)", (source, imdb, '', '', repr(url)))
 				dbcur.connection.commit()
 		except:
 			log_utils.error()
@@ -766,19 +715,23 @@ class Sources:
 		try:
 			sources = []
 			sources = call.sources(url, self.hostDict, self.hostprDict)
-			if sources:
+			if sources is not None and sources != []:
 				sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
 				for i in sources:
 					i.update({'provider': source})
 				self.sources.extend(sources)
-				dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, '', '', repr(sources), datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
+				dbcur.execute(
+					"DELETE FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+					source, imdb, '', ''))
+				dbcur.execute("INSERT INTO rel_src Values (?, ?, ?, ?, ?, ?)",
+							(source, imdb, '', '', repr(sources), datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
 				dbcur.connection.commit()
 		except:
 			log_utils.error()
 			pass
 		dbcon.close()
 
-	# @timeIt
+
 	def getEpisodeSource(self, title, year, imdb, tvdb, season, episode, tvshowtitle, localtvshowtitle, aliases, premiered, source, call):
 		try:
 			dbcon = database.connect(self.sourceFile)
@@ -792,7 +745,7 @@ class Sources:
 				"SELECT * FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 				source, imdb, season, episode))
 			match = dbcur.fetchone()
-			if match:
+			if match is not None:
 				t1 = int(re.sub('[^0-9]', '', str(match[5])))
 				t2 = int(datetime.datetime.now().strftime("%Y%m%d%H%M"))
 				update = abs(t2 - t1) > 60
@@ -808,17 +761,21 @@ class Sources:
 			dbcur.execute(
 				"SELECT * FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (source, imdb, '', ''))
 			url = dbcur.fetchone()
-			if url:
+			if url is not None:
 				url = eval(url[4].encode('utf-8'))
 		except:
 			log_utils.error()
 			pass
 
 		try:
-			if not url:
+			if url is None:
 				url = call.tvshow(imdb, tvdb, tvshowtitle, localtvshowtitle, aliases, year)
-			if url:
-				dbcur.execute("INSERT OR REPLACE INTO rel_url Values (?, ?, ?, ?, ?)", (source, imdb, '', '', repr(url)))
+			if url is not None:
+				dbcur.execute(
+					"DELETE FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+					source, imdb, '', ''))
+
+				dbcur.execute("INSERT INTO rel_url Values (?, ?, ?, ?, ?)", (source, imdb, '', '', repr(url)))
 				dbcur.connection.commit()
 		except:
 			log_utils.error()
@@ -830,18 +787,22 @@ class Sources:
 				"SELECT * FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 				source, imdb, season, episode))
 			ep_url = dbcur.fetchone()
-			if ep_url:
+			if ep_url is not None:
 				ep_url = eval(ep_url[4].encode('utf-8'))
 		except:
 			log_utils.error()
 			pass
 
 		try:
-			if url:
-				if not ep_url:
+			if url is not None:
+				if ep_url is None:
 					ep_url = call.episode(url, imdb, tvdb, title, premiered, season, episode)
-				if ep_url:
-					dbcur.execute("INSERT OR REPLACE INTO rel_url Values (?, ?, ?, ?, ?)", (source, imdb, season, episode, repr(ep_url)))
+				if ep_url is not None:
+					dbcur.execute(
+						"DELETE FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+						source, imdb, season, episode))
+					dbcur.execute("INSERT INTO rel_url Values (?, ?, ?, ?, ?)",
+								(source, imdb, season, episode, repr(ep_url)))
 					dbcur.connection.commit()
 		except:
 			log_utils.error()
@@ -855,7 +816,11 @@ class Sources:
 				for i in sources:
 					i.update({'provider': source})
 				self.sources.extend(sources)
-				dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, season, episode, repr(sources), datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
+				dbcur.execute(
+					"DELETE FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+					source, imdb, season, episode))
+				dbcur.execute("INSERT INTO rel_src Values (?, ?, ?, ?, ?, ?)", (
+				source, imdb, season, episode, repr(sources), datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
 				dbcur.connection.commit()
 		except:
 			log_utils.error()
@@ -874,34 +839,73 @@ class Sources:
 		except:
 			pass
 
-	# @timeIt
+
 	def sourcesFilter(self):
-		control.busy()
+		provider = control.setting('hosts.sort.provider')
+		if provider == '':
+			provider = 'false'
+
+		debrid_only = control.setting('debrid.only')
+		if debrid_only == '':
+			debrid_only = 'false'
+
+		group_sort = control.setting('torrent.group.sort')
+		if group_sort == '':
+			group_sort = '1'
+
 		quality = control.setting('hosts.quality')
 		if quality == '':
 			quality = '0'
 
+		captcha = control.setting('hosts.captcha')
+		if captcha == '':
+			captcha = 'true'
+
+		###---Filter out duplicates
 		if control.setting('remove.duplicates') == 'true':
-			self.sources = self.filter_dupes()
+			filter = []
+			for i in self.sources:
+				a = i['url'].lower()
+				for sublist in filter:
+					b = sublist['url'].lower()
+					if 'magnet:' in a and debrid.status() is True:
+						info_hash = re.search('magnet:.+?urn:\w+:([a-z0-9]+)', a)
+						# info_hash = i['hash'].lower()
+						if info_hash:
+							if info_hash.group(1) in b:
+							# if info_hash in b:
+								filter.remove(sublist)
+								if control.setting('remove.duplicates.logging') != 'true':
+									log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), log_utils.LOGDEBUG)
+								break
+					elif a == b:
+						filter.remove(sublist)
+						if control.setting('remove.duplicates.logging') != 'true':
+							log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
+						break
+				filter.append(i)
+			log_utils.log('Removed %s duplicate sources from list' % (len(self.sources) - len(filter)), log_utils.LOGDEBUG)
+			self.sources = filter
+			# log_utils.log('self.sources = %s' % str(self.sources), log_utils.LOGDEBUG)
+		###---------
 
-		if control.setting('remove.hevc') == 'true':
-			self.sources = [i for i in self.sources if 'HEVC' not in i['info']] # scrapers write HEVC to info
+		if control.setting('HEVC') != 'true':
+			self.sources = [i for i in self.sources if not any(value in i['url'].lower() for value in ['hevc', 'h265', 'h.265', 'x265', 'x.265'])]
 
-		if control.setting('remove.CamSd.sources') == 'true':
-			if any(i for i in self.sources if any(value in i['quality'] for value in ['4K', '1080p', '720p'])): #only remove CAM and SD if better quality does exist
-				# if pre_emp is enabled it seems as if a threads not terminated and few SD sources still get it.
-				self.sources = [i for i in self.sources if not any(value in i['quality'] for value in ['CAM', 'SD'])]
+		if source_utils.ck_CamSd():
+			if any(i for i in self.sources if any(value in i['quality'] for value in ['4k', '1080p', '720p'])):
+				self.sources = [i for i in self.sources if not any(value in i['quality'].upper() for value in ['CAM', 'SD'])]
 
 		if control.setting('remove.3D.sources') == 'true':
 			try:
-				self.sources = [i for i in self.sources if '3D' not in i['info']] # scrapers write 3D to info
+				self.sources = [i for i in self.sources if '3D' not in i.get('info', '')]
 			except:
 				log_utils.error()
 				pass
 
-		# random.shuffle(self.sources) # why?
+		random.shuffle(self.sources)
 
-		if control.setting('hosts.sort.provider') == 'true':
+		if provider == 'true':
 			self.sources = sorted(self.sources, key=lambda k: k['provider'])
 
 		if control.setting('torrent.size.sort') == 'true':
@@ -922,6 +926,7 @@ class Sources:
 			valid_hoster = set([i['source'] for i in self.sources])
 			valid_hoster = [i for i in valid_hoster if d.valid_url('', i)]
 
+			control.busy()
 			if d.name == 'Premiumize.me':
 				if control.setting('pm.chk.cached') == 'true':
 					try:
@@ -935,7 +940,6 @@ class Sources:
 						else:
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if 'magnet:' in i['url']]
 					except:
-						log_utils.error()
 						pass
 				else:
 					filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
@@ -954,7 +958,6 @@ class Sources:
 						else:
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if 'magnet:' in i['url']]
 					except:
-						log_utils.error()
 						pass
 				else:
 					filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
@@ -964,20 +967,26 @@ class Sources:
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 
+			control.hide()
 
-		if control.setting('debrid.only') == 'false' or debrid.status() is False:
-			filter += [i for i in self.sources if not i['source'] in self.hostprDict and i['debridonly'] is False]
+		if debrid_only == 'false' or debrid.status() is False:
+			filter += [i for i in self.sources if not i['source'].lower() in self.hostprDict and i['debridonly'] is False]
 
 		self.sources = filter
 
-		if control.setting('torrent.group.sort') == '1':
+		if group_sort == '1':
 			filter = []
-			filter += [i for i in self.sources if 'torrent' in i['source']]  #torrents first
+			filter += [i for i in self.sources if 'torrent' in i['source'].lower()] #torrents first
 			if control.setting('torrent.size.sort') == 'true':
 				filter.sort(key=lambda k: k.get('size', 0), reverse=True)
-			filter += [i for i in self.sources if 'torrent' not in i['source'] and i['debridonly'] is True]  #prem. next
-			filter += [i for i in self.sources if 'torrent' not in i['source'] and i['debridonly'] is False]  #free hosters fucking last
+			filter += [i for i in self.sources if 'torrent' not in i['source'].lower() and i['debridonly'] is True] #prem. next
+			filter += [i for i in self.sources if 'torrent' not in i['source'].lower() and i['debridonly'] is False] #free hosters fucking last
 			self.sources = filter
+
+		for i in range(len(self.sources)):
+			q = self.sources[i]['quality']
+			if q == 'HD':
+				self.sources[i].update({'quality': '720p'})
 
 		filter = []
 		filter += local
@@ -999,16 +1008,18 @@ class Sources:
 		filter += [i for i in self.sources if i['quality'] == 'CAM']
 		self.sources = filter
 
-		if control.setting('remove.captcha') == 'true':
-			self.sources = [i for i in self.sources if not (i['source'] in self.hostcapDict and not 'debrid' in i)]
+		if captcha != 'true':
+			filter = [i for i in self.sources if i['source'].lower() in self.hostcapDict and not 'debrid' in i]
+			self.sources = [i for i in self.sources if not i in filter]
 
-		self.sources = [i for i in self.sources if not i['source'] in self.hostblockDict]
+		filter = [i for i in self.sources if i['source'].lower() in self.hostblockDict]# and not 'debrid' in i]
+		self.sources = [i for i in self.sources if not i in filter]
 
 		multi = [i['language'] for i in self.sources]
 		multi = [x for y, x in enumerate(multi) if x not in multi[:y]]
 		multi = True if len(multi) > 1 else False
 
-		if multi:
+		if multi is True:
 			self.sources = [i for i in self.sources if i['language'] != 'en'] + [i for i in self.sources if i['language'] == 'en']
 
 		self.sources = self.sources[:4000]
@@ -1016,13 +1027,13 @@ class Sources:
 		extra_info = control.setting('sources.extrainfo')
 
 		prem_identify = control.setting('prem.identify')
-		prem_identify = control.getColor(prem_identify)
+		prem_identify = self.getPremColor(prem_identify)
 
 		torr_identify = control.setting('torrent.identify')
-		torr_identify = control.getColor(torr_identify)
+		torr_identify = self.getPremColor(torr_identify)
 
 		sec_color = control.setting('sec.identify')
-		sec_identify = control.getColor(sec_color)
+		sec_identify = self.getPremColor(sec_color)
 		sec_identify2 = control.setting('sec.identify2')
 
 		for i in range(len(self.sources)):
@@ -1045,16 +1056,28 @@ class Sources:
 
 			try:
 				d = self.sources[i]['debrid']
-				d_dict = {'AllDebrid': 'AD', 'Linksnappy': 'LS', 'MegaDebrid': 'MD', 'Premiumize.me': 'PM', 'Real-Debrid': 'RD', 'Simply-Debrid': 'SD', 'Zevera': 'ZVR'}
-				d = d_dict[d]
 			except:
 				d = self.sources[i]['debrid'] = ''
+			if d.lower() == 'alldebrid':
+				d = 'AD'
+			if d.lower() == 'linksnappy':
+				d = 'LS'
+			if d.lower() == 'megadebrid':
+				d = 'MD'
+			if d.lower() == 'premiumize.me':
+				d = 'PM'
+			if d.lower() == 'real-debrid':
+				d = 'RD'
+			if d.lower() == 'simply-debrid':
+				d = 'SD'
+			if d.lower() == 'zevera':
+				d = 'ZVR'
 
 			prem_color = 'nocolor'
 			if d:
-				if 'TORRENT' in s and torr_identify != 'nocolor':
+				if 'torrent' in s.lower() and torr_identify != 'nocolor':
 					prem_color = torr_identify
-				elif 'TORRENT' not in s and prem_identify != 'nocolor':
+				elif 'torrent' not in s.lower() and prem_identify != 'nocolor':
 					prem_color = prem_identify
 
 			if d != '':
@@ -1085,17 +1108,31 @@ class Sources:
 			if sec_identify2 == 'magnet title':
 				if 'magnet:' in u:
 					link_title = self.sources[i]['name']
+
+					# link_title = u.split('&dn=')[1]
+					# link_title = urllib.unquote_plus(link_title).replace('&amp;', '&').replace(' ', '.').replace('.-.', '.')
+					# if '&tr=' in link_title:
+						# link_title = link_title.split('&tr=')[0]
+					# if link_title.startswith('['):
+						# link_title = re.sub(r'\[.*?\]\.', '', link_title).replace('./.', '')
+					# if link_title.startswith('www'):
+						# link_title = re.sub(r'.*?'+self.title, self.title, link_title)
 					size = ''
 					if f:
 						size = f.split(' /', 1)[0]
 						l1 += '[COLOR %s]  |  %s[/COLOR]' % (prem_color, size)
 						l1l = len(l1)-58
+						# log_utils.log('l1l = %s' % str(l1l), __name__, log_utils.LOGDEBUG)
+						# log_utils.log('l1 = %s' % str(l1), __name__, log_utils.LOGDEBUG)
 						l2 = '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_identify, link_title)
 						l2l = len(l2)-27
+						# log_utils.log('l2l = %s' % str(l2l), __name__, log_utils.LOGDEBUG)
+						# log_utils.log('l2 = %s' % l2, __name__, log_utils.LOGDEBUG)
 						if l2l > l1l:
 							adjust = l2l - l1l
 							l1 = l1.ljust(l1l+76+adjust)
 					multiline_label = l1 + l2
+					# multiline_label = mLabel + '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_identify, link_title)
 
 			self.sources[i]['multiline_label'] = multiline_label
 			self.sources[i]['label'] = label
@@ -1144,8 +1181,8 @@ class Sources:
 			except:
 				headers = ''
 
-			headers = quote_plus(headers).replace('%3D', '=') if ' ' in headers else headers
-			headers = dict(parse_qsl(headers))
+			headers = urllib.quote_plus(headers).replace('%3D', '=') if ' ' in headers else headers
+			headers = dict(urlparse.parse_qsl(headers))
 
 			if url.startswith('http') and '.m3u8' in url:
 				result = client.request(url.split('|')[0], headers=headers, output='geturl', timeout='20')
@@ -1160,12 +1197,12 @@ class Sources:
 			self.url = url
 			return url
 		except:
-			if info:
+			if info is True:
 				control.infoDialog('Skipping unplayable resolveURL link', sound=False, icon='INFO')
 			log_utils.error()
 			return
 
-	# @timeIt
+
 	def sourcesDialog(self, items):
 		try:
 			multiline = control.setting('sourcelist.multiline')
@@ -1211,9 +1248,9 @@ class Sources:
 					except:
 						progressDialog.update(int((100 / float(len(items))) * i), str(header2), str(items[i]['label']))
 
-					if items[i].get('source') in self.hostcapDict:
+					if items[i].get('source').lower() in self.hostcapDict:
 						offset = 60 * 2
-					elif items[i].get('source') == 'torrent':
+					elif items[i].get('source').lower() == 'torrent':
 						offset = float('inf')
 					else:
 						offset = 0
@@ -1222,7 +1259,7 @@ class Sources:
 
 					for x in range(3600):
 						try:
-							if xbmc.abortRequested:
+							if xbmc.abortRequested is True:
 								control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
 								return sys.exit()
 							if progressDialog.iscanceled():
@@ -1235,20 +1272,20 @@ class Sources:
 						if k:
 							m += '1'
 							m = m[-1]
-						if (not w.is_alive() or x > 30 + offset) and not k:
+						if (w.is_alive() == False or x > 30 + offset) and not k:
 							break
 
 						k = control.condVisibility('Window.IsActive(yesnoDialog)')
 						if k:
 							m += '1'
 							m = m[-1]
-						if (not w.is_alive() or x > 30 + offset) and not k:
+						if (w.is_alive() == False or x > 30 + offset) and not k:
 							break
 						time.sleep(0.5)
 
 					for x in range(30):
 						try:
-							if xbmc.abortRequested:
+							if xbmc.abortRequested is True:
 								control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
 								return sys.exit()
 							if progressDialog.iscanceled():
@@ -1260,14 +1297,14 @@ class Sources:
 						if m == '':
 							break
 
-						if not w.is_alive():
+						if w.is_alive() is False:
 							break
 						time.sleep(0.5)
 
-					if w.is_alive():
+					if w.is_alive() is True:
 						block = items[i]['source']
 
-					if not self.url:
+					if self.url is None:
 						raise Exception()
 
 					self.selectedSource = items[i]['label']
@@ -1295,14 +1332,15 @@ class Sources:
 				pass
 			log_utils.log('Error %s' % str(e), log_utils.LOGNOTICE)
 
-	# @timeIt
+
 	def sourcesDirect(self, items):
-		filter = [i for i in items if i['source'] in self.hostcapDict and i['debrid'] == '']
+		filter = [i for i in items if i['source'].lower() in self.hostcapDict and i['debrid'] == '']
 		items = [i for i in items if not i in filter]
 
-		filter = [i for i in items if i['source'] in self.hostblockDict]# and i['debrid'] == '']
+		filter = [i for i in items if i['source'].lower() in self.hostblockDict and i['debrid'] == '']
 		items = [i for i in items if not i in filter]
-		# items = [i for i in items if ('autoplay' in i and i['autoplay'] is True) or not 'autoplay' in i] # wtf...nothing writes autoplay to the sources
+
+		items = [i for i in items if ('autoplay' in i and i['autoplay'] is True) or not 'autoplay' in i]
 
 		if control.setting('autoplay.sd') == 'true':
 			items = [i for i in items if not i['quality'] in ['4K', '1080p', '720p', 'HD']]
@@ -1333,13 +1371,13 @@ class Sources:
 				pass
 
 			try:
-				if xbmc.abortRequested:
+				if xbmc.abortRequested is True:
 					return sys.exit()
 
 				url = self.sourcesResolve(items[i])
-				if not u:
+				if u is None:
 					u = url
-				if url:
+				if url is not None:
 					break
 			except:
 				pass
@@ -1352,7 +1390,6 @@ class Sources:
 
 
 	def errorForSources(self):
-		control.hide()
 		if self.url == 'close://':
 			control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
 		else:
@@ -1409,7 +1446,7 @@ class Sources:
 		title = cleantitle.normalize(title)
 		return title
 
-	# @timeIt
+
 	def getConstants(self):
 		self.itemProperty = 'plugin.video.venom.container.items'
 		self.metaProperty = 'plugin.video.venom.container.meta'
@@ -1420,7 +1457,7 @@ class Sources:
 		try:
 			self.hostDict = resolveurl.relevant_resolvers(order_matters=True)
 			self.hostDict = [i.domains for i in self.hostDict if not '*' in i.domains]
-			self.hostDict = [i for i in reduce(lambda x, y: x+y, self.hostDict)] # domains already in lower case
+			self.hostDict = [i.lower() for i in reduce(lambda x, y: x+y, self.hostDict)]
 			self.hostDict = [x for y, x in enumerate(self.hostDict) if x not in self.hostDict[:y]]
 		except:
 			self.hostDict = []
@@ -1428,9 +1465,8 @@ class Sources:
 		self.hostprDict = ['1fichier.com', 'filefactory.com', 'filefreak.com', 'multiup.org', 'nitroflare.com', 'oboom.com', 'rapidgator.net', 'rg.to', 'turbobit.net',
 									'uploaded.net', 'uploaded.to', 'uploadgig.com', 'ul.to', 'uploadrocket.net']
 
-		self.hostcapDict = ['flashx.tv', 'flashx.to', 'flashx.sx', 'flashx.bz', 'flashx.cc', 'hugefiles.cc', 'hugefiles.net', 'jetload.net', 'jetload.tv',
-									'jetload.to''kingfiles.net', 'streamin.to', 'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io',
-									'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
+		self.hostcapDict = ['flashx.tv', 'flashx.to', 'flashx.sx', 'flashx.bz', 'flashx.cc', 'hugefiles.cc', 'hugefiles.net', 'kingfiles.net', 'streamin.to',
+									'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io', 'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
 
 		self.hosthqDict = ['gvideo', 'google.com', 'thevideo.me', 'rapidvideo.com', 'raptu.com', 'filez.tv', 'uptobox.com', 'uptostream.com',
 									'xvidstage.com', 'xstreamcdn.com', 'idtbox.com', 'streamvid.co']
@@ -1439,41 +1475,63 @@ class Sources:
 									'oload.life', 'oload.space', 'oload.stream', 'oload.tv', 'oload.win', 'openload.co', 'openload.io', 'openload.pw', 'rapidvideo.com',
 									'rapidvideo.is', 'rapidvid.to', 'streamango.com', 'streamcherry.com', 'twitch.tv', 'youtube.com', 'zippyshare.com']
 
-		self.sourcecfDict = ['1putlocker', '123movies', '123movieshubz', 'animebase', 'animetoon', 'cartoonhdto', 'cmovieshd', 'extramovies', 'filmpalast',
-									'filmxy', 'fmovies', 'ganoolcam', 'gomoviesonl', 'hdfilme', 'iload', 'movietown', 'projectfreetv', 'putlockeronl', 'seehd', 'series9',
-									'streamdreams', 'timewatch', 'xwatchseries', 'ganool', 'maxrls', 'mkvhub', 'rapidmoviez', 'rlsbb', 'scenerls', 'tvdownload', 'btdb',
-									'extratorrent', 'limetorrents', 'moviemagnet', 'torrentgalaxy', 'torrentz']
+
+	def getPremColor(self, n):
+		if n == '0': n = 'blue'
+		elif n == '1': n = 'red'
+		elif n == '2': n = 'yellow'
+		elif n == '3': n = 'deeppink'
+		elif n == '4': n = 'cyan'
+		elif n == '5': n = 'lawngreen'
+		elif n == '6': n = 'gold'
+		elif n == '7': n = 'magenta'
+		elif n == '8': n = 'yellowgreen'
+		elif n == '9': n = 'skyblue'
+		elif n == '10': n = 'lime'
+		elif n == '11': n = 'limegreen'
+		elif n == '12': n = 'deepskyblue'
+		elif n == '13': n = 'white'
+		elif n == '14': n = 'whitesmoke'
+		elif n == '15': n = 'nocolor'
+		else: n == 'skyblue'
+		return n
 
 
-	# @timeIt
-	def filter_dupes(self):
-		filter = []
-		for i in self.sources:
-			a = i['url'].lower()
-			for sublist in filter:
-				b = sublist['url'].lower()
-				if 'magnet:' in a and debrid.status():
-					info_hash = re.search('magnet:.+?urn:\w+:([a-z0-9]+)', a)
-					# info_hash = i['hash'].lower()
-					if info_hash:
-						if info_hash.group(1) in b:
-						# if info_hash in b:
-							filter.remove(sublist)
-							if control.setting('remove.duplicates.logging') != 'true':
-								log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), log_utils.LOGDEBUG)
-							break
-				elif a == b:
-					filter.remove(sublist)
-					if control.setting('remove.duplicates.logging') != 'true':
-						log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
-					break
-			filter.append(i)
-		log_utils.log('Removed %s duplicate sources from list' % (len(self.sources) - len(filter)), log_utils.LOGDEBUG)
-		self.sources = filter
-		return self.sources
+	def color_quality(self, quality):
+		color = 'darkred'
+		if quality == '4K':
+			color = 'lime'
+		if quality == '1080p':
+			color = 'greenyellow'
+		if quality == '720p':
+			color = 'sandybrown'
+		if quality == 'SD':
+			color = 'red'
+		return color
 
 
-	# @timeIt
+	def paginate_sources(self, sources, page, limit):
+		pages = [sources[i:i + limit] for i in xrange(0, len(sources), limit)]
+		return pages[page - 1]
+
+
+	def pm_cache_chk_item(self, i, d):
+		if 'magnet:' in self.sources[i]['url']:
+			self.sources[i].update({'debrid': d.name})
+			if self.sources[i]['debrid'].lower() == 'premiumize.me':
+				try:
+					cached = str(premiumize.Premiumize().check_cache_item(self.sources[i]['url'].lower()))
+					if cached == 'False' or cached is False:
+						self.sources[i].update({'source': 'uncached torrent'})
+						self.pm_filter.append(self.sources[i])
+					else:
+						self.sources[i].update({'source': 'cached torrent'})
+				except:
+					log_utils.error()
+					pass
+		return self.sources[i]
+
+
 	def pm_cache_chk_list(self, torrent_List, d):
 		if len(torrent_List) == 0:
 			return
@@ -1492,7 +1550,7 @@ class Sources:
 			log_utils.error()
 			pass
 
-	# @timeIt
+
 	def rd_cache_chk_list(self, torrent_List, d):
 		if len(torrent_List) == 0:
 			return
@@ -1508,21 +1566,6 @@ class Sources:
 				else:
 					i.update({'source': 'uncached torrent'})
 			return torrent_List
-		except:
-			log_utils.error()
-			pass
-
-
-	def clr_item_providers(self, imdb, season, episode):
-		if not season:
-			season = episode = ''
-		try:
-			dbcon = database.connect(self.sourceFile)
-			dbcur = dbcon.cursor()
-			dbcur.execute("DELETE FROM rel_src WHERE imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (imdb, season, episode))
-			dbcur.execute("DELETE FROM rel_src WHERE imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (imdb, season, episode))
-			dbcur.connection.commit()
-			dbcon.close()
 		except:
 			log_utils.error()
 			pass

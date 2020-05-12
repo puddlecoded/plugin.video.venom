@@ -268,6 +268,8 @@ class tvshows:
 			return
 
 		def items_list(i):
+			# if i['metacache']:
+				# return
 			try:
 				tvmaze = i
 				url = self.tvmaze_info_link % i
