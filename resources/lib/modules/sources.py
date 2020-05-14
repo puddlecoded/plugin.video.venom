@@ -381,7 +381,7 @@ class Sources:
 			log_utils.error()
 			pass
 
-	# @timeIt
+	@timeIt
 	def getSources(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, quality='HD', timeout=30):
 		control.sleep(200)
 		control.hide()
@@ -774,6 +774,8 @@ class Sources:
 				dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, '', '', repr(sources), datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
 				dbcur.connection.commit()
 		except:
+			log_utils.log('url %s' % url, log_utils.LOGNOTICE)
+			log_utils.log('sources %s' % sources, log_utils.LOGNOTICE)
 			log_utils.error()
 			pass
 		dbcon.close()
@@ -885,19 +887,15 @@ class Sources:
 			self.sources = self.filter_dupes()
 
 		if control.setting('remove.hevc') == 'true':
-			self.sources = [i for i in self.sources if 'HEVC' not in i['info']] # scrapers write HEVC to info
+			self.sources = [i for i in self.sources if 'HEVC' not in i.get('info', '')] # scrapers write HEVC to info
 
 		if control.setting('remove.CamSd.sources') == 'true':
 			if any(i for i in self.sources if any(value in i['quality'] for value in ['4K', '1080p', '720p'])): #only remove CAM and SD if better quality does exist
-				# if pre_emp is enabled it seems as if a threads not terminated and few SD sources still get it.
-				self.sources = [i for i in self.sources if not any(value in i['quality'] for value in ['CAM', 'SD'])]
+					# if pre_emp is enabled it seems as if a threads not terminated and few SD sources still get it.
+					self.sources = [i for i in self.sources if not any(value in i['quality'] for value in ['CAM', 'SD'])]
 
 		if control.setting('remove.3D.sources') == 'true':
-			try:
-				self.sources = [i for i in self.sources if '3D' not in i['info']] # scrapers write 3D to info
-			except:
-				log_utils.error()
-				pass
+			self.sources = [i for i in self.sources if '3D' not in i.get('info', '')] # scrapers write 3D to info
 
 		# random.shuffle(self.sources) # why?
 
@@ -1519,10 +1517,14 @@ class Sources:
 		try:
 			dbcon = database.connect(self.sourceFile)
 			dbcur = dbcon.cursor()
-			dbcur.execute("DELETE FROM rel_src WHERE imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (imdb, season, episode))
-			dbcur.execute("DELETE FROM rel_src WHERE imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (imdb, season, episode))
-			dbcur.connection.commit()
-			dbcon.close()
+			dbcur.execute("SELECT count(name) FROM sqlite_master WHERE type='table' AND name='rel_url'")
+			if dbcur.fetchone()[0] == 1: # table exists so both will
+				dbcur.execute(
+					"DELETE FROM rel_url WHERE imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (imdb, season, episode))
+				dbcur.execute(
+					"DELETE FROM rel_src WHERE imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (imdb, season, episode))
+				dbcur.connection.commit()
+				dbcon.close()
 		except:
 			log_utils.error()
 			pass
