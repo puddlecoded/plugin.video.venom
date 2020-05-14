@@ -6,6 +6,7 @@
 
 try: import AddonSignals
 except: pass
+import copy
 import hashlib
 import json
 try: from sqlite3 import dbapi2 as database
@@ -49,6 +50,7 @@ class Player(xbmc.Player):
 
 
 	def play_source(self, title, year, season, episode, imdb, tvdb, url, meta, select=None):
+		# log_utils.log('meta = %s' % meta, __name__, log_utils.LOGDEBUG)
 		try:
 			if url is None:
 				control.cancelPlayback()
@@ -77,15 +79,12 @@ class Player(xbmc.Player):
 			self.tvdb = tvdb if tvdb is not None else '0'
 			self.ids = {'imdb': self.imdb, 'tvdb': self.tvdb}
 			self.ids = dict((k, v) for k, v in self.ids.iteritems() if v != '0')
-
 			self.meta = meta
 			self.offset = Bookmarks().get(self.name, self.year)
-			# poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta = self.getMeta(meta)
 
 			item = control.item(path=url)
 
-
-
+## - compare meta received to database and use largest(eventually switch to a request to fetch missing db meta for item)
 			self.imdb_user = control.setting('imdb.user').replace('ur', '')
 			self.tmdb_key = control.setting('tm.user')
 			if self.tmdb_key == '' or self.tmdb_key is None:
@@ -98,18 +97,20 @@ class Player(xbmc.Player):
 				self.user = str(self.tmdb_key)
 			self.lang = control.apiLanguage()['tvdb']
 			items = [{'imdb': imdb, 'tvdb': tvdb}] # need to add tmdb but it's not passed as of now
+			items_ck = copy.deepcopy(items)
+
 			meta1 = meta
 			meta2 = metacache.fetch(items, self.lang, self.user)[0]
-			# log_utils.log('metacache = %s' % meta2, __name__, log_utils.LOGDEBUG)
-			if len(meta2) > len(meta1):
-				meta = meta2
+			if meta1 is not None:
+				if len(meta2) > len(meta1):
+					meta = meta2
+				else:
+					meta = meta1
 			else:
-				meta = meta1
-
+				meta = meta2 if meta2 != items_ck[0] else meta1
+##################
 
 			poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta = self.getMeta(meta)
-
-
 			if self.media_type == 'episode':
 				self.episodeIDS = meta.get('episodeIDS', '0')
 				item.setUniqueIDs(self.episodeIDS)
@@ -147,8 +148,9 @@ class Player(xbmc.Player):
 
 
 	def getMeta(self, meta):
+		# log_utils.log('meta = %s' % meta, __name__, log_utils.LOGDEBUG)
 		try:
-			if meta is None:
+			if not meta:
 				raise Exception()
 			poster = meta.get('poster3') or meta.get('poster2') or meta.get('poster')
 			thumb = meta.get('thumb')
@@ -159,16 +161,13 @@ class Player(xbmc.Player):
 			clearart = meta.get('clearart')
 			clearlogo = meta.get('clearlogo')
 			discart = meta.get('discart')
-			if 'mediatype' not in meta:
-				# meta.update({'mediatype': 'episode' if 'episode' in meta and meta['episode'] else 'movie'})
-				meta.update({'mediatype': 'episode' if self.episode else 'movie'})
-				meta.update({'season': self.season})
-				meta.update({'episode': self.episode})
-				meta.update({'tvshowtitle': self.title})
-				meta.update({'title': self.meta.get('title')})
-				meta.update({'premiered': self.meta.get('premiered')})
-				# meta.update({'plot': self.meta.get('plot')})
 
+			if 'mediatype' not in meta:
+				meta.update({'mediatype': 'episode' if self.episode else 'movie'})
+				if self.episode:
+					meta.update({'season': self.season})
+					meta.update({'episode': self.episode})
+					meta.update({'tvshowtitle': self.title})
 			return (poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta)
 		except:
 			log_utils.error()

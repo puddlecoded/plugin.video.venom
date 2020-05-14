@@ -381,7 +381,7 @@ class Sources:
 			log_utils.error()
 			pass
 
-	@timeIt
+	# @timeIt
 	def getSources(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, quality='HD', timeout=30):
 		control.sleep(200)
 		control.hide()
