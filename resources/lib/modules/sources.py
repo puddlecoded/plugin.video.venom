@@ -78,15 +78,18 @@ class Sources:
 
 
 	def play(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=False):
+		# log_utils.log('meta = %s' % meta, __name__, log_utils.LOGDEBUG)
 		control.busy()
 		try:
 			url = None
 			self.title = title
 
+			# if 'plugin.video.themoviedb.helper' in control.infoLabel('Container.PluginName'):
+				# rescrape = True
+
 			if rescrape:
-				if control.setting('rescrape.clr.item.providers') == 'true':
-					self.clr_item_providers(imdb, season, episode)
-				items = self.getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
+				self.clr_item_providers(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
+				items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 			else:
 				items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 			if not items:
@@ -133,6 +136,7 @@ class Sources:
 				pass
 
 			from resources.lib.modules import player
+			control.sleep(200) # added 5/14
 			control.hide()
 			player.Player().play_source(title, year, season, episode, imdb, tvdb, url, meta, select)
 
@@ -155,6 +159,7 @@ class Sources:
 		items = json.loads(items)
 
 		if not items:
+			control.sleep(200) # added 5/14
 			control.hide()
 			sys.exit()
 
@@ -364,6 +369,7 @@ class Sources:
 					control.execute('Dialog.Close(yesnoDialog)')
 
 					from resources.lib.modules import player
+					control.sleep(200) # added 5/14
 					control.hide()
 					player.Player().play_source(title, year, season, episode, imdb, tvdb, self.url, meta, select='1')
 
@@ -774,8 +780,6 @@ class Sources:
 				dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, '', '', repr(sources), datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
 				dbcur.connection.commit()
 		except:
-			log_utils.log('url %s' % url, log_utils.LOGNOTICE)
-			log_utils.log('sources %s' % sources, log_utils.LOGNOTICE)
 			log_utils.error()
 			pass
 		dbcon.close()
@@ -1350,6 +1354,7 @@ class Sources:
 
 
 	def errorForSources(self):
+		control.sleep(200) # added 5/14
 		control.hide()
 		if self.url == 'close://':
 			control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
@@ -1511,14 +1516,15 @@ class Sources:
 			pass
 
 
-	def clr_item_providers(self, imdb, season, episode):
+	def clr_item_providers(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered):
+		providerscache.remove(self.getSources, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 		if not season:
 			season = episode = ''
 		try:
 			dbcon = database.connect(self.sourceFile)
 			dbcur = dbcon.cursor()
 			dbcur.execute("SELECT count(name) FROM sqlite_master WHERE type='table' AND name='rel_url'")
-			if dbcur.fetchone()[0] == 1: # table exists so both will
+			if dbcur.fetchone()[0] == 1: # table exists so both will exist
 				dbcur.execute(
 					"DELETE FROM rel_url WHERE imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (imdb, season, episode))
 				dbcur.execute(

@@ -154,7 +154,7 @@
 		<setting id="prem.identify" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="6" />
 		<setting id="enable.resquality.icons" type="bool" label="32052" default="false" />
 		<setting id="sources.extrainfo" type="bool" label="32587" default="true" />
-		<setting id="rescrape.clr.item.providers" type="bool" label="Allow Rescrape to first clear item providers" default="true" />
+<!-- 		<setting id="rescrape.clr.item.providers" type="bool" label="Allow Rescrape to first clear item providers" default="true" /> -->
 		<setting type="lsep" label="32338" />
 		<setting id="hosts.quality" type="enum" label="32339" values="4K|1080p|720p|480p" default="0" />
 		<setting id="hosts.sort.provider" type="bool" label="32342" default="true" />

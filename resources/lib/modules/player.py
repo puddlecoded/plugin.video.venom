@@ -148,7 +148,6 @@ class Player(xbmc.Player):
 
 
 	def getMeta(self, meta):
-		# log_utils.log('meta = %s' % meta, __name__, log_utils.LOGDEBUG)
 		try:
 			if not meta:
 				raise Exception()

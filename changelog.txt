@@ -1,3 +1,12 @@
+[B][COLOR red]Update - v3.6.8 - May 17, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed random issue with busy dialog not closing.[/I]
+[COLOR yellow]--[/COLOR][I] Added database table check to avoid bogus log errors.[/I]
+[COLOR yellow]--[/COLOR][I] Fixed issue if user cleared Provider cache and then
+    selected Rescrape the table was now empty and halted scrapping.[/I]
+[COLOR yellow]--[/COLOR][I] Because of the changes to item #2 and 3 above the
+    setting option "Allow Rescrape to first clear item providers"
+    has now been removed and hard coded as the default.[/I]
+
 [B][COLOR red]Update - v3.6.7 - May 14, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed Library .strm playback. Previous update added ability
     to compare meta received from tmdbhelper vs. Venom's

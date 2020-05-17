@@ -31,13 +31,11 @@ def get(function, duration, *args):
 	try:
 		key = _hash_function(function, args)
 		cache_result = cache_get(key)
-
 		if cache_result:
 			if _is_cache_valid(cache_result['date'], duration):
 				return ast.literal_eval(cache_result['value'].encode('utf-8'))
 
 		fresh_result = repr(function(*args))
-
 		cache_insert(key, fresh_result)
 
 		# Sometimes None is returned as a string instead of the special value None.
@@ -65,14 +63,37 @@ def get(function, duration, *args):
 		return None
 
 
+def remove(function, *args):
+	try:
+		key = _hash_function(function, args)
+		key_exists = cache_get(key)
+		if key_exists:
+			cursor = _get_connection_cursor()
+			cursor.execute("DELETE FROM %s WHERE key = ?" % cache_table, [key])
+			cursor.connection.commit()
+			cursor.close()
+	except:
+		log_utils.error()
+		try:
+			cursor.close()
+		except:
+			pass
+
+
 def cache_get(key):
 	try:
 		cursor = _get_connection_cursor()
+		cursor.execute("SELECT * FROM sqlite_master WHERE type='table' AND name='%s';" % cache_table)
+		ck_table = cursor.fetchone()
+		if not ck_table:
+			cursor.close()
+			return None
 		cursor.execute("SELECT * FROM %s WHERE key = ?" % cache_table, [key])
 		results = cursor.fetchone()
 		cursor.close()
 		return results
 	except:
+		log_utils.error()
 		try:
 			cursor.close()
 		except:
@@ -84,14 +105,10 @@ def cache_insert(key, value):
 	try:
 		cursor = _get_connection_cursor()
 		now = int(time.time())
-
 		cursor.execute("CREATE TABLE IF NOT EXISTS %s (key TEXT, value TEXT, date INTEGER, UNIQUE(key))" % cache_table)
-
 		update_result = cursor.execute("UPDATE %s SET value=?,date=? WHERE key=?" % cache_table, (value, now, key))
-
 		if update_result.rowcount is 0:
 			cursor.execute("INSERT INTO %s Values (?, ?, ?)" % cache_table, (key, value, now))
-
 		cursor.connection.commit()
 	except:
 		log_utils.error()
