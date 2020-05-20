@@ -348,11 +348,11 @@ msgid "Show general notifications"
 msgstr ""
 
 msgctxt "#32079"
-msgid ""
+msgid "Enable File Size Limit"
 msgstr ""
 
 msgctxt "#32080"
-msgid ""
+msgid "File Size limit (GB)"
 msgstr ""
 
 msgctxt "#32081"

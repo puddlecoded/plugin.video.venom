@@ -52,8 +52,9 @@ def parse_art(img):
 	if not img:
 		return None
 	try:
-		ret_img = [(x['url'], x['likes']) for x in img if any(value in x.get('lang') for value in [lang, '00', ''])]
-		ret_img = sorted(ret_img, key=lambda x: int(x[1]), reverse=True)
+		ret_img = [(x['url'], x['likes']) for x in img if any(value == x.get('lang') for value in [lang, '00', ''])]
+		if len(ret_img) >1:
+			ret_img = sorted(ret_img, key=lambda x: int(x[1]), reverse=True)
 		ret_img = [x[0] for x in ret_img][0]
 	except:
 		log_utils.error()
@@ -77,7 +78,6 @@ def get_movie_art(imdb, tmdb):
 		poster2 = art['movieposter']
 		poster2 = parse_art(poster2)
 	except:
-		log_utils.error()
 		poster2 = '0'
 
 	try:
@@ -207,6 +207,5 @@ def get_tvshow_art(tvdb):
 		landscape = parse_art(landscape)
 	except:
 		landscape = '0'
-
 	extended_art = {'extended': True, 'poster2': poster2, 'banner2': banner2, 'fanart2': fanart2, 'clearlogo': clearlogo, 'clearart': clearart, 'landscape': landscape}
 	return extended_art

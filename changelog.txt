@@ -1,3 +1,9 @@
+[B][COLOR red]Update - v3.6.9 - May 20, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Added new source filtering option "File Size limit (GB)".
+    This is off by default.[/I]
+[COLOR yellow]--[/COLOR][I] Fixed random case of fetching foreign landscape
+    from fanart.tv.[/I]
+
 [B][COLOR red]Update - v3.6.8 - May 17, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed random issue with busy dialog not closing.[/I]
 [COLOR yellow]--[/COLOR][I] Added database table check to avoid bogus log errors.[/I]

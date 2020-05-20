@@ -156,7 +156,9 @@
 		<setting id="sources.extrainfo" type="bool" label="32587" default="true" />
 <!-- 		<setting id="rescrape.clr.item.providers" type="bool" label="Allow Rescrape to first clear item providers" default="true" /> -->
 		<setting type="lsep" label="32338" />
-		<setting id="hosts.quality" type="enum" label="32339" values="4K|1080p|720p|480p" default="0" />
+		<setting id="hosts.quality" type="enum" label="32339" values="4K|1080p|720p|480p(SD)" default="0" />
+		<setting id="source.enablesizelimit" type="bool" label="32079" default="false" />
+		<setting id="source.sizelimit" type="slider" subsetting="true" label="32080" option="int" range="0,1,300" default="10" visible="eq(-1,true)" />
 		<setting id="hosts.sort.provider" type="bool" label="32342" default="true" />
 		<setting id="debrid.only" type="bool" label="32653" default="false" />
 		<setting id="remove.duplicates" type="bool" label="32035" default="true" />
@@ -165,6 +167,7 @@
 		<setting id="remove.captcha" type="bool" label="32341" default="false" />
 		<setting id="remove.CamSd.sources" type="bool" label="32050" default="false" />
 		<setting id="remove.3D.sources" type="bool" label="32051" default="true" />
+
 	</category>
 
 	<!-- Torrent Settings - 6 -->

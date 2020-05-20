@@ -890,6 +890,9 @@ class Sources:
 		if control.setting('remove.duplicates') == 'true':
 			self.sources = self.filter_dupes()
 
+		if control.setting('source.enablesizelimit') == 'true':
+			self.sources = [i for i in self.sources if i.get('size', 0) <= int(control.setting('source.sizelimit'))]
+
 		if control.setting('remove.hevc') == 'true':
 			self.sources = [i for i in self.sources if 'HEVC' not in i.get('info', '')] # scrapers write HEVC to info
 
