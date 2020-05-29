@@ -1,3 +1,7 @@
+[B][COLOR red]Update - v3.7.1 - May 29, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Set tmdb to str() in tmdb module. This broke setting
+    the new .setProperty('tmdb_id', tmdb). Can not be an int().[/I]
+
 [B][COLOR red]Update - v3.7.0 - May 29, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Increased Find Similar list to 20 items vs. 10.[/I]
 [COLOR yellow]--[/COLOR][I] Removed tagline for shows.[/I]

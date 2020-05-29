@@ -1030,7 +1030,7 @@ class Collections:
 					imdb = '0'
 
 			if tmdb == '0' or tmdb is None:
-				tmdb = item.get('id')
+				tmdb = str(item.get('id'))
 
 			if 'premiered' not in self.list[i] or self.list[i]['premiered'] == '0':
 				premiered = item.get('release_date')

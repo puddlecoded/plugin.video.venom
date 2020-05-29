@@ -147,7 +147,7 @@ class Movies:
 
 			year = str(item.get('release_date')[:4])
 
-			tmdb = item.get('id')
+			tmdb = str(item.get('id'))
 			sortList.append(tmdb)
 
 			poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
@@ -323,7 +323,7 @@ class Movies:
 
 			year = str(item.get('release_date')[:4])
 
-			tmdb = item.get('id')
+			tmdb = str(item.get('id'))
 
 			poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
 			fanart = '%s%s' % (fanart_path, item['backdrop_path']) if item['backdrop_path'] else '0'
@@ -544,7 +544,7 @@ class TVshows:
 
 			year = str(item.get('first_air_date')[:4])
 
-			tmdb = item.get('id')
+			tmdb = str(item.get('id'))
 			sortList.append(tmdb)
 
 			poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
@@ -701,7 +701,7 @@ class TVshows:
 
 			year = str(item.get('first_air_date')[:4])
 
-			tmdb = item.get('id')
+			tmdb = str(item.get('id'))
 			sortList.append(tmdb)
 
 			poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
