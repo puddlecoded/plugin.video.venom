@@ -255,8 +255,6 @@ class TVshows:
 				pass
 
 			self.list = cache.get(tvmaze.tvshows().tvmaze_list, 168, url)
-			# if self.list is None:
-				# self.list = []
 			if not self.list:
 				raise Exception()
 
@@ -336,7 +334,6 @@ class TVshows:
 
 	def search(self):
 		navigator.Navigator().addDirectoryItem(32603, 'tvSearchnew', 'search.png', 'DefaultAddonsSearch.png')
-
 		try:
 			from sqlite3 import dbapi2 as database
 		except:
@@ -344,7 +341,6 @@ class TVshows:
 
 		dbcon = database.connect(control.searchFile)
 		dbcur = dbcon.cursor()
-
 		try:
 			dbcur.executescript("CREATE TABLE IF NOT EXISTS tvshow (ID Integer PRIMARY KEY AUTOINCREMENT, term);")
 			dbcur.connection.commit()
@@ -656,8 +652,9 @@ class TVshows:
 			q.update({'extended': 'full'})
 			q = (urlencode(q)).replace('%2C', ',')
 			u = url.replace('?' + urlparse(url).query, '') + '?' + q
+			if '/related' in u:
+				u = u + '&limit=20'
 			result = trakt.getTraktAsJson(u)
-
 			items = []
 			for i in result:
 				try:
@@ -917,15 +914,6 @@ class TVshows:
 				plot = re.sub('<.+?>|</.+?>', '', plot)
 				if plot == '':
 					plot = '0'
-				# if plot == '0':
-					# try:
-						# plot = client.parseDOM(item, 'div', attrs = {'class': 'lister-item-content'})[0]
-						# plot = re.sub('<p\s*class="">', '<p class="plot_">', plot)
-						# plot = client.parseDOM(plot, 'p', attrs = {'class': 'plot_'})[0]
-						# plot = re.sub('<.+?>|</.+?>', '', plot)
-						# if plot == '': plot = '0'
-					# except:
-						# pass
 				plot = client.replaceHTMLCodes(plot)
 				plot = plot.encode('utf-8')
 
@@ -1006,7 +994,6 @@ class TVshows:
 
 	def worker(self, level = 1):
 		try:
-			# if self.list is None or self.list == []:
 			if not self.list:
 				return
 			self.meta = []
@@ -1435,6 +1422,7 @@ class TVshows:
 
 				item.setArt(art)
 				item.setProperty('IsPlayable', 'false')
+				item.setProperty('tmdb_id', tmdb)
 				if is_widget:
 					item.setProperty('isVenom_widget', 'true')
 				item.setInfo(type='video', infoLabels=control.metadataClean(meta))

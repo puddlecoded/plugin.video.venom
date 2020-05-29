@@ -77,8 +77,7 @@ class Sources:
 		return wrapper
 
 
-	def play(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=False):
-		# log_utils.log('meta = %s' % meta, __name__, log_utils.LOGDEBUG)
+	def play(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=None):
 		control.busy()
 		try:
 			url = None
@@ -89,9 +88,8 @@ class Sources:
 
 			if rescrape:
 				self.clr_item_providers(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-				items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-			else:
-				items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
+			items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
+
 			if not items:
 				self.url = url
 				return self.errorForSources()
@@ -241,7 +239,7 @@ class Sources:
 
 			year = meta['year'] if 'year' in meta else None
 			if 'tvshowtitle' in meta:
-				year = meta['tvshowyear'] if 'tvshowyear' in meta else year
+				year = meta['tvshowyear'] if 'tvshowyear' in meta else year #year was changed to year of premiered in episodes module so can't use that, need original shows year.
 
 			season = meta['season'] if 'season' in meta else None
 			episode = meta['episode'] if 'episode' in meta else None

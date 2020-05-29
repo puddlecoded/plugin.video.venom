@@ -97,11 +97,17 @@ def cache_existing(function, *args):
 def cache_get(key):
 	try:
 		cursor = _get_connection_cursor()
+		cursor.execute("SELECT * FROM sqlite_master WHERE type='table' AND name='%s';" % cache_table)
+		ck_table = cursor.fetchone()
+		if not ck_table:
+			cursor.close()
+			return None
 		cursor.execute("SELECT * FROM %s WHERE key = ?" % cache_table, [key])
 		results = cursor.fetchone()
 		cursor.close()
 		return results
 	except:
+		log_utils.error()
 		try:
 			cursor.close()
 		except:
@@ -238,8 +244,46 @@ def cache_clear_bookmark(name, year='0'):
 	for i in year:
 		idFile.update(str(i))
 	idFile = str(idFile.hexdigest())
+
+	years = [str(year), str(int(year)+1), str(int(year)-1)]
 	try:
-		cursor.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
+		# cursor.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
+		cursor.execute('DELETE FROM bookmark WHERE Name = "%s" AND year IN (%s)' % (name, ','.join(i for i in years)))
+		cursor.connection.commit()
+		control.execute('Container.Refresh')
+		control.trigger_widget_refresh()
+	except:
+		log_utils.error()
+		pass
+	cursor.close()
+
+
+def clear_local_bookmarks(): # clear all venom bookmarks from kodi database
+	conn = db.connect(control.get_video_database_path())
+	cursor = conn.cursor()
+	try:
+		cursor.execute("SELECT * FROM files WHERE strFilename LIKE '%plugin.video.venom%'")
+		file_ids = [str(i[0]) for i in cursor.fetchall()]
+		for table in ["bookmark", "streamdetails", "files"]:
+			cursor.execute("DELETE FROM {} WHERE idFile IN ({})".format(table, ','.join(file_ids)))
+		cursor.connection.commit()
+	except:
+		log_utils.error()
+		pass
+	cursor.close()
+
+
+def clear_local_bookmark(url): # clear all item specific bookmarks from kodi database
+	conn = db.connect(control.get_video_database_path())
+	cursor = conn.cursor()
+	try:
+		cursor.execute('SELECT * FROM files WHERE strFilename LIKE "%{}%"'.format(url))
+		file_ids = [str(i[0]) for i in cursor.fetchall()]
+		if not file_ids:
+			cursor.close()
+			return
+		for table in ["bookmark", "streamdetails", "files"]:
+			cursor.execute("DELETE FROM {} WHERE idFile IN ({})".format(table, ','.join(file_ids)))
 		cursor.connection.commit()
 	except:
 		log_utils.error()
@@ -348,13 +392,11 @@ def _find_cache_version():
 		print('Venom Addon Data Path Does not Exist. Creating Folder....')
 		ad_folder = control.transPath('special://home/userdata/addon_data/plugin.video.venom')
 		os.makedirs(ad_folder)
-
 	try:
 		with open(versionFile, 'rb') as fh:
 			oldVersion = fh.read()
 	except:
 		oldVersion = '0'
-
 	try:
 		curVersion = control.addon('plugin.video.venom').getAddonInfo('version')
 		if oldVersion != curVersion:

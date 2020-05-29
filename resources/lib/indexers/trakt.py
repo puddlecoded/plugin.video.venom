@@ -119,7 +119,8 @@ def trakt_list(self, url, user):
 			try: plot = plot.encode('utf-8')
 			except: pass
 
-			tagline = item.get('tagline', '0')
+			# tagline = item.get('tagline', '0')
+			tagline = '0'
 
 			self.list.append({'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'genre': genre, 'duration': duration,
 										'rating': rating, 'votes': votes, 'mpaa': mpaa, 'plot': plot, 'tagline': tagline, 'imdb': imdb, 'tmdb': tmdb,

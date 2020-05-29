@@ -53,6 +53,9 @@ def parse_art(img):
 		return None
 	try:
 		ret_img = [(x['url'], x['likes']) for x in img if any(value == x.get('lang') for value in [lang, '00', ''])]
+		if not ret_img:
+			# log_utils.log('no matching artwork in %s' % img, __name__, log_utils.LOGDEBUG)
+			return None
 		if len(ret_img) >1:
 			ret_img = sorted(ret_img, key=lambda x: int(x[1]), reverse=True)
 		ret_img = [x[0] for x in ret_img][0]

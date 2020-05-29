@@ -4,26 +4,34 @@
 	Venom Add-on
 """
 
-try: import AddonSignals
-except: pass
+try:
+	import AddonSignals
+except:
+	pass
+
 import copy
 import hashlib
 import json
-try: from sqlite3 import dbapi2 as database
-except: from pysqlite2 import dbapi2 as database
 import sys
+
+try:
+	from sqlite3 import dbapi2 as database
+except:
+	from pysqlite2 import dbapi2 as database
+
 try:
 	from urllib import quote_plus, unquote_plus
 except:
 	from urllib.parse import quote_plus, unquote_plus
+
 import xbmc
 
-from resources.lib.modules import cleantitle
 from resources.lib.modules import control
+from resources.lib.modules import cleantitle
 from resources.lib.modules import log_utils
 from resources.lib.modules import metacache
 from resources.lib.modules import playcount
-
+from resources.lib.modules import trakt
 
 try:
 	sysaddon = sys.argv[0]
@@ -50,7 +58,6 @@ class Player(xbmc.Player):
 
 
 	def play_source(self, title, year, season, episode, imdb, tvdb, url, meta, select=None):
-		# log_utils.log('meta = %s' % meta, __name__, log_utils.LOGDEBUG)
 		try:
 			if url is None:
 				control.cancelPlayback()
@@ -71,7 +78,7 @@ class Player(xbmc.Player):
 				self.season = '%01d' % int(season)
 				self.episode = '%01d' % int(episode)
 
-			self.name = unquote_plus(self.name)
+			self.name = unquote_plus(self.name) # this looks dumb, quote to only unquote?
 
 			self.DBID = None
 
@@ -668,24 +675,30 @@ class Bookmarks:
 		if control.setting('bookmarks') != 'true':
 			return self.offset
 
-		idFile = hashlib.md5()
+		# idFile = hashlib.md5()
+		# for i in name:
+			# idFile.update(str(i))
+		# for i in year:
+			# idFile.update(str(i))
+		# idFile = str(idFile.hexdigest())
 
-		for i in name:
-			idFile.update(str(i))
+		try:
+			dbcon = database.connect(control.bookmarksFile)
+			dbcur = dbcon.cursor()
+			dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""Name TEXT, ""year TEXT, ""UNIQUE(idFile)"");")
+			# dbcur.execute("SELECT * FROM bookmark WHERE idFile = '%s'" % idFile)
+			years = [str(year), str(int(year)+1), str(int(year)-1)]
+			dbcur.execute('SELECT * FROM bookmark WHERE Name = "%s" AND year IN (%s)' % (name, ','.join(i for i in years))) #helps fix random cases where trakt and imdb, or tvdb, differ by a year for eps
+			match = dbcur.fetchone()
+			dbcon.close()
+		except:
+			log_utils.error()
+			try:
+				dbcon.close()
+			except:
+				pass
+			return self.offset
 
-		for i in year:
-			idFile.update(str(i))
-
-		idFile = str(idFile.hexdigest())
-
-		dbcon = database.connect(control.bookmarksFile)
-		dbcur = dbcon.cursor()
-		dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""Name TEXT, ""year TEXT, ""UNIQUE(idFile)"");")
-		dbcur.execute("SELECT * FROM bookmark WHERE idFile = '%s'" % idFile)
-		match = dbcur.fetchone()
-		dbcon.close()
-
-		# if match is None:
 		if not match:
 			return self.offset
 
@@ -702,13 +715,15 @@ class Bookmarks:
 
 		if control.setting('bookmarks.auto') == 'false':
 			yes = control.yesnoDialog(label, '', '', str(name), control.lang(32503).encode('utf-8'), control.lang(32501).encode('utf-8'))
-
 			if yes:
 				self.offset = '0'
 		return self.offset
 
 
 	def reset(self, current_time, media_length, name, year='0'):
+		from resources.lib.modules import cache
+		cache.clear_local_bookmarks()
+
 		if control.setting('bookmarks') != 'true' or media_length == 0 or current_time == 0:
 			return
 
@@ -717,20 +732,23 @@ class Bookmarks:
 		ok = (int(current_time) > 180 and (current_time / media_length) <= .92)
 
 		idFile = hashlib.md5()
-
 		for i in name:
 			idFile.update(str(i))
-
 		for i in year:
 			idFile.update(str(i))
-
 		idFile = str(idFile.hexdigest())
 
 		control.makeFile(control.dataPath)
-		dbcon = database.connect(control.bookmarksFile)
-		dbcur = dbcon.cursor()
-		dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""Name TEXT, ""year TEXT, ""UNIQUE(idFile)"");")
-		dbcur.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
+		try:
+			dbcon = database.connect(control.bookmarksFile)
+			dbcur = dbcon.cursor()
+			dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""Name TEXT, ""year TEXT, ""UNIQUE(idFile)"");")
+			# dbcur.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
+			years = [str(year), str(int(year)+1), str(int(year)-1)]
+			dbcur.execute('DELETE FROM bookmark WHERE Name = "%s" AND year IN (%s)' % (name, ','.join(i for i in years))) #helps fix random cases where trakt and imdb, or tvdb, differ by a year for eps
+		except:
+			log_utils.error()
+			pass
 
 		if ok:
 			dbcur.execute("INSERT INTO bookmark Values (?, ?, ?, ?)", (idFile, timeInSeconds, name, year))

@@ -35,6 +35,7 @@ syshandle = int(sys.argv[1])
 params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
 action = params.get('action')
 notificationSound = False if control.setting('notification.sound') == 'false' else True
+disable_fanarttv = control.setting('disable.fanarttv')
 is_widget = False if 'plugin' in control.infoLabel('Container.PluginName') else True
 
 
@@ -110,6 +111,7 @@ class Seasons:
 		tvshows.list = self.list
 		tvshows.worker()
 		self.list = tvshows.list
+
 
 		# Remove duplicate season entries.
 		try:
@@ -549,6 +551,7 @@ class Seasons:
 											'rating': rating, 'votes': votes, 'mpaa': mpaa, 'castandart': castandart, 'plot': plot, 'imdb': imdb,
 											'tmdb': tmdb, 'tvdb': tvdb, 'tvshowid': imdb, 'poster': poster, 'banner': banner, 'fanart': fanart,
 											'thumb': thumb, 'unaired': unaired})
+
 				self.list = sorted(self.list, key=lambda k: int(k['season'])) # fix for TVDb new sort by ID
 
 			except:
@@ -881,6 +884,11 @@ class Seasons:
 		multi = len([x for y,x in enumerate(multi) if x not in multi[:y]])
 		multi = True if multi > 1 else False
 
+		if disable_fanarttv != 'true':
+			tvdb = [i['tvdb'] for i in items][0]
+			from resources.lib.indexers import fanarttv
+			extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
+
 		for i in items:
 			try:
 				imdb, tmdb, tvdb, year, season = i.get('imdb', '0'), i.get('tmdb', '0'), i.get('tvdb', '0'), i.get('year', '0'), i['season']
@@ -922,7 +930,7 @@ class Seasons:
 				except: pass
 
 				try:
-					# Year is the shows year, not the seasons year. Extract the correct year frpm the premier date.
+					# Year is the shows year, not the seasons year. Extract the correct year from the premier date.
 					yearNew = i['premiered']
 					yearNew = re.findall('(\d{4})', yearNew)[0]
 					yearNew = yearNew.encode('utf-8')
@@ -952,8 +960,10 @@ class Seasons:
 				banner3 = meta.get('banner3')
 				banner = banner3 or banner2 or banner1 or addonBanner
 
-				clearlogo = meta.get('clearlogo')
-				clearart = meta.get('clearart')
+				# clearlogo = meta.get('clearlogo')
+				# clearart = meta.get('clearart')
+				clearlogo = extended_art.get('clearlogo')
+				clearart = extended_art.get('clearart')
 
 				art = {}
 				art.update({'poster': poster, 'tvshow.poster': poster, 'season.poster': poster, 'fanart': fanart, 'icon': icon,

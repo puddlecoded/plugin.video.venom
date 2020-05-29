@@ -46,34 +46,9 @@ windowedtrailer = int(windowedtrailer) if windowedtrailer in ("0","1") else 0
 notificationSound = False if control.setting('notification.sound') == 'false' else True
 
 homeWindow = xbmcgui.Window(10000)
-
-contextSettings = xbmcaddon.Addon('context.venom').getSetting('context.venom.settings')
-traktManager = xbmcaddon.Addon('context.venom').getSetting('context.venom.traktManager')
-clearProviders = xbmcaddon.Addon('context.venom').getSetting('context.venom.clearProviders')
-clearBookmark = xbmcaddon.Addon('context.venom').getSetting('context.venom.clearBookmark')
-rescrape = xbmcaddon.Addon('context.venom').getSetting('context.venom.rescrape')
-playFromHere = xbmcaddon.Addon('context.venom').getSetting('context.venom.playFromHere')
 playAction = xbmcaddon.Addon('plugin.video.venom').getSetting('hosts.mode')
 autoPlay = 'true' if playAction == '2' else ''
-cm_autoPlay = xbmcaddon.Addon('context.venom').getSetting('context.venom.autoPlay')
-sourceSelect = xbmcaddon.Addon('context.venom').getSetting('context.venom.sourceSelect')
-findSimilar = xbmcaddon.Addon('context.venom').getSetting('context.venom.findSimilar')
-browseSeries = xbmcaddon.Addon('context.venom').getSetting('context.venom.browseSeries')
-browseEpisodes = xbmcaddon.Addon('context.venom').getSetting('context.venom.browseEpisodes')
-
-homeWindow.setProperty('context.venom.settings', contextSettings)
-homeWindow.setProperty('context.venom.traktManager', traktManager)
-homeWindow.setProperty('context.venom.clearProviders', clearProviders)
-homeWindow.setProperty('context.venom.clearBookmark', clearBookmark)
-homeWindow.setProperty('context.venom.rescrape', rescrape)
-homeWindow.setProperty('context.venom.playFromHere', playFromHere)
 homeWindow.setProperty('plugin.video.venom.autoPlay', autoPlay)
-homeWindow.setProperty('context.venom.autoPlay', cm_autoPlay)
-homeWindow.setProperty('context.venom.sourceSelect', sourceSelect)
-homeWindow.setProperty('context.venom.findSimilar', findSimilar)
-homeWindow.setProperty('context.venom.browseSeries', browseSeries)
-homeWindow.setProperty('context.venom.browseEpisodes', browseEpisodes)
-
 
 if action is None:
 	from resources.lib.menus import navigator
@@ -391,7 +366,6 @@ elif action == 'playEpisodesList':
 		control.playlist.add(url=url, listitem=item)
 	control.player2().play(control.playlist)
 
-
 elif action == 'episodes':
 	from resources.lib.menus import episodes
 	episodes.Episodes().get(tvshowtitle, year, imdb, tmdb, tvdb, season, episode)
@@ -614,7 +588,8 @@ elif action == 'queueItem':
 ####################################################
 elif action == 'play':
 	from resources.lib.modules import sources
-	sources.Sources().play(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=False)
+	rescrape = params.get('rescrape')
+	sources.Sources().play(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape)
 
 elif action == 'playAll':
 	control.player2().play(control.playlist)
@@ -622,10 +597,6 @@ elif action == 'playAll':
 elif action == 'playItem':
 	from resources.lib.modules import sources
 	sources.Sources().playItem(title, source)
-
-elif action == 'reScrape':
-	from resources.lib.modules import sources
-	sources.Sources().play(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=True)
 
 elif action == 'addItem':
 	from resources.lib.modules import sources
@@ -803,6 +774,10 @@ elif action == 'clearBookmark':
 	navigator.Navigator().clearBookmark(name, year)
 	if params.get('opensettings') == 'true':
 		control.openSettings(query, 'plugin.video.venom')
+
+elif action == 'clearLocalBookmark':
+	from resources.lib.modules import cache
+	cache.clear_local_bookmark(url)
 
 elif action == 'clearResolveURLcache':
 	if control.condVisibility('System.HasAddon(script.module.resolveurl)'):

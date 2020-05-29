@@ -695,6 +695,8 @@ class Movies:
 			q.update({'extended': 'full'})
 			q = (urlencode(q)).replace('%2C', ',')
 			u = url.replace('?' + urlparse(url).query, '') + '?' + q
+			if '/related' in u:
+				u = u + '&limit=20'
 			result = trakt.getTraktAsJson(u)
 
 			items = []
@@ -971,15 +973,6 @@ class Movies:
 				plot = re.sub('<.+?>|</.+?>', '', plot)
 				if plot == '':
 					plot = '0'
-				# if plot == '0':
-					# try:
-						# plot = client.parseDOM(item, 'div', attrs = {'class': 'lister-item-content'})[0]
-						# plot = re.sub('<p\s*class="">', '<p class="plot_">', plot)
-						# plot = client.parseDOM(plot, 'p', attrs = {'class': 'plot_'})[0]
-						# plot = re.sub('<.+?>|</.+?>', '', plot)
-						# if plot == '': plot = '0'
-					# except:
-						# pass
 				plot = client.replaceHTMLCodes(plot)
 				plot = plot.encode('utf-8')
 
@@ -1410,10 +1403,9 @@ class Movies:
 				cm.append((playbackMenu, 'RunPlugin(%s?action=alterSources&url=%s&meta=%s)' % (sysaddon, sysurl, sysmeta)))
 
 				if control.setting('hosts.mode') == '1':
-					cm.append(('Rescrape Item', 'RunPlugin(%s?action=reScrape&title=%s&year=%s&imdb=%s&meta=%s)' % (sysaddon, systitle, year, imdb, sysmeta)))
-
+					cm.append(('Rescrape Item', 'RunPlugin(%s?action=play&title=%s&year=%s&imdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, sysmeta)))
 				elif control.setting('hosts.mode') != '1':
-					cm.append(('Rescrape Item', 'PlayMedia(%s?action=reScrape&title=%s&year=%s&imdb=%s&meta=%s)' % (sysaddon, systitle, year, imdb, sysmeta)))
+					cm.append(('Rescrape Item', 'PlayMedia(%s?action=play&title=%s&year=%s&imdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, sysmeta)))
 
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
@@ -1439,11 +1431,14 @@ class Movies:
 
 				from resources.lib.modules.player import Bookmarks
 				resumetime = Bookmarks().get(label, str(year), ck=True)
-				# item.setProperty('totaltime', str(meta['duration']))
+				# item.setProperty('totaltime', str(meta['duration'])) # Adding this property causes the Kodi bookmark CM items to be added
 				item.setProperty('resumetime', str(resumetime))
-				# watched_percent = int(float(resumetime) / float(meta['duration']) * 100)
-				# item.setProperty('percentplayed', str(watched_percent))
-
+				item.setProperty('venom_resumetime', str(resumetime))
+				try:
+					watched_percent = int(float(resumetime) / float(meta['duration']) * 100)
+					item.setProperty('percentplayed', str(watched_percent))
+				except:
+					pass
 				item.setInfo(type='video', infoLabels=control.metadataClean(meta))
 				video_streaminfo = {'codec': 'h264'}
 				item.addStreamInfo('video', video_streaminfo)

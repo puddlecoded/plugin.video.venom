@@ -83,7 +83,7 @@ def getTrakt(url, post=None, cache=True, check=False, timestamp=None, extended=F
 		opost = {'client_id': V2_API_KEY, 'client_secret': CLIENT_SECRET, 'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob', 'grant_type': 'refresh_token', 'refresh_token': refresh}
 
 		result = client.request(oauth, post = json.dumps(opost), headers = headers, error = True)
-		log_utils.log('result = %s' % result, __name__, log_utils.LOGDEBUG)
+		# log_utils.log('result = %s' % result, __name__, log_utils.LOGDEBUG)
 		try:
 			code = str(result[1])
 		except:
@@ -982,7 +982,6 @@ def getSeasons(id, full=True):
 
 def sort_list(sort_key, sort_direction, list_data):
 	reverse = False if sort_direction == 'asc' else True
-	# log_utils.log('sort_key = %s' % str(sort_key), __name__, log_utils.LOGDEBUG)
 	if sort_key == 'rank':
 		return sorted(list_data, key=lambda x: x['rank'], reverse=reverse)
 	elif sort_key == 'added':

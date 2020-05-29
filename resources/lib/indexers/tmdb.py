@@ -160,12 +160,13 @@ class Movies:
 
 			plot = item.get('overview')
 
-			try:
-				tagline = item.get('tagline', '0')
-				if tagline == '' or tagline == '0' or tagline is None:
-					tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			except:
-				tagline = '0'
+			# try:
+				# tagline = item.get('tagline', '0')
+				# if tagline == '' or tagline == '0' or tagline is None:
+					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
+			# except:
+				# tagline = '0'
+			tagline = '0'
 
 			values = {'next': next, 'title': title, 'originaltitle': originaltitle, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
 							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'tagline': tagline, 'metacache': False}
@@ -334,12 +335,13 @@ class Movies:
 
 			plot = item.get('overview')
 
-			try:
-				tagline = item.get('tagline', '0')
-				if tagline == '' or tagline == '0' or tagline is None:
-					tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			except:
-				tagline = '0'
+			# try:
+				# tagline = item.get('tagline', '0')
+				# if tagline == '' or tagline == '0' or tagline is None:
+					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
+			# except:
+				# tagline = '0'
+			tagline = '0'
 
 			values = {'next': next, 'title': title, 'originaltitle': originaltitle, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
 							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'tagline': tagline}
@@ -555,16 +557,16 @@ class TVshows:
 
 			plot = item.get('overview')
 
-			try:
-				tagline = item.get('tagline', '0')
-				if tagline == '' or tagline == '0' or tagline is None:
-					tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			except:
-				tagline = '0'
+			# try:
+				# tagline = item.get('tagline', '0')
+				# if tagline == '' or tagline == '0' or tagline is None:
+					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
+			# except:
+				# tagline = '0'
+			tagline = '0'
 
 			values = {'next': next, 'title': title, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
 							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'tagline': tagline}
-
 			list.append(values)
 
 
@@ -712,12 +714,13 @@ class TVshows:
 
 			plot = (item.get('overview'))
 
-			try:
-				tagline = item.get('tagline', '0')
-				if tagline == '' or tagline == '0' or tagline is None:
-					tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			except:
-				tagline = '0'
+			# try:
+				# tagline = item.get('tagline', '0')
+				# if tagline == '' or tagline == '0' or tagline is None:
+					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
+			# except:
+				# tagline = '0'
+			tagline = '0'
 
 			values = {'next': next, 'title': title, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
 							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'tagline': tagline}

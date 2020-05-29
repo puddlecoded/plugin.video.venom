@@ -527,6 +527,15 @@ def trigger_widget_refresh():
 	homeWindow.setProperty('widgetreload-movies', timestr)
 
 
+def get_video_database_path():
+	database_path = os.path.abspath(os.path.join(dataPath, '..', '..', 'Database', ))
+	if int(getKodiVersion()) == 17:
+		database_path = os.path.join(database_path, 'MyVideos107.db')
+	elif int(getKodiVersion()) == 18:
+		database_path = os.path.join(database_path, 'MyVideos116.db')
+	return database_path
+
+
 def add_source(source_name, source_path, source_content, source_thumbnail, type='video'):
 	xml_file = xbmc.translatePath('special://profile/sources.xml')
 	if not os.path.exists(xml_file):

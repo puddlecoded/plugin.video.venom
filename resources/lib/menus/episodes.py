@@ -667,7 +667,7 @@ class Episodes:
 				genre = [x for x in genre.split('|') if x != '']
 				genre = ' / '.join(genre)
 
-				duration = client.parseDOM(item2, 'Runtime')[0]
+				duration = client.parseDOM(item2, 'Runtime')[0] or '0'
 
 				rating = client.parseDOM(item, 'Rating')[0]
 				votes = client.parseDOM(item2, 'RatingCount')[0]
@@ -1546,21 +1546,17 @@ class Episodes:
 				tvshowtitle, title, imdb, tmdb, tvdb = i.get('tvshowtitle'), i.get('title'), i.get('imdb', '0'), i.get('tmdb', '0'), i.get('tvdb', '0')
 				year, season, episode, premiered = i['year'], i['season'], i['episode'], i['premiered']
 				trailer = i.get('trailer')
+				tvshowyear = i.get('tvshowyear')
 
 				if 'label' not in i:
 					i['label'] = title
-
 				if i['label'] == '0':
 					label = '%sx%02d . %s %s' % (season, int(episode), 'Episode', episode)
 				else:
 					label = '%sx%02d . %s' % (season, int(episode), i['label'])
 
-				# if not self.season_special and control.setting('tv.specials') == 'true':
-					# self.season_special = True if int(season) == 0 else False
-
 				if multi:
 					label = '%s - %s' % (tvshowtitle, label)
-
 				try:
 					labelProgress = label + ' [' + str(int(i['progress'] * 100)) + '%]'
 				except:
@@ -1571,6 +1567,9 @@ class Episodes:
 						labelProgress = '[COLOR %s][I]%s[/I][/COLOR]' % (self.unairedcolor, labelProgress)
 				except:
 					pass
+
+				# if not self.season_special and control.setting('tv.specials') == 'true':
+					# self.season_special = True if int(season) == 0 else False
 
 				systitle = quote_plus(title)
 				systvshowtitle = quote_plus(tvshowtitle)
@@ -1606,12 +1605,12 @@ class Episodes:
 				try: meta.update({'title': i['label']})
 				except: pass
 				try: 
-					meta.update({'year': re.findall('(\d{4})', premiered)[0]})
+					meta.update({'year': re.findall('(\d{4})', premiered)[0]}) #careful, arg year and meta year will be different
 				except: pass
 
 				try:
 					if 'tvshowyear' not in meta:
-						meta.update({'tvshowyear': year})
+						meta.update({'tvshowyear': year}) # Kodi uses the year (the year the show started) as the year for the episode. Change it from the premiered date.
 				except:
 					pass
 
@@ -1741,12 +1740,10 @@ class Episodes:
 					if traktProgress:
 						if control.setting('hosts.mode') == '1' and control.setting('enable.upnext') != 'true':
 							cm.append((progressMenu, 'RunPlugin(%s)' % url))
-
 						elif control.setting('hosts.mode') != '1' or control.setting('enable.upnext') == 'true':
 							cm.append((progressMenu, 'PlayMedia(%s)' % url))
-
-					url = '%s?action=episodes&tvshowtitle=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s' % (
-										sysaddon, systvshowtitle, year, imdb, tvdb, season, episode)
+					url = '%s?action=episodes&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s&episode=%s' % (
+										sysaddon, systvshowtitle, year, imdb, tmdb, tvdb, season, episode)
 
 				cm.append((playlistManagerMenu, 'RunPlugin(%s?action=playlistManager&name=%s&url=%s&meta=%s&art=%s)' % (
 										sysaddon, syslabelProgress, sysurl, sysmeta, sysart)))
@@ -1759,15 +1756,12 @@ class Episodes:
 				if not isFolder:
 					if traktProgress:
 						cm.append((progressMenu, 'Container.Update(%s)' % Folderurl))
-
 					cm.append((playbackMenu, 'RunPlugin(%s?action=alterSources&url=%s&meta=%s)' % (sysaddon, sysurl, sysmeta)))
-
 					if control.setting('hosts.mode') == '1' and control.setting('enable.upnext') != 'true':
-						cm.append(('Rescrape Item', 'RunPlugin(%s?action=reScrape&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s)' % (
+						cm.append(('Rescrape Item', 'RunPlugin(%s?action=play&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&rescrape=true)' % (
 											sysaddon, systitle, year, imdb, tvdb, season, episode, systvshowtitle, syspremiered, sysmeta)))
-
 					elif control.setting('hosts.mode') != '1' or control.setting('enable.upnext') == 'true':
-						cm.append(('Rescrape Item', 'PlayMedia(%s?action=reScrape&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s)' % (
+						cm.append(('Rescrape Item', 'PlayMedia(%s?action=play&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&rescrape=true)' % (
 											sysaddon, systitle, year, imdb, tvdb, season, episode, systvshowtitle, syspremiered, sysmeta)))
 
 				if control.setting('library.service.update') == 'true':
@@ -1791,12 +1785,14 @@ class Episodes:
 				if 'episodeIDS' in i:
 					item.setUniqueIDs(i['episodeIDS'])
 
-				if unwatchedEnabled == 'true' and 'ForceAirEnabled' not in i:
-					count = playcount.getShowCount(indicators, imdb, tvdb, unwatchedLimit)
-					if count:
-						item.setProperty('TotalEpisodes', str(count['total']))
-						item.setProperty('WatchedEpisodes', str(count['watched']))
-						item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
+				if multi:
+					item.setProperty('multi_episodes', 'true') # not sure I need this
+					if unwatchedEnabled == 'true' and 'ForceAirEnabled' not in i:
+						count = playcount.getShowCount(indicators, imdb, tvdb, unwatchedLimit)
+						if count:
+							item.setProperty('TotalEpisodes', str(count['total']))
+							item.setProperty('WatchedEpisodes', str(count['watched']))
+							item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
 
 				# if seasoncountEnabled == 'true':
 					# total_seasons = trakt.getSeasons(imdb, full=False)
@@ -1812,18 +1808,19 @@ class Episodes:
 				item.setProperty('IsPlayable', isPlayable)
 				if is_widget:
 					item.setProperty('isVenom_widget', 'true')
+				item.setProperty('tvshow.tmdb_id', tmdb)
 
 				from resources.lib.modules.player import Bookmarks
 				blabel = tvshowtitle + ' S%02dE%02d' % (int(season), int(episode))
 				resumetime = Bookmarks().get(blabel, str(year), ck=True)
-				# item.setProperty('totaltime', str(meta['duration']))
+				# item.setProperty('totaltime', str(meta.get('duration'))) # Adding this property causes the Kodi bookmark CM items to be added
 				item.setProperty('resumetime', str(resumetime))
 				item.setProperty('venom_resumetime', str(resumetime))
-
-				# watched_percent = int(float(resumetime) / float(meta['duration']) * 100)
-				# item.setProperty('percentplayed', str(watched_percent))
-
-
+				try:
+					watched_percent = int(float(resumetime) / float(meta.get('duration', '0')) * 100)
+					item.setProperty('percentplayed', str(watched_percent))
+				except:
+					pass
 				item.setInfo(type='video', infoLabels=control.metadataClean(meta))
 				video_streaminfo = {'codec': 'h264'}
 				item.addStreamInfo('video', video_streaminfo)
@@ -1864,7 +1861,7 @@ class Episodes:
 			except:
 				pass
 
-		# Show multi as show, in order to display unwatched count if enabled.
+		# Show multi episodes as show, in order to display unwatched count if enabled.
 		if multi and unwatchedEnabled == 'true':
 			control.content(syshandle, 'tvshows')
 			control.directory(syshandle, cacheToDisc=True)

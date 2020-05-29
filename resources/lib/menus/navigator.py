@@ -532,7 +532,11 @@ class Navigator:
 		if context:
 			cm.append((control.lang(context[0]).encode('utf-8'), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
 		if isSearch:
-			cm.append(('Clear Search Phrase', 'RunPlugin(%s?action=clearSearchPhrase&table=%s&name=%s)' % (sysaddon, table, name)))
+			try:
+				from urllib import quote_plus
+			except:
+				from urllib.parse import quote_plus
+			cm.append(('Clear Search Phrase', 'RunPlugin(%s?action=clearSearchPhrase&table=%s&name=%s)' % (sysaddon, table, quote_plus(name))))
 		# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 		cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 		item = control.item(label=name)

@@ -1075,15 +1075,17 @@ class Collections:
 			else:
 				mpaa = self.list[i]['mpaa']
 
-			if 'tagline' not in self.list[i] or self.list[i]['tagline'] == '0':
-				try:
-					tagline = item.get('tagline', '0')
-					if tagline == '' or tagline == '0' or tagline is None:
-						tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-				except:
-					tagline = '0'
-			else:
-				tagline = self.list[i]['tagline']
+			# if 'tagline' not in self.list[i] or self.list[i]['tagline'] == '0':
+				# try:
+					# tagline = item.get('tagline', '0')
+					# if tagline == '' or tagline == '0' or tagline is None:
+						# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
+				# except:
+					# tagline = '0'
+			# else:
+				# tagline = self.list[i]['tagline']
+			tagline = '0'
+
 
 			if 'plot' not in self.list[i] or self.list[i]['plot'] == '0':
 				plot = item.get('overview')
@@ -1129,7 +1131,8 @@ class Collections:
 					raise Exception()
 				trans_item = trakt.getMovieTranslation(imdb, self.lang, full = True)
 				title = trans_item.get('title') or title
-				tagline = trans_item.get('tagline') or tagline
+				# tagline = trans_item.get('tagline') or tagline
+				tagline = '0'
 				plot = trans_item.get('overview') or plot
 			except:
 				log_utils.error()
@@ -1301,10 +1304,9 @@ class Collections:
 				cm.append((playbackMenu, 'RunPlugin(%s?action=alterSources&url=%s&meta=%s)' % (sysaddon, sysurl, sysmeta)))
 
 				if control.setting('hosts.mode') == '1':
-					cm.append(('Rescrape Item', 'RunPlugin(%s?action=reScrape&title=%s&year=%s&imdb=%s&meta=%s)' % (sysaddon, systitle, year, imdb, sysmeta)))
-
+					cm.append(('Rescrape Item', 'RunPlugin(%s?action=play&title=%s&year=%s&imdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, sysmeta)))
 				elif control.setting('hosts.mode') != '1':
-					cm.append(('Rescrape Item', 'PlayMedia(%s?action=reScrape&title=%s&year=%s&imdb=%s&meta=%s)' % (sysaddon, systitle, year, imdb, sysmeta)))
+					cm.append(('Rescrape Item', 'PlayMedia(%s?action=play&title=%s&year=%s&imdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, sysmeta)))
 
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
@@ -1330,11 +1332,14 @@ class Collections:
 
 				from resources.lib.modules.player import Bookmarks
 				resumetime = Bookmarks().get(label, str(year), ck=True)
-				# item.setProperty('totaltime', str(meta['duration']))
+				# item.setProperty('totaltime', str(meta['duration'])) # Adding this property causes the Kodi bookmark CM items to be added
 				item.setProperty('resumetime', str(resumetime))
-				# watched_percent = int(float(resumetime) / float(meta['duration']) * 100)
-				# item.setProperty('percentplayed', str(watched_percent))
-
+				item.setProperty('venom_resumetime', str(resumetime))
+				try:
+					watched_percent = int(float(resumetime) / float(meta['duration']) * 100)
+					item.setProperty('percentplayed', str(watched_percent))
+				except:
+					pass
 				item.setInfo(type='video', infoLabels=control.metadataClean(meta))
 				video_streaminfo = {'codec': 'h264'}
 				item.addStreamInfo('video', video_streaminfo)

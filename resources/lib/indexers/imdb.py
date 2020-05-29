@@ -202,6 +202,8 @@ class movies:
 				plot = client.replaceHTMLCodes(plot)
 				plot = plot.encode('utf-8')
 
+				tagline = '0'
+
 				item = {}
 				item = {'content': 'movie', 'title': title, 'originaltitle': originaltitle, 'year': year, 'premiered': premiered,
 						'studio': '0', 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa,
