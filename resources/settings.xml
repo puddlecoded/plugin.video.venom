@@ -219,7 +219,7 @@
 		<setting type="action" label="Revoke TMDb session_id" option="close" enable="!eq(-1,)" action="RunPlugin(plugin://plugin.video.venom/?action=revokeTMDb&amp;opensettings=true&amp;query=8.7)" />
 		<setting type="lsep" label="TVDb" />
 		<setting id="tvdb.api.key" type="select" label="TVDb API" lvalues="32369|32370|32371" default="0" />
-		<setting id="clear.cache" type="action" label="32613" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=clearCache&amp;opensettings=true&amp;query=8.14)" />
+		<setting id="clear.cache1" type="action" label="32613" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=clearCache&amp;opensettings=true&amp;query=8.14)" />
 		<setting id="tvdb.message" type="action" label="[COLOR FFA0C12C]    Clear cache if changing keys[/COLOR]" default="[B][COLOR FFA0C12C]$ADDON[plugin.video.venom 35397][/COLOR][/B]" enable="true" />
 		<setting id="tvdb.jw" type="text" default="" visible="false" />
 		<setting type="lsep" label="IMDb" />

@@ -969,8 +969,12 @@ class Seasons:
 
 				# clearlogo = meta.get('clearlogo')
 				# clearart = meta.get('clearart')
-				clearlogo = extended_art.get('clearlogo')
-				clearart = extended_art.get('clearart')
+				if extended_art:
+					clearlogo = extended_art.get('clearlogo')
+					clearart = extended_art.get('clearart')
+				else:
+					clearlogo = '0'
+					clearart = '0'
 
 				art = {}
 				art.update({'poster': poster, 'tvshow.poster': poster, 'season.poster': poster, 'fanart': fanart, 'icon': icon,
