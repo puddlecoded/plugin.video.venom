@@ -51,7 +51,13 @@ class TVshows:
 		self.disable_fanarttv = control.setting('disable.fanarttv')
 		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
 
-		self.tvdb_key = 'N1I4U1paWDkwVUE5WU1CVQ=='
+		tvdb_key_list = [
+			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
+			'MUQ2MkYyRjkwMDMwQzQ0NA==',
+			'N1I4U1paWDkwVUE5WU1CVQ==']
+		tvdb_api_key = control.setting('tvdb.api.key')
+		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
+
 		self.imdb_user = control.setting('imdb.user').replace('ur', '')
 		self.user = str(self.imdb_user) + str(self.tvdb_key)
 
@@ -732,7 +738,6 @@ class TVshows:
 			except:
 				log_utils.error()
 				pass
-
 		return list
 
 
@@ -1236,7 +1241,7 @@ class TVshows:
 			if (poster == '0' or fanart == '0') or (self.disable_fanarttv != 'true'):
 				if tvdb is not None and tvdb != '0':
 					from resources.lib.indexers import fanarttv
-					extended_art = fanarttv.get_tvshow_art(tvdb)
+					extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
 					if extended_art:
 						item.update(extended_art)
 						meta.update(item)

@@ -1,3 +1,12 @@
+[B][COLOR red]Update - v3.7.2 - May 30, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Added new TVDB api key selection between 3 possible
+    keys.  It was discovered today that some keys seem to
+    drop random shows loading a season list, and that
+    happens rarely in itself.  This server anomaly eventually
+    clears up in a day or so but flipping to a different key
+    seems to also cure the problem more immediate for
+    those that can no wait.[/I]
+
 [B][COLOR red]Update - v3.7.1 - May 29, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Set tmdb to str() in tmdb module. This broke setting
     the new .setProperty('tmdb_id', tmdb). Can not be an int().[/I]

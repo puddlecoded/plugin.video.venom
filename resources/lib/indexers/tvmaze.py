@@ -462,8 +462,7 @@ class tvshows:
 
 				if self.disable_fanarttv != 'true':
 					from resources.lib.indexers import fanarttv
-					# extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
-					extended_art = fanarttv.get_tvshow_art(tvdb)
+					extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
 					if extended_art:
 						item.update(extended_art)
 						meta.update(item)

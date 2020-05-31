@@ -216,8 +216,7 @@ class movies:
 
 				# fanart_thread = threading.Thread
 				from resources.lib.indexers import fanarttv
-				extended_art = fanarttv.get_movie_art(imdb, tmdb)
-				# extended_art = cache.get(fanarttv.get_movie_art, 168, imdb, tmdb)
+				extended_art = cache.get(fanarttv.get_movie_art, 168, imdb, tmdb)
 				if extended_art:
 					item.update(extended_art)
 					meta.update(item)

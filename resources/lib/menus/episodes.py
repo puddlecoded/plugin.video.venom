@@ -56,9 +56,14 @@ class Episodes:
 		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours=5))
 		self.today_date = (self.datetime).strftime('%Y-%m-%d')
 
-		self.tvdb_key = 'N1I4U1paWDkwVUE5WU1CVQ=='
-		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/all/%s.zip' % (self.tvdb_key.decode('base64'), '%s', '%s')
+		tvdb_key_list = [
+			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
+			'MUQ2MkYyRjkwMDMwQzQ0NA==',
+			'N1I4U1paWDkwVUE5WU1CVQ==']
+		tvdb_api_key = control.setting('tvdb.api.key')
+		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
 
+		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/all/%s.zip' % (self.tvdb_key.decode('base64'), '%s', '%s')
 		self.tvdb_image = 'https://thetvdb.com/banners/'
 		self.tvdb_poster = 'https://thetvdb.com/banners/_cache/'
 

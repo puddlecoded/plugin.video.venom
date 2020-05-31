@@ -674,15 +674,15 @@ msgid " (Trakt)"
 msgstr ""
 
 msgctxt "#32369"
-msgid ""
+msgid "TVDB api key1"
 msgstr ""
 
 msgctxt "#32370"
-msgid ""
+msgid "TVDB api key2"
 msgstr ""
 
 msgctxt "#32371"
-msgid ""
+msgid "TVDB api key3"
 msgstr ""
 
 msgctxt "#32372"

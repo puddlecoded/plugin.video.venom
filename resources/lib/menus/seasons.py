@@ -10,7 +10,7 @@ import re
 import requests
 import StringIO
 import sys
-import zipfile
+import zipfile, urllib2
 try:
 	from urllib import quote_plus
 	from urlparse import parse_qsl
@@ -49,7 +49,13 @@ class Seasons:
 		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
 		self.today_date = (self.datetime).strftime('%Y-%m-%d')
 
-		self.tvdb_key = 'N1I4U1paWDkwVUE5WU1CVQ=='
+		tvdb_key_list = [
+			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
+			'MUQ2MkYyRjkwMDMwQzQ0NA==',
+			'N1I4U1paWDkwVUE5WU1CVQ==']
+		tvdb_api_key = control.setting('tvdb.api.key')
+		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
+
 		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/all/%s.zip' % (self.tvdb_key.decode('base64'), '%s', '%s')
 		self.tvdb_by_imdb = 'https://thetvdb.com/api/GetSeriesByRemoteID.php?imdbid=%s'
 		self.tvdb_by_query = 'https://thetvdb.com/api/GetSeries.php?seriesname=%s'
@@ -286,10 +292,11 @@ class Seasons:
 
 		if tvdb == '0':
 			return None
-
 		try:
 			url = self.tvdb_info_link % (tvdb, 'en')
-			data = requests.get(url).content
+			# log_utils.log('url = %s' % url, __name__, log_utils.LOGDEBUG)
+			data = requests.get(url).content # sometimes my key pulls empty xml
+			# data = urllib2.urlopen(url, timeout=30).read()
 			zip = zipfile.ZipFile(StringIO.StringIO(data))
 
 			result = zip.read('en.xml')
@@ -332,7 +339,6 @@ class Seasons:
 			item2 = result2[0]
 
 			episodes = [i for i in result if '<EpisodeNumber>' in i]
-
 			if control.setting('tv.specials') == 'true':
 				episodes = [i for i in episodes]
 			else:
@@ -629,7 +635,6 @@ class Seasons:
 				season_poster = season_poster.encode('utf-8')
 				if season_poster == '0':
 					season_poster = poster
-				# log_utils.log('season_poster = %s for tvshowtitle = %s' % (season_poster, tvshowtitle), __name__, log_utils.LOGDEBUG)
 
 				try:
 					rating = client.parseDOM(item, 'Rating')[0]
@@ -888,6 +893,8 @@ class Seasons:
 			tvdb = [i['tvdb'] for i in items][0]
 			from resources.lib.indexers import fanarttv
 			extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
+		else:
+			extended_art = None
 
 		for i in items:
 			try:
