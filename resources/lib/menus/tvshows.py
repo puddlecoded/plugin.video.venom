@@ -35,8 +35,8 @@ syshandle = int(sys.argv[1])
 
 params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
 action = params.get('action')
-notificationSound = False if control.setting('notification.sound') == 'false' else True
-is_widget = False if 'plugin' in control.infoLabel('Container.PluginName') else True
+notificationSound = control.setting('notification.sound') == 'true'
+is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
 
 
 class TVshows:
@@ -55,7 +55,6 @@ class TVshows:
 			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
 			'MUQ2MkYyRjkwMDMwQzQ0NA==',
 			'N1I4U1paWDkwVUE5WU1CVQ==']
-		tvdb_api_key = control.setting('tvdb.api.key')
 		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
 
 		self.imdb_user = control.setting('imdb.user').replace('ur', '')
@@ -203,7 +202,7 @@ class TVshows:
 			if len(self.list) == 0 and self.search_link in url:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32010, message=33049, icon='INFO', sound=notificationSound)
+					control.notification(title=32010, message=33049, icon='default', sound=notificationSound)
 
 			if idx:
 				self.tvshowDirectory(self.list)
@@ -216,7 +215,7 @@ class TVshows:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32002, message=33049, icon='INFO', sound=notificationSound)
+					control.notification(title=32002, message=33049, icon='default', sound=notificationSound)
 
 
 	def getTMDb(self, url, idx=True, cached=True):
@@ -249,7 +248,7 @@ class TVshows:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title = 32002, message = 33049, icon = 'INFO', sound=notificationSound)
+					control.notification(title=32002, message=33049, icon='default', sound=notificationSound)
 
 
 	def getTVmaze(self, url, idx=True):
@@ -276,7 +275,7 @@ class TVshows:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title = 32002, message = 33049, icon = 'INFO', sound=notificationSound)
+					control.notification(title=32002, message=33049, icon='default', sound=notificationSound)
 
 
 	def sort(self):
@@ -504,7 +503,7 @@ class TVshows:
 			self.list = cache.get(self.imdb_person_list, 1, url)
 		if len(self.list) == 0:
 			control.hide()
-			control.notification(title = 32010, message = 33049, icon = 'INFO', sound=notificationSound)
+			control.notification(title=32010, message=33049, icon='default', sound=notificationSound)
 		for i in range(0, len(self.list)):
 			self.list[i].update({'icon': 'DefaultActor.png', 'action': 'tvshows'})
 		self.addDirectory(self.list)
@@ -661,6 +660,8 @@ class TVshows:
 			if '/related' in u:
 				u = u + '&limit=20'
 			result = trakt.getTraktAsJson(u)
+			if not result:
+				return list
 			items = []
 			for i in result:
 				try:
@@ -1037,15 +1038,20 @@ class TVshows:
 			tvdb = self.list[i]['tvdb'] if 'tvdb' in self.list[i] else '0'
  
 			if (tvdb == '0' or tmdb == '0') and imdb != '0':
-				trakt_ids = trakt.IdLookup('imdb', imdb, 'show')
-				if tvdb == '0':
-					tvdb = str(trakt_ids.get('tvdb', '0'))
-					if tvdb == '' or tvdb is None or tvdb == 'None':
-						tvdb = '0'
-				if tmdb == '0':
-					tmdb = str(trakt_ids.get('tmdb', '0'))
-					if tmdb == '' or tmdb is None or tmdb == 'None':
-						tmdb = '0'
+				try:
+					trakt_ids = trakt.IdLookup('imdb', imdb, 'show')
+					if trakt_ids:
+						if tvdb == '0':
+							tvdb = str(trakt_ids.get('tvdb', '0'))
+							if tvdb == '' or tvdb is None or tvdb == 'None':
+								tvdb = '0'
+						if tmdb == '0':
+							tmdb = str(trakt_ids.get('tmdb', '0'))
+							if tmdb == '' or tmdb is None or tmdb == 'None':
+								tmdb = '0'
+				except:
+					log_utils.error()
+					pass
 
 			if imdb == '0' or tmdb == '0' or tvdb == '0':
 				try:
@@ -1164,7 +1170,9 @@ class TVshows:
 
 			if 'castandart' not in self.list[i] or self.list[i]['castandart'] == []:
 				url2 = self.tvdb_info_link % (tvdb, 'actors')
-				actors = requests.get(url2).content
+				# actors = requests.get(url2).content
+				actors = cache.get(client.request, 168, url2)
+				# log_utils.log('actors = %s' % actors, __name__, log_utils.LOGDEBUG)
 				castandart = []
 				if actors:
 					import xml.etree.ElementTree as ET
@@ -1250,13 +1258,15 @@ class TVshows:
 				self.disable_fanarttv != 'true' and ((poster == '0' and item.get('poster2') == '0') or (
 				fanart == '0' and item.get('fanart2') == '0'))):
 				from resources.lib.indexers.tmdb import TVshows
-				tmdb_art = TVshows().get_art(tmdb)
+				# tmdb_art = TVshows().get_art(tmdb)
+				tmdb_art = cache.get(TVshows().get_art, 168, tmdb)
+
 				if tmdb_art:
 					item.update(tmdb_art)
 					if item.get('landscape', '0') == '0':
 						landscape = item.get('fanart3', '0')
 						item.update({'landscape': landscape})
-				meta.update(item)
+					meta.update(item)
 
 			item = dict((k,v) for k, v in item.iteritems() if v != '0')
 			self.list[i].update(item)
@@ -1270,7 +1280,7 @@ class TVshows:
 	def tvshowDirectory(self, items, next=True):
 		if not items:
 			control.hide()
-			control.notification(title = 32002, message = 33049, icon = 'INFO', sound=notificationSound)
+			control.notification(title=32002, message=33049, icon='default', sound=notificationSound)
 			sys.exit()
 
 		settingFanart = control.setting('fanart')
@@ -1281,11 +1291,9 @@ class TVshows:
 
 		indicators = playcount.getTVShowIndicators()
 
-		unwatchedEnabled = control.setting('tvshows.unwatched.enabled')
-		unwatchedLimit = False
-		seasoncountEnabled = control.setting('tvshows.seasoncount.enabled')
-
-		flatten = True if control.setting('flatten.tvshows') == 'true' else False
+		unwatchedEnabled = control.setting('tvshows.unwatched.enabled') == 'true'
+		seasoncountEnabled = control.setting('tvshows.seasoncount.enabled') == 'true'
+		flatten = control.setting('flatten.tvshows') == 'true'
 
 		if trakt.getTraktIndicatorsInfo():
 			watchedMenu = control.lang(32068).encode('utf-8')
@@ -1387,7 +1395,6 @@ class TVshows:
 				except:
 					pass
 
-				# sysmeta = quote_plus(json.dumps(meta))
 				cm.append(('Find similar', 'ActivateWindow(10025,%s?action=tvshows&url=https://api.trakt.tv/shows/%s/related,return)' % (sysaddon, imdb)))
 				cm.append((playRandom, 'RunPlugin(%s?action=random&rtype=season&tvshowtitle=%s&year=%s&imdb=%s&tvdb=%s)' % (
 									sysaddon, systitle, year, imdb, tvdb)))
@@ -1397,7 +1404,6 @@ class TVshows:
 				cm.append((clearPlaylistMenu, 'RunPlugin(%s?action=clearPlaylist)' % sysaddon))
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (sysaddon, systitle, year, imdb, tmdb, tvdb)))
-				# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 ####################################
 
@@ -1408,14 +1414,14 @@ class TVshows:
 				if 'castandart' in i:
 					item.setCast(i['castandart'])
 
-				if unwatchedEnabled == 'true':
-					count = playcount.getShowCount(indicators, imdb, tvdb, unwatchedLimit)
+				if unwatchedEnabled:
+					count = playcount.getShowCount(indicators, imdb, tvdb)
 					if count:
 						item.setProperty('TotalEpisodes', str(count['total']))
 						item.setProperty('WatchedEpisodes', str(count['watched']))
 						item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
 
-				if seasoncountEnabled == 'true' and self.traktCredentials:
+				if seasoncountEnabled and self.traktCredentials:
 					total_seasons = trakt.getSeasons(imdb, full=False)
 					if total_seasons:
 						total_seasons = [i['number'] for i in total_seasons]
@@ -1481,7 +1487,7 @@ class TVshows:
 	def addDirectory(self, items, queue=False):
 		if not items: 
 			control.hide()
-			control.notification(title = 32002, message = 33049, icon = 'INFO', sound=notificationSound)
+			control.notification(title = 32002, message = 33049, icon = 'default', sound=notificationSound)
 			sys.exit()
 
 		addonThumb = control.addonThumb()

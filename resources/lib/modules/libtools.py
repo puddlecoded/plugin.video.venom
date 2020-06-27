@@ -27,10 +27,10 @@ from resources.lib.modules import cleantitle
 from resources.lib.modules import log_utils
 
 folder_setup = False
-service_update = True if control.setting('library.service.update') == 'true' else False
-service_notification = True if control.setting('library.service.notification') == 'true' else False
-general_notification = True if control.setting('library.general.notification') == 'true' else False
-notificationSound = True if control.setting('notification.sound') == 'true' else False
+service_update = control.setting('library.service.update') == 'true'
+service_notification = control.setting('library.service.notification') == 'true'
+general_notification = control.setting('library.general.notification') == 'true'
+notificationSound = control.setting('notification.sound') == 'true'
 tmdb_session_id = control.setting('tmdb.session_id')
 
 
@@ -137,10 +137,10 @@ class lib_tools:
 			# control.execute('CleanLibrary(video)')
 			libmovies().auto_movie_setup()
 			libtvshows().auto_tv_setup()
-			control.notification(title = 'default', message = 'Restart Kodi for changes is required', icon = 'default', time = 3000, sound = notificationSound)
+			control.notification(title='default', message='Restart Kodi for changes is required', icon='default', time=3000, sound=notificationSound)
 		except:
 			log_utils.error()
-			control.notification(title = 'default', message = 'Folders Failed to add to Kodi Sources', icon = 'default', time = 3000, sound = notificationSound)
+			control.notification(title='default', message='Folders Failed to add to Kodi Sources', icon='default', time=3000, sound=notificationSound)
 
 
 	def ckKodiSources(self, paths=None):
@@ -193,7 +193,7 @@ class lib_tools:
 						service_update = False
 						control.setSetting('library.service.update', 'false')
 						contains = False
-						control.notification(title = 'default', message = 'Library Auto Update Service is now turned off', icon = 'default', time = 3000, sound = notificationSound)
+						control.notification(title='default', message='Library Auto Update Service is now turned off', icon='default', time=3000, sound=notificationSound)
 						# control.refresh()
 			except:
 				log_utils.error()
@@ -318,7 +318,7 @@ class libmovies:
 			results = dbcur.fetchall()
 			if results == []:
 				dbcon.close()
-				control.notification(title = 'default', message = 'No Movie lists imports found', icon = 'default', time = 2000, sound = notificationSound)
+				control.notification(title='default', message='No Movie lists imports found', icon='default', time=2000, sound=notificationSound)
 				return
 			dbcon.close()
 		except:
@@ -351,7 +351,7 @@ class libmovies:
 				continue
 
 			if service_notification and not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-				control.notification(title = 'list...' + list_name + ' - ' + type, message = 32552, icon = 'default', time = 1000, sound = notificationSound)
+				control.notification(title='list...' + list_name + ' - ' + type, message=32552, icon='default', time=1000, sound=notificationSound)
 
 			total_added = 0
 			for i in items:
@@ -371,7 +371,7 @@ class libmovies:
 				control.sleep(10000)
 				control.execute('UpdateLibrary(video)')
 			elif service_notification:
-				control.notification(title = 'default', message = 'strm files written but library cannot be updated', icon = 'default', time = 2000, sound = notificationSound)
+				control.notification(title='default', message='strm files written but library cannot be updated', icon='default', time=2000, sound=notificationSound)
 
 
 	def add(self, name, title, year, imdb, tmdb, range=False):
@@ -379,7 +379,7 @@ class libmovies:
 			contains = lib_tools().ckKodiSources()
 			if general_notification:
 				if not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-					control.notification(title = name, message = 32552, icon = 'default', time = 1000, sound = notificationSound)
+					control.notification(title=name, message=32552, icon='default', time=1000, sound=notificationSound)
 
 			try:
 				if not self.dupe_chk == 'true':
@@ -408,7 +408,7 @@ class libmovies:
 				pass
 
 			if files_added == 0 and general_notification:
-				control.notification(title = name, message = 32652, icon = 'default', time = 1000, sound = notificationSound)
+				control.notification(title=name, message=32652, icon='default', time=1000, sound=notificationSound)
 
 			# if range is True:
 			if range:
@@ -417,11 +417,11 @@ class libmovies:
 			if self.library_update == 'true' and not control.condVisibility('Library.IsScanningVideo') and files_added > 0:
 				if contains:
 					if general_notification:
-						control.notification(title = name, message = 32554, icon = 'default', time = 1000, sound = notificationSound)
+						control.notification(title=name, message=32554, icon='default', time=1000, sound=notificationSound)
 					control.sleep(10000)
 					control.execute('UpdateLibrary(video)')
 				elif general_notification:
-					control.notification(title = name, message = 'strm file written but library cannot be updated', icon = 'default', time = 2000, sound = notificationSound)
+					control.notification(title=name, message='strm file written but library cannot be updated', icon='default', time=2000, sound=notificationSound)
 		except: pass
 
 
@@ -429,7 +429,7 @@ class libmovies:
 		control.hide()
 		contains = lib_tools().ckKodiSources()
 		if service_notification and not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-			control.notification(title = 'default', message = 32645, icon = 'default', time = 1000, sound = notificationSound)
+			control.notification(title='default', message=32645, icon='default', time=1000, sound=notificationSound)
 
 		from resources.lib.menus import movies
 		items = movies.Movies().get(url, idx=False)
@@ -443,7 +443,7 @@ class libmovies:
 					return sys.exit()
 				files_added = self.add('%s (%s)' % (i['title'], i['year']), i['title'], i['year'], i['imdb'], i['tmdb'], range=True)
 				if general_notification and files_added > 0:
-					control.notification(title = '%s (%s)' % (i['title'], i['year']), message = 32554, icon = 'default', time = 1000, sound = notificationSound)
+					control.notification(title='%s (%s)' % (i['title'], i['year']), message=32554, icon='default', time=1000, sound=notificationSound)
 					total_added += 1
 			except:
 				log_utils.error()
@@ -454,10 +454,10 @@ class libmovies:
 				control.sleep(10000)
 				control.execute('UpdateLibrary(video)')
 			elif general_notification:
-				control.notification(title = 'default', message = 'strm files written but library cannot be updated', icon = 'default', time = 2000, sound = notificationSound)
+				control.notification(title='default', message='strm files written but library cannot be updated', icon='default', time=2000, sound=notificationSound)
 
 		if service_notification:
-			control.notification(title = 'default', message = 'Trakt Movies Sync Complete', icon = 'default', time = 1000, sound = notificationSound)
+			control.notification(title='default', message='Trakt Movies Sync Complete', icon='default', time=1000, sound=notificationSound)
 
 
 	def range(self, url, list_name):
@@ -488,7 +488,7 @@ class libmovies:
 
 		if general_notification:
 			if not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-				control.notification(title = 'default', message = message, icon = 'default', time = 1000, sound = notificationSound)
+				control.notification(title='default', message=message, icon='default', time=1000, sound=notificationSound)
 
 		items = []
 		try:
@@ -518,7 +518,7 @@ class libmovies:
 
 		if items is None or items == []:
 			if general_notification:
-				control.notification(title = message, message = 33049, icon = 'default', time = 3000, sound=notificationSound)
+				control.notification(title=message, message=33049, icon='default', time=3000, sound=notificationSound)
 			return
 
 		contains = lib_tools().ckKodiSources()
@@ -530,7 +530,7 @@ class libmovies:
 			try:
 				files_added = self.add('%s (%s)' % (i['title'], i['year']), i['title'], i['year'], i['imdb'], i['tmdb'], range=True)
 				if general_notification and files_added > 0:
-					control.notification(title = '%s (%s)' % (i['title'], i['year']), message = 32554, icon = 'default', time = 1000, sound = notificationSound)
+					control.notification(title='%s (%s)' % (i['title'], i['year']), message=32554, icon='default', time=1000, sound=notificationSound)
 					total_added += 1
 			except:
 				log_utils.error()
@@ -556,7 +556,7 @@ class libmovies:
 				control.sleep(10000)
 				control.execute('UpdateLibrary(video)')
 			elif general_notification:
-				control.notification(title = 'default', message = 'strm files written but library cannot be updated', icon = 'default', time = 2000, sound = notificationSound)
+				control.notification(title='default', message='strm files written but library cannot be updated', icon='default', time=2000, sound=notificationSound)
 
 
 	def strmFile(self, i):
@@ -657,7 +657,7 @@ class libtvshows:
 				continue
 
 			if service_notification and not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-				control.notification(title = 'list...' + list_name + ' - ' + type, message = 32552, icon = 'default', time = 1000, sound = notificationSound)
+				control.notification(title='list...' + list_name + ' - ' + type, message=32552, icon='default', time=1000, sound=notificationSound)
 
 			total_added = 0
 			for i in items:
@@ -666,7 +666,7 @@ class libtvshows:
 				try:
 					files_added = self.add(i['title'], i['year'], i['imdb'], i['tmdb'], i['tvdb'], range=True)
 					if general_notification and files_added > 0:
-						control.notification(title = i['title'], message = 32554, icon = 'default', time = 1000, sound = notificationSound)
+						control.notification(title=i['title'], message=32554, icon='default', time=1000, sound=notificationSound)
 						total_added += 1
 				except:
 					log_utils.error()
@@ -677,7 +677,7 @@ class libtvshows:
 				control.sleep(10000)
 				control.execute('UpdateLibrary(video)')
 			elif service_notification:
-				control.notification(title = 'default', message = 'strm files written but library cannot be updated', icon = 'default', time = 2000, sound = notificationSound)
+				control.notification(title='default', message='strm files written but library cannot be updated', icon='default', time=2000, sound=notificationSound)
 
 
 	def add(self, tvshowtitle, year, imdb, tmdb, tvdb, range=False):
@@ -685,7 +685,7 @@ class libtvshows:
 			contains = lib_tools().ckKodiSources()
 			if general_notification:
 				if not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-					control.notification(title = tvshowtitle, message = 32552, icon = 'default', time = 1000, sound =notificationSound )
+					control.notification(title=tvshowtitle, message=32552, icon='default', time=1000, sound=notificationSound )
 
 			try:
 				# from resources.lib.menus import episodes
@@ -760,7 +760,7 @@ class libtvshows:
 					pass
 
 			if files_added == 0:
-				control.notification(title = tvshowtitle, message = 32652, icon = 'default', time = 1000, sound = notificationSound)
+				control.notification(title=tvshowtitle, message=32652, icon='default', time=1000, sound=notificationSound)
 
 			# if range is True:
 			if range:
@@ -769,10 +769,10 @@ class libtvshows:
 			if self.library_update == 'true' and not control.condVisibility('Library.IsScanningVideo') and files_added > 0:
 				if contains:
 					if general_notification:
-						control.notification(title = tvshowtitle, message = 32554, icon = 'default', time = 1000, sound = notificationSound)
+						control.notification(title=tvshowtitle, message=32554, icon='default', time=1000, sound=notificationSound)
 					control.execute('UpdateLibrary(video)')
 				elif general_notification:
-					control.notification(title = tvshowtitle, message = 'strm file written but library cannot be updated', icon = 'default', time = 2000, sound = notificationSound)
+					control.notification(title=tvshowtitle, message='strm file written but library cannot be updated', icon='default', time=2000, sound=notificationSound)
 		except:
 			pass
 
@@ -781,7 +781,7 @@ class libtvshows:
 		control.hide()
 		contains = lib_tools().ckKodiSources()
 		if service_notification and not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-			control.notification(title = 'default', message = 32645, icon = 'default', time = 1000, sound = notificationSound)
+			control.notification(title='default', message=32645, icon='default', time=1000, sound=notificationSound)
 
 		from resources.lib.menus import tvshows
 		items = tvshows.TVshows().get(url, idx=False)
@@ -795,7 +795,7 @@ class libtvshows:
 			try:
 				files_added = self.add(i['title'], i['year'], i['imdb'], i['tmdb'], i['tvdb'], range=True)
 				if general_notification and files_added > 0:
-					control.notification(title = i['title'], message = 32554, icon = 'default', time = 1000, sound = notificationSound)
+					control.notification(title=i['title'], message=32554, icon='default', time=1000, sound=notificationSound)
 					total_added += 1
 			except:
 				log_utils.error()
@@ -806,10 +806,10 @@ class libtvshows:
 				control.sleep(10000)
 				control.execute('UpdateLibrary(video)')
 			elif service_notification:
-				control.notification(title = 'default', message = 'strm files written but library cannot be updated', icon = 'default', time = 2000, sound = notificationSound)
+				control.notification(title='default', message='strm files written but library cannot be updated', icon='default', time=2000, sound=notificationSound)
 
 		if service_notification:
-			control.notification(title = 'default', message = 'Trakt TV Show Sync Complete', icon = 'default', time = 1000, sound = notificationSound)
+			control.notification(title='default', message='Trakt TV Show Sync Complete', icon='default', time=1000, sound=notificationSound)
 
 
 	def range(self, url, list_name):
@@ -839,7 +839,7 @@ class libtvshows:
 
 		if general_notification:
 			if not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-				control.notification(title = 'default', message = message, icon = 'default', time = 1000, sound = notificationSound)
+				control.notification(title='default', message=message, icon='default', time=1000, sound=notificationSound)
 
 		items = []
 		try:
@@ -869,7 +869,7 @@ class libtvshows:
 
 		if items is None or items == []:
 			if general_notification:
-				control.notification(title = message, message = 33049, icon = 'default', time = 3000, sound=notificationSound)
+				control.notification(title=message, message=33049, icon='default', time=3000, sound=notificationSound)
 			return
 
 		contains = lib_tools().ckKodiSources()
@@ -881,7 +881,7 @@ class libtvshows:
 			try:
 				files_added = self.add(i['title'], i['year'], i['imdb'], i['tmdb'], i['tvdb'], range=True)
 				if general_notification and files_added > 0:
-					control.notification(title = i['title'], message = 32554, icon = 'default', time = 1000, sound = notificationSound)
+					control.notification(title=i['title'], message=32554, icon='default', time=1000, sound=notificationSound)
 					total_added += 1
 			except:
 				log_utils.error()
@@ -907,7 +907,7 @@ class libtvshows:
 				control.sleep(10000)
 				control.execute('UpdateLibrary(video)')
 			elif general_notification:
-				control.notification(title = 'default', message = 'strm files written but library cannot be updated', icon = 'default', time = 2000, sound = notificationSound)
+				control.notification(title='default', message='strm files written but library cannot be updated', icon='default', time=2000, sound=notificationSound)
 
 
 	def strmFile(self, i):
@@ -950,10 +950,10 @@ class libepisodes:
 
 	def update(self):
 		if control.setting('library.service.update') == 'false':
-			control.notification(title = 'default', message = 'Update Service is disabled. Please enable and try again', icon = 'default', time = 2000, sound = notificationSound)
+			control.notification(title='default', message='Update Service is disabled. Please enable and try again', icon='default', time=2000, sound=notificationSound)
 		contains = lib_tools().ckKodiSources()
 		if not contains:
-			control.notification(title = 'default', message = 'Your Library Folders do not exist in Kodi Sources. Please run setup', icon = 'default', time = 2000, sound = notificationSound)
+			control.notification(title='default', message='Your Library Folders do not exist in Kodi Sources. Please run setup', icon='default', time=2000, sound=notificationSound)
 			return
 
 		try:
@@ -962,7 +962,7 @@ class libepisodes:
 			show = [os.path.join(self.library_folder, i) for i in control.listDir(self.library_folder)[0]]
 
 			if show == []:
-				control.notification(title = 'default', message = 'No Shows in Addon Folder', icon = 'default', time = 2000, sound = notificationSound)
+				control.notification(title='default', message='No Shows in Addon Folder', icon='default', time=2000, sound=notificationSound)
 				return
 
 			for s in show:
@@ -1028,7 +1028,7 @@ class libepisodes:
 			return
 
 		if service_notification and not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
-			control.notification(title = 'default', message = 32553, icon = 'default', time = 1000, sound = notificationSound)
+			control.notification(title='default', message=32553, icon='default', time=1000, sound=notificationSound)
 
 		try:
 			control.makeFile(control.dataPath)
@@ -1046,6 +1046,7 @@ class libepisodes:
 			# from resources.lib.menus import episodes
 			from resources.lib.menus import seasons
 		except:
+			log_utils.error()
 			return
 
 		files_added = 0
@@ -1077,10 +1078,11 @@ class libepisodes:
 			try:
 				if it:
 					raise Exception()
-
 				# it = episodes.Episodes().get(item['tvshowtitle'], item['year'], item['imdb'], item['tmdb'], item['tvdb'], idx=False)
 				it = seasons.Seasons().tvdb_list(item['tvshowtitle'], item['year'], item['imdb'], item['tmdb'], item['tvdb'], control.apiLanguage()['tvdb'], '-1') # fetch new meta (uncached)
-				if it == []: continue
+				# log_utils.log('it = %s' % it, log_utils.LOGDEBUG)
+				if not it:
+					continue
 
 				status = it[0]['status'].lower()
 				it = [{'title': i['title'], 'year': i['year'], 'imdb': i['imdb'], 'tmdb': i['tmdb'], 'tvdb': i['tvdb'], 'season': i['season'], 'episode': i['episode'], 'tvshowtitle': i['tvshowtitle'], 'premiered': i['premiered']} for i in it]
@@ -1130,7 +1132,7 @@ class libepisodes:
 					libtvshows().strmFile(i)
 					files_added += 1
 					if service_notification :
-						control.notification(title = item['tvshowtitle'], message = 32678, icon = 'default', time = 1000, sound = notificationSound)
+						control.notification(title=item['tvshowtitle'], message=32678, icon='default', time=1000, sound=notificationSound)
 				except:
 					log_utils.error()
 					pass
@@ -1139,13 +1141,13 @@ class libepisodes:
 		except: pass
 
 		if files_added == 0 and service_notification :
-			control.notification(title = 'default', message = 'No Episode Updates Found', icon = 'default', time = 1000, sound = notificationSound)
+			control.notification(title='default', message='No Episode Updates Found', icon='default', time=1000, sound=notificationSound)
 
 		if self.library_update == 'true' and not control.condVisibility('Library.IsScanningVideo') and files_added > 0:
 			if contains:
 				if service_notification:
-					control.notification(title = 'default', message = 32554, icon = 'default', time = 1000, sound = notificationSound)
+					control.notification(title='default', message=32554, icon='default', time=1000, sound=notificationSound)
 				control.sleep(10000)
 				control.execute('UpdateLibrary(video)')
 			elif service_notification:
-				control.notification(title = 'default', message = 'strm files written but library cannot be updated', icon = 'default', time = 2000, sound = notificationSound)
+				control.notification(title='default', message='strm files written but library cannot be updated', icon='default', time=2000, sound=notificationSound)

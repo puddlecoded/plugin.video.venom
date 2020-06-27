@@ -32,8 +32,8 @@ syshandle = int(sys.argv[1])
 
 params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
 action = params.get('action')
-notificationSound = False if control.setting('notification.sound') == 'false' else True
-is_widget = False if 'plugin' in control.infoLabel('Container.PluginName') else True
+notificationSound = control.setting('notification.sound') == 'true'
+is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
 
 
 class Movies:
@@ -213,7 +213,7 @@ class Movies:
 					self.worker()
 
 			elif u in self.imdb_link and ('/user/' in url or '/list/' in url):
-				isRatinglink=True if self.imdbratings_link in url else False
+				isRatinglink = True if self.imdbratings_link in url else False
 				self.list = cache.get(self.imdb_list, 0, url, isRatinglink)
 				if idx:
 					self.worker()
@@ -237,7 +237,7 @@ class Movies:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title = 32001, message = 33049, icon = 'INFO', sound=notificationSound)
+					control.notification(title=32001, message=33049, icon='default', sound=notificationSound)
 
 
 	def getTMDb(self, url, idx=True, cached=True):
@@ -274,7 +274,7 @@ class Movies:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title = 32001, message = 33049, icon = 'INFO', sound=notificationSound)
+					control.notification(title = 32001, message = 33049, icon = 'default', sound=notificationSound)
 
 
 	def unfinished(self, url, idx=True):
@@ -321,7 +321,7 @@ class Movies:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32001, message=33049, icon='INFO', sound=notificationSound)
+					control.notification(title=32001, message=33049, icon='default', sound=notificationSound)
 
 
 	def newMovies(self):
@@ -451,8 +451,6 @@ class Movies:
 		k = control.keyboard('', t)
 		k.doModal()
 		q = k.getText() if k.isConfirmed() else None
-
-		# if (q is None or q == ''):
 		if not q:
 			return
 
@@ -556,7 +554,7 @@ class Movies:
 			self.list = cache.get(self.imdb_person_list, 1, url)
 		if len(self.list) == 0:
 			control.hide()
-			control.notification(title = 32010, message = 33049, icon = 'INFO', sound=notificationSound)
+			control.notification(title=32010, message=33049, icon='default', sound=notificationSound)
 		for i in range(0, len(self.list)):
 			self.list[i].update({'icon': 'DefaultActor.png', 'action': 'movies'})
 		self.addDirectory(self.list)
@@ -761,6 +759,7 @@ class Movies:
 				if genre == []: genre = 'NA'
 
 				duration = str(item.get('runtime', '0'))
+				# duration = str(int(item.get('runtime', '0')) * 60)
 
 				rating = str(item.get('rating', '0'))
 				votes = str(format(int(item.get('votes', '0')),',d'))
@@ -1051,7 +1050,6 @@ class Movies:
 
 	def worker(self, level=1):
 		try:
-			# if self.list is None or self.list == []:
 			if not self.list:
 				return
 			self.meta = []
@@ -1079,7 +1077,7 @@ class Movies:
 			log_utils.error()
 
 
-	# @profileIt
+	# @timeIt
 	def super_info(self, i):
 		try:
 			if self.list[i]['metacache']:
@@ -1087,17 +1085,17 @@ class Movies:
 
 			imdb = self.list[i]['imdb'] or '0'
 			tmdb = self.list[i]['tmdb'] or '0'
-			item = tmdb_indexer.Movies().get_details(tmdb, imdb)
-			if not item:
-				# # this is super slow, adds 4secs!
-				# trakt_ids = trakt.IdLookup('imdb', imdb, 'movie')
-				# tmdb = str(trakt_ids.get('tmdb', '0'))
-				# if tmdb == '' or tmdb is None or tmdb == 'None':
-					# tmdb = '0'
 
-				# this is super slow, adds 3secs!
-				# ids = tmdb_indexer.Movies().get_external_ids('0', imdb)
-				# log_utils.log('ids = %s' % str(ids), __name__, log_utils.LOGDEBUG)
+			# if imdb == '0' and tmdb != '0':
+				# log_utils.log('imdb = 0', __name__, log_utils.LOGDEBUG)
+				# trakt_ids = trakt.IdLookup('tmdb', tmdb, 'movie')
+
+			# if tmdb == '0' and imdb != '0':
+				# log_utils.log('tmdb = 0', __name__, log_utils.LOGDEBUG)
+				# trakt_ids = trakt.IdLookup('imdb', imdb, 'movie')
+
+			item = tmdb_indexer.Movies().get_details(tmdb, imdb) # seems very efficient with just one id!(api claims rq's int()...bahahah, ok)
+			if not item:
 				return
 			try:
 				title = item.get('title').encode('utf-8')
@@ -1253,7 +1251,7 @@ class Movies:
 	def movieDirectory(self, items, unfinished=False, next=True):
 		if not items:
 			control.hide()
-			control.notification(title = 32001, message = 33049, icon = 'INFO', sound=notificationSound)
+			control.notification(title=32001, message=33049, icon='default', sound=notificationSound)
 			sys.exit()
 
 		settingFanart = control.setting('fanart')
@@ -1490,7 +1488,7 @@ class Movies:
 	def addDirectory(self, items, queue=False):
 		if not items:
 			control.hide()
-			control.notification(title = 32001, message = 33049, icon = 'INFO', sound=notificationSound)
+			control.notification(title=32001, message=33049, icon='default', sound=notificationSound)
 			sys.exit()
 
 		addonThumb = control.addonThumb()

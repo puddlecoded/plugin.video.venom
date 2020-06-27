@@ -123,7 +123,7 @@ def getEpisodeOverlay(indicators, imdb, tvdb, season, episode):
 		return '6'
 
 
-def getShowCount(indicators, imdb, tvdb, limit = False):
+def getShowCount(indicators, imdb, tvdb, limit=False):
 	if not imdb.startswith('tt'):
 		return None
 	try:
@@ -147,7 +147,7 @@ def getShowCount(indicators, imdb, tvdb, limit = False):
 		return None
 
 
-def getSeasonCount(imdb, season = None, season_special = False, limit = False):
+def getSeasonCount(imdb, season=None, season_special=False, limit=False):
 	if not imdb.startswith('tt'):
 		return None
 	try:

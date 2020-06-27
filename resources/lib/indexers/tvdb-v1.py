@@ -4,10 +4,12 @@
 	Venom Add-on
 '''
 
-import re, zipfile
 import StringIO
 import time
+import re
 import requests
+import zipfile
+
 try:
 	from urllib import quote_plus
 except:
@@ -21,7 +23,12 @@ from resources.lib.modules import log_utils
 
 lang = control.apiLanguage()['tvdb']
 
-self.tvdb_key = 'N1I4U1paWDkwVUE5WU1CVQ=='
+tvdb_key_list = [
+	'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
+	'MUQ2MkYyRjkwMDMwQzQ0NA==',
+	'N1I4U1paWDkwVUE5WU1CVQ==']
+api_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
+
 imdb_user = control.setting('imdb.user').replace('ur', '')
 user = str(imdb_user) + str(api_key)
 

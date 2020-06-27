@@ -4,7 +4,6 @@
 	Venom Add-on
 """
 
-import base64
 import json
 import random
 import re

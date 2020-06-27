@@ -18,13 +18,13 @@ except:
 	pass
 
 artPath = control.artPath()
-imdbCredentials = False if control.setting('imdb.user') == '' else True
-tmdbSessionID = False if control.setting('tmdb.session_id') == '' else True
 traktCredentials = trakt.getTraktCredentialsInfo()
 traktIndicators = trakt.getTraktIndicatorsInfo()
-indexLabels = False if control.setting('index.labels') == 'false' else True
-iconLogos = False if control.setting('icon.logos') == 'Traditional' else True
-notificationSound = False if control.setting('notification.sound') == 'false' else True
+imdbCredentials = control.setting('imdb.user') != ''
+tmdbSessionID = control.setting('tmdb.session_id') != ''
+indexLabels = control.setting('index.labels') == 'true'
+iconLogos = control.setting('icon.logos') != 'Traditional'
+notificationSound = control.setting('notification.sound') == 'true'
 
 
 class Navigator:
@@ -437,7 +437,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_meta()
-			control.notification(title = 'default', message = 'Metadata Cache Successfully Cleared!', icon = 'default', sound = notificationSound)
+			control.notification(title='default', message='Metadata Cache Successfully Cleared!', icon='default', sound=notificationSound)
 		except:
 			log_utils.error()
 			pass
@@ -451,7 +451,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear()
-			control.notification(title = 'default', message = 'Cache Successfully Cleared!', icon = 'default', sound = notificationSound)
+			control.notification(title='default', message='Cache Successfully Cleared!', icon='default', sound=notificationSound)
 		except:
 			log_utils.error()
 			pass
@@ -465,7 +465,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_search()
-			control.notification(title = 'default', message = 'Search History Successfully Cleared!', icon = 'default', sound = notificationSound)
+			control.notification(title='default', message='Search History Successfully Cleared!', icon='default', sound=notificationSound)
 		except:
 			log_utils.error()
 			pass
@@ -479,7 +479,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_SearchPhrase(table, name)
-			control.notification(title = 'default', message = 'Search Phrase Successfully Cleared!', icon = 'default', sound = notificationSound)
+			control.notification(title='default', message='Search Phrase Successfully Cleared!', icon='default', sound=notificationSound)
 		except:
 			log_utils.error()
 			pass
@@ -493,7 +493,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_bookmarks()
-			control.notification(title = 'default', message = 'Bookmarks Successfully Cleared!', icon = 'default', sound = notificationSound)
+			control.notification(title='default', message='Bookmarks Successfully Cleared!', icon='default', sound=notificationSound)
 		except:
 			log_utils.error()
 			pass
@@ -507,7 +507,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_bookmark(name, year)
-			control.notification(title = name, message = 'Bookmark Successfully Cleared!', icon = 'default', sound = notificationSound)
+			control.notification(title=name, message='Bookmark Successfully Cleared!', icon='default', sound=notificationSound)
 		except:
 			log_utils.error()
 			pass

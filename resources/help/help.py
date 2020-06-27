@@ -10,11 +10,11 @@ import xbmcaddon
 import xbmcgui
 
 
-def get():
+def get(file):
 		addonInfo = xbmcaddon.Addon().getAddonInfo
 		addonPath = xbmc.translatePath(addonInfo('path'))
-		changelogfile = os.path.join(addonPath, 'changelog.txt')
-		r = open(changelogfile)
+		helpFile = os.path.join(addonPath, 'resources', 'help', file + '.txt')
+		r = open(helpFile)
 		text = r.read()
 		id = 10147
 		xbmc.executebuiltin('ActivateWindow(%d)' % id)
@@ -25,7 +25,7 @@ def get():
 			try:
 				xbmc.sleep(10)
 				retry -= 1
-				win.getControl(1).setLabel('[COLOR red]Venom[/COLOR] -  v%s - ChangeLog' % (xbmcaddon.Addon().getAddonInfo('version')))
+				win.getControl(1).setLabel('[COLOR red]Venom[/COLOR] -  v%s - %s' % (xbmcaddon.Addon().getAddonInfo('version'), file))
 				win.getControl(5).setText(text)
 				while xbmcgui.getCurrentWindowDialogId() == id:
 					xbmc.sleep(100)

@@ -35,9 +35,9 @@ syshandle = int(sys.argv[1])
 
 params = dict(parse_qsl(sys.argv[2].replace('?', ''))) if len(sys.argv) > 1 else dict()
 action = params.get('action')
-notificationSound = False if control.setting('notification.sound') == 'false' else True
+notificationSound = control.setting('notification.sound') == 'true'
 disable_fanarttv = control.setting('disable.fanarttv')
-is_widget = False if 'plugin' in control.infoLabel('Container.PluginName') else True
+is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
 
 
 class Episodes:
@@ -60,7 +60,6 @@ class Episodes:
 			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
 			'MUQ2MkYyRjkwMDMwQzQ0NA==',
 			'N1I4U1paWDkwVUE5WU1CVQ==']
-		tvdb_api_key = control.setting('tvdb.api.key')
 		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
 
 		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/all/%s.zip' % (self.tvdb_key.decode('base64'), '%s', '%s')
@@ -103,7 +102,7 @@ class Episodes:
 		control.busy()
 		playcount.episodes(imdb, tvdb, season, episode, '7')
 		control.hide()
-		control.notification(title=35510, message=35513, icon='INFO', sound=notificationSound)
+		control.notification(title=35510, message=35513, icon='default', sound=notificationSound)
 
 
 	@classmethod
@@ -111,7 +110,7 @@ class Episodes:
 		control.busy()
 		playcount.episodes(imdb, tvdb, season, episode, '6')
 		control.hide()
-		control.notification(title=35511, message=35513, icon='INFO', sound=notificationSound)
+		control.notification(title=35511, message=35513, icon='default', sound=notificationSound)
 
 
 	def sort(self, type='shows'):
@@ -175,7 +174,7 @@ class Episodes:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32326, message=33049, icon='INFO', sound=notificationSound)
+					control.notification(title=32326, message=33049, icon='default', sound=notificationSound)
 
 
 	def unfinished(self, url):
@@ -223,7 +222,7 @@ class Episodes:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32326, message=33049, icon='INFO', sound=notificationSound)
+					control.notification(title=32326, message=33049, icon='default', sound=notificationSound)
 
 
 	def calendar(self, url):
@@ -232,19 +231,9 @@ class Episodes:
 				url = getattr(self, url + '_link')
 			except:
 				pass
-
-			direct = False if control.setting('tvshows.direct') == 'false' else True
+			direct = control.setting('tvshows.direct') == 'true'
 
 			if self.trakt_link in url and url == self.progress_link:
-				# try:
-					# activity = trakt.getWatchedActivity()
-					# if activity > cache.timeout(self.trakt_progress_list, url, self.trakt_user, self.lang, direct):
-						# raise Exception()
-					# self.list = cache.get(self.trakt_progress_list, 12, url, self.trakt_user, self.lang, direct)
-				# except:
-					# self.list = cache.get(self.trakt_progress_list, 0, url, self.trakt_user, self.lang, direct)
-				# self.sort(type = 'progress')
-
 				self.list = cache.get(self.trakt_progress_list, 0, url, self.trakt_user, self.lang, direct)
 				self.sort(type = 'progress')
 
@@ -1458,7 +1447,7 @@ class Episodes:
 	def episodeDirectory(self, items, unfinished=False, next=True):
 		if not items:
 			control.hide()
-			control.notification(title=32326, message=33049, icon='INFO', sound=notificationSound)
+			control.notification(title=32326, message=33049, icon='default', sound=notificationSound)
 			sys.exit()
 
 		# Retrieve additional metadata if not super info was retireved (eg: Trakt lists, such as Unfinished and History)
@@ -1479,16 +1468,23 @@ class Episodes:
 		addonFanart = control.addonFanart()
 		addonBanner = control.addonBanner()
 
-		try:
-			multi = [i['tvshowtitle'] for i in items]
-		except:
-			multi = []
-		multi = len([x for y, x in enumerate(multi) if x not in multi[:y]])
-		multi = True if multi > 1 else False
-		try:
-			if '/users/me/history/' in items[0]['next']:
-				multi = True
-		except: pass
+		traktProgress = False if 'traktProgress' not in items[0] else True
+		if traktProgress and control.setting('tvshows.direct') == 'false':
+			progressMenu = control.lang(32015).encode('utf-8')
+		else:
+			progressMenu = control.lang(32016).encode('utf-8')
+
+		if traktProgress:
+			multi = True
+		else:
+			try: multi = [i['tvshowtitle'] for i in items]
+			except: multi = []
+			multi = len([x for y, x in enumerate(multi) if x not in multi[:y]])
+			multi = True if multi > 1 else False
+			try:
+				if '/users/me/history/' in items[0]['next']:
+					multi = True
+			except: pass
 
 		try:
 			sysaction = items[0]['action']
@@ -1505,10 +1501,10 @@ class Episodes:
 		elif control.setting('enable.upnext') == 'true' or control.setting('hosts.mode') != '1' :
 			isPlayable = 'true'
 
-		unwatchedEnabled = control.setting('tvshows.unwatched.enabled')
-		unwatchedLimit = False
-		# seasoncountEnabled = control.setting('tvshows.seasoncount.enabled')
-		playlistcreate = control.setting('auto.playlistcreate')
+		multi_unwatchedEnabled = control.setting('multi.unwatched.enabled') == 'true'
+
+		# seasoncountEnabled = control.setting('tvshows.seasoncount.enabled') == 'true'
+		playlistcreate = control.setting('auto.playlistcreate') == 'true'
 
 		airEnabled = control.setting('tvshows.air.enabled') if 'ForceAirEnabled' not in items[0] else 'true'
 		if airEnabled == 'true':
@@ -1536,12 +1532,6 @@ class Episodes:
 
 		playlistManagerMenu = control.lang(35522).encode('utf-8')
 		queueMenu = control.lang(32065).encode('utf-8')
-
-		traktProgress = False if 'traktProgress' not in items[0] else True
-		if traktProgress and control.setting('tvshows.direct') == 'false':
-			progressMenu = control.lang(32015).encode('utf-8')
-		else:
-			progressMenu = control.lang(32016).encode('utf-8')
 
 		tvshowBrowserMenu = control.lang(32071).encode('utf-8')
 		addToLibrary = control.lang(32551).encode('utf-8')
@@ -1694,6 +1684,8 @@ class Episodes:
 				banner = banner3 or banner2 or banner1 or addonBanner
 
 				clearlogo = meta.get('clearlogo')
+				# log_utils.log('clearlogo = %s for tvshowtitle = %s' % (str(clearlogo), str(tvshowtitle)), __name__, log_utils.LOGDEBUG)
+
 				clearart = meta.get('clearart')
 
 				art = {}
@@ -1772,7 +1764,6 @@ class Episodes:
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (
 											sysaddon, systvshowtitle, year, imdb, tmdb, tvdb)))
-				# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append((control.lang(32611).encode('utf-8'), 'RunPlugin(%s?action=clearSources&opensettings=false)' % sysaddon))
 				# cm.append(('PlayAll', 'RunPlugin(%s?action=playAll)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
@@ -1790,16 +1781,15 @@ class Episodes:
 				if 'episodeIDS' in i:
 					item.setUniqueIDs(i['episodeIDS'])
 
-				if multi:
-					item.setProperty('multi_episodes', 'true') # not sure I need this
-					if unwatchedEnabled == 'true' and 'ForceAirEnabled' not in i:
-						count = playcount.getShowCount(indicators, imdb, tvdb, unwatchedLimit)
+				if multi and multi_unwatchedEnabled:
+					if 'ForceAirEnabled' not in i:
+						count = playcount.getShowCount(indicators, imdb, tvdb)
 						if count:
 							item.setProperty('TotalEpisodes', str(count['total']))
 							item.setProperty('WatchedEpisodes', str(count['watched']))
 							item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
 
-				# if seasoncountEnabled == 'true':
+				# if seasoncountEnabled:
 					# total_seasons = trakt.getSeasons(imdb, full=False)
 					# if total_seasons:
 						# total_seasons = [x['number'] for x in total_seasons]
@@ -1832,7 +1822,7 @@ class Episodes:
 				item.addContextMenuItems(cm)
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=isFolder)
 
-				if playlistcreate == 'true':
+				if playlistcreate:
 					control.playlist.add(url=url, listitem=item)
 			except:
 				log_utils.error()
@@ -1867,7 +1857,7 @@ class Episodes:
 				pass
 
 		# Show multi episodes as show, in order to display unwatched count if enabled.
-		if multi and unwatchedEnabled == 'true':
+		if multi and multi_unwatchedEnabled:
 			control.content(syshandle, 'tvshows')
 			control.directory(syshandle, cacheToDisc=True)
 			views.setView('tvshows', {'skin.estuary': 55, 'skin.confluence': 500})
@@ -1880,7 +1870,7 @@ class Episodes:
 	def addDirectory(self, items, queue=False):
 		if not items:
 			control.hide()
-			control.notification(title=32326, message=33049, icon='INFO', sound=notificationSound)
+			control.notification(title=32326, message=33049, icon='default', sound=notificationSound)
 			sys.exit()
 
 		addonThumb = control.addonThumb()
@@ -1912,7 +1902,6 @@ class Episodes:
 				cm = []
 				if queue:
 					cm.append((queueMenu, 'RunPlugin(%s?action=queueItem)' % sysaddon))
-				# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 
 				item = control.item(label=name)

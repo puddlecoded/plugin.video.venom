@@ -39,8 +39,7 @@ try:
 except:
 	pass
 
-notificationSound = False if control.setting('notification.sound') == 'false' else True
-
+notificationSound = control.setting('notification.sound') == 'true'
 
 class Player(xbmc.Player):
 	def __init__(self):
@@ -687,7 +686,10 @@ class Bookmarks:
 			dbcur = dbcon.cursor()
 			dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""Name TEXT, ""year TEXT, ""UNIQUE(idFile)"");")
 			# dbcur.execute("SELECT * FROM bookmark WHERE idFile = '%s'" % idFile)
+			if not year:
+				return self.offset
 			years = [str(year), str(int(year)+1), str(int(year)-1)]
+
 			dbcur.execute('SELECT * FROM bookmark WHERE Name = "%s" AND year IN (%s)' % (name, ','.join(i for i in years))) #helps fix random cases where trakt and imdb, or tvdb, differ by a year for eps
 			match = dbcur.fetchone()
 			dbcon.close()
@@ -759,6 +761,6 @@ class Bookmarks:
 			label = ('%02d:%02d:%02d' % (hours, minutes, seconds)).encode('utf-8')
 			message = control.lang(32660).encode('utf-8')
 
-			control.notification(title=name, message=message + '(' + label + ')', icon='INFO', sound=notificationSound)
+			control.notification(title=name, message=message + '(' + label + ')', icon='default', sound=notificationSound)
 		dbcur.connection.commit()
 		dbcon.close()

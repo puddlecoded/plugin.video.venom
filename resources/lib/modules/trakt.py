@@ -31,9 +31,10 @@ REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'
 
 databaseName = control.cacheFile
 databaseTable = 'trakt'
-server_notification = False if control.setting('trakt.server.notifications') == 'false' else True
-general_notification = False if control.setting('trakt.general.notifications') == 'false' else True
-notificationSound = False if control.setting('notification.sound') == 'false' else True
+
+server_notification = control.setting('trakt.server.notifications') == 'true'
+general_notification = control.setting('trakt.general.notifications') == 'true'
+notificationSound = control.setting('notification.sound') == 'true'
 
 
 def getTrakt(url, post=None, cache=True, check=False, timestamp=None, extended=False, direct=False, authentication=None):
@@ -113,7 +114,6 @@ def getTrakt(url, post=None, cache=True, check=False, timestamp=None, extended=F
 		else: return result[0]
 	except:
 		log_utils.error()
-
 	return None
 
 
@@ -136,7 +136,7 @@ def getTraktAsJson(url, post=None, authentication=None):
 def _error(url, post, timestamp, message):
 	_cache(url = url, post = post, timestamp = timestamp)
 	if server_notification:
-		control.notification(title = 32315, message = message, icon = 'ERROR', sound = notificationSound)
+		control.notification(title=32315, message=message, icon='default', sound=notificationSound)
 	control.hide()
 	return None
 
@@ -178,7 +178,9 @@ def _cacheCreate(data):
 			);
 			''' % (databaseTable)
 		)
-	except: pass
+	except:
+		log_utils.error()
+		pass
 
 
 def _cacheCheck():
@@ -242,13 +244,16 @@ def authTrakt():
 					break
 				time.sleep(1)
 				if not float(i) % interval == 0:
-					raise Exception()
+					# raise Exception()
+					continue
 				r = getTraktAsJson('/oauth/device/token', {'client_id': V2_API_KEY, 'client_secret': CLIENT_SECRET, 'code': device_code})
+				if not r:
+					continue
 				if 'access_token' in r:
 					break
 			except:
+				log_utils.error()
 				pass
-
 		try:
 			progressDialog.close()
 		except:
@@ -268,6 +273,7 @@ def authTrakt():
 		control.setSetting(id='trakt.refresh', value=refresh)
 		raise Exception()
 	except:
+		log_utils.error()
 		pass
 
 
@@ -348,7 +354,7 @@ def watch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
 			name = '%s-Season%s...' % (name, season)
 		if season and episode:
 			name = '%s-S%sxE%02d...' % (name, season, int(episode))
-		control.notification(title = 32315, message = control.lang(35502) % name, icon = 'INFO', sound = notificationSound)
+		control.notification(title=32315, message=control.lang(35502) % name, icon='default', sound=notificationSound)
 
 
 def unwatch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
@@ -375,7 +381,7 @@ def unwatch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 			name = '%s-Season%s...' % (name, season)
 		if season and episode:
 			name = '%s-S%sxE%02d...' % (name, season, int(episode))
-		control.notification(title = 32315, message = control.lang(35503) % name, icon = 'INFO', sound = notificationSound)
+		control.notification(title=32315, message=control.lang(35503) % name, icon='default', sound=notificationSound)
 
 
 def rate(imdb=None, tvdb=None, season=None, episode=None):
@@ -421,8 +427,9 @@ def _rating(action, imdb=None, tvdb=None, season=None, episode=None):
 			data = {'action': 'manualRating', 'ratingData': data}
 			sqlitequeue.SqliteQueue().append(data)
 		else:
-			control.notification(title = 32315, message = 33659, icon = 'INFO', sound = notificationSound)
+			control.notification(title=32315, message=33659, icon='default', sound=notificationSound)
 	except:
+		log_utils.error()
 		pass
 
 
@@ -447,7 +454,7 @@ def hideItem(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True
 		control.refresh()
 	control.trigger_widget_refresh()
 	if general_notification:
-		control.notification(title = 32315, message = control.lang(33053) % (name, sections_display[selection]), icon = 'INFO', sound = notificationSound)
+		control.notification(title=32315, message=control.lang(33053) % (name, sections_display[selection]), icon='default', sound=notificationSound)
 
 
 def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
@@ -554,7 +561,7 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 					control.refresh()
 				control.trigger_widget_refresh()
 				if general_notification:
-					control.notification(title = name, message = message, icon = 'INFO', sound = notificationSound)
+					control.notification(title=name, message=message, icon='default', sound=notificationSound)
 	except:
 		log_utils.error()
 		control.hide()
@@ -573,10 +580,10 @@ def listAdd(successNotification=True):
 	try:
 		slug = json.loads(result)['ids']['slug']
 		if successNotification:
-			control.notification(title = 32070, message = 33661, icon = 'INFO', sound = notificationSound)
+			control.notification(title=32070, message=33661, icon='default', sound=notificationSound)
 		return slug
 	except:
-		control.notification(title = 32070, message = 33584, icon = 'iNFO', sound = notificationSound)
+		control.notification(title=32070, message=33584, icon='default', sound=notificationSound)
 		return None
 
 
@@ -601,6 +608,7 @@ def verify(authentication=None):
 		if getTraktAsJson('/sync/last_activities', authentication=authentication):
 			return True
 	except:
+		log_utils.error()
 		pass
 	return False
 
@@ -621,6 +629,7 @@ def getActivity():
 		activity = sorted(activity, key=int)[-1]
 		return activity
 	except:
+		log_utils.error()
 		pass
 
 
@@ -634,6 +643,7 @@ def getWatchedActivity():
 		activity = sorted(activity, key=int)[-1]
 		return activity
 	except:
+		log_utils.error()
 		pass
 
 
@@ -647,6 +657,7 @@ def getCollectedActivity():
 		activity = sorted(activity, key=int)[-1]
 		return activity
 	except:
+		log_utils.error()
 		pass
 
 
@@ -679,6 +690,7 @@ def watchedMovies():
 			return
 		return getTraktAsJson('/users/me/watched/movies?extended=full')
 	except:
+		log_utils.error()
 		pass
 
 
@@ -782,7 +794,6 @@ def syncSeason(imdb):
 	except:
 		log_utils.error()
 		return None
-		# pass
 
 
 def showCount(imdb, refresh=True, wait=False):
@@ -924,6 +935,7 @@ def getMovieTranslation(id, lang, full=False):
 		result = item if full else item.get('title')
 		return None if result == 'none' else result
 	except:
+		log_utils.error()
 		pass
 
 
@@ -937,6 +949,7 @@ def getTVShowTranslation(id, lang, season=None, episode=None, full=False):
 		result = item if full else item.get('title')
 		return None if result == 'none' else result
 	except:
+		log_utils.error()
 		pass
 
 
@@ -1006,6 +1019,7 @@ def getMovieAliases(id):
 	try:
 		return cache.get(getTraktAsJson, 48, '/movies/%s/aliases' % id)
 	except:
+		log_utils.error()
 		return []
 
 
@@ -1013,6 +1027,7 @@ def getTVShowAliases(id):
 	try:
 		return cache.get(getTraktAsJson, 48, '/shows/%s/aliases' % id)
 	except:
+		log_utils.error()
 		return []
 
 
@@ -1042,6 +1057,7 @@ def SearchMovie(title, year, full=True):
 			url += '&extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except:
+		log_utils.error()
 		return
 
 
@@ -1054,6 +1070,7 @@ def SearchTVShow(title, year, full=True):
 			url += '&extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except:
+		log_utils.error()
 		return
 
 
@@ -1064,6 +1081,7 @@ def SearchEpisode(title, season, episode, full=True):
 			url += '&extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except:
+		log_utils.error()
 		return
 
 
@@ -1074,6 +1092,7 @@ def getGenre(content, type, type_id):
 		r = r[0].get(content, {}).get('genres', [])
 		return r
 	except:
+		log_utils.error()
 		return []
 
 
@@ -1081,9 +1100,12 @@ def IdLookup(id_type, id, type):
 	try:
 		r = '/search/%s/%s?type=%s' % (id_type, id, type)
 		r = cache.get(getTraktAsJson, 48, r)
-		return r[0].get(content, {}).get('ids', [])
+		if not r:
+			return None
+		return r[0].get(type).get('ids')
 	except:
-		return {}
+		log_utils.error()
+		return None
 
 
 def _scrobbleType(type):
@@ -1166,6 +1188,7 @@ def scrobbleUpdate(action, type, imdb=None, tvdb=None, season=None, episode=None
 					result = getTrakt(url = link, post = data)
 					return 'progress' in result
 	except:
+		log_utils.error()
 		pass
 	return False
 

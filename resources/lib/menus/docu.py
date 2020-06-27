@@ -19,7 +19,8 @@ from resources.lib.modules import control
 
 sysaddon = sys.argv[0] ; syshandle = int(sys.argv[1])
 artPath = control.artPath() ; addonFanart = control.addonFanart()
-notificationSound = False if control.setting('notification.sound') == 'false' else True
+notificationSound = control.setting('notification.sound') == 'true'
+
 
 class documentary:
 	def __init__(self):
@@ -106,7 +107,7 @@ class documentary:
 				url = self.getDailyMotionStream(video_id)
 			else:
 				log_utils.log('Play Documentary: Unknown Host: ' + str(url))
-				control.notification(title = 'default', message = 'Unknown Host - Report To Developer: ' + str(url), icon = 'INFO', sound = notificationSound)
+				control.notification(title='default', message='Unknown Host - Report To Developer: ' + str(url), icon='default', sound=notificationSound)
 			control.execute('PlayMedia(%s)' % url)
 
 			# item = xbmcgui.ListItem(str(docu_title), iconImage='DefaultVideo.png', thumbnailImage='DefaultVideo.png')
@@ -203,7 +204,7 @@ class documentary:
 	def addDirectory(self, items, queue=False, isFolder=True):
 		if items is None or len(items) == 0: 
 			control.hide()
-			control.notification(title = 32002, message = 33049, icon = 'INFO', sound = notificationSound)
+			control.notification(title=32002, message=33049, icon='default', sound=notificationSound)
 			sys.exit()
 
 		sysaddon = sys.argv[0]

@@ -14,8 +14,7 @@ Id = xbmc.PLAYLIST_VIDEO
 videoplaylist = 10028
 notification = True
 refresh = True
-notificationSound = False if control.setting('notification.sound') == 'false' else True
-
+notificationSound = control.setting('notification.sound') == 'true'
 
 def playlistManager(name = None, url = None, meta = None, art = None):
 	try:
@@ -63,13 +62,13 @@ def playlistShow():
 		control.execute('ActivateWindow(%d)' % videoplaylistID)
 	else:
 		if notification:
-			control.notification(title = 35522, message = 'Playlist is empty', icon = 'INFO', sound = notificationSound)
+			control.notification(title=35522, message='Playlist is empty', icon='default', sound=notificationSound)
 
 
 def playlistClear():
 	playlist().clear()
 	if notification:
-		control.notification(title = 35522, message = 35521,  icon = 'INFO', sound = notificationSound)
+		control.notification(title=35522, message=35521,  icon='default', sound=notificationSound)
 
 
 def playListItems():
@@ -102,7 +101,7 @@ def playlistAdd(name, url, meta, art):
 	# if not name is None: name.encode('utf-8')
 	labelPosition = position(label = name)
 	if labelPosition >= 0:
-		return control.notification(title = 35522, message = 'Title already in playlist', icon = 'INFO', sound = notificationSound)
+		return control.notification(title=35522, message='Title already in playlist', icon='default', sound=notificationSound)
 
 	if isinstance(meta, basestring):
 		meta = json.loads(meta)
@@ -120,7 +119,7 @@ def playlistAdd(name, url, meta, art):
 	item.addContextMenuItems(cm)
 	playlist().add(url=url, listitem=item)
 	if notification:
-		control.notification(title = 35522, message = str(name) + ' Added to playlist', icon = 'INFO', sound = notificationSound)
+		control.notification(title=35522, message=str(name) + ' Added to playlist', icon='default', sound=notificationSound)
 
 
 def playlistRemove(name):
@@ -130,9 +129,9 @@ def playlistRemove(name):
 		rpc = '{"jsonrpc": "2.0", "method": "Playlist.Remove", "params": {"playlistid": %s, "position": %s}, "id": 1 }' % (Id, labelPosition)
 		control.jsonrpc(rpc)
 		if notification:
-			control.notification(title = 35522, message = str(name) + ' Removed from playlist', icon = 'INFO', sound = notificationSound)
+			control.notification(title=35522, message=str(name) + ' Removed from playlist', icon='default', sound=notificationSound)
 
 	if labelPosition == -1:
 		if notification:
-			control.notification(title = 35522, message = 'Not found in playlist', icon = 'INFO', sound = notificationSound)
+			control.notification(title=35522, message='Not found in playlist', icon='default', sound=notificationSound)
 	# control.refresh()

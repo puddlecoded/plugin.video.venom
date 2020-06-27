@@ -17,7 +17,6 @@ from resources.lib.modules import control
 from resources.lib.modules import log_utils
 
 cache_table = 'cache'
-notificationSound = False if control.setting('notification.sound') == 'false' else True
 
 
 def get(function, duration, *args):

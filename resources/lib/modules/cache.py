@@ -17,7 +17,7 @@ from resources.lib.modules import control
 from resources.lib.modules import log_utils
 
 cache_table = 'cache'
-notificationSound = False if control.setting('notification.sound') == 'false' else True
+notificationSound = control.setting('notification.sound') == 'true'
 
 
 def get(function, duration, *args):
@@ -71,10 +71,13 @@ def remove(function, *args):
 		cursor = _get_connection_cursor()
 		cursor.execute("DELETE FROM %s WHERE key = ?" % cache_table, [key])
 		cursor.connection.commit()
+		cursor.close()
 	except:
 		log_utils.error()
-		pass
-	cursor.close()
+		try:
+			cursor.close()
+		except:
+			pass
 
 
 def timeout(function, *args):
@@ -124,10 +127,14 @@ def cache_insert(key, value):
 		if update_result.rowcount is 0:
 			cursor.execute("INSERT INTO %s Values (?, ?, ?)" % cache_table, (key, value, now))
 		cursor.connection.commit()
+		cursor.close()
 	except:
 		log_utils.error()
-		pass
-	cursor.close()
+		try:
+			cursor.close()
+		except:
+			pass
+
 
 
 def cache_clean(duration = 1209600):
@@ -147,7 +154,7 @@ def cache_clean(duration = 1209600):
 def cache_version_check():
 	if _find_cache_version():
 		cache_clear_all()
-		control.notification(title = 'default', message = 32057, icon = 'INFO', sound = notificationSound)
+		control.notification(title='default', message=32057, icon='default', sound=notificationSound)
 
 
 def cache_clear_all():

@@ -23,10 +23,14 @@ from resources.lib.modules import log_utils
 
 class TVDBAPI:
 	def __init__(self):
-		self.apiKey = control.setting('tvdb.user')
-		if self.apiKey == '':
-			self.apiKey = "7R8SZZX90UA9YMBU"
-			# self.apiKey = 'N1I4U1paWDkwVUE5WU1CVQ=='
+		tvdb_key_list = [
+			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
+			'MUQ2MkYyRjkwMDMwQzQ0NA==',
+			'N1I4U1paWDkwVUE5WU1CVQ==']
+		self.apiKey  = tvdb_key_list[int(control.setting('tvdb.api.key'))]
+
+		# self.user = 
+
 
 		self.baseUrl = 'https://api.thetvdb.com/'
 		self.jwToken = control.setting('tvdb.jw')

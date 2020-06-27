@@ -42,6 +42,7 @@ except:
 
 class Sources:
 	def __init__(self):
+		self.notificationSound = control.setting('notification.sound') == 'true'
 		self.getConstants()
 		self.sources = []
 		self.sourceFile = control.providercacheFile
@@ -273,6 +274,7 @@ class Sources:
 					u = json.loads(u['source'])[0]
 					prev.append(u)
 				except:
+					log_utils.error()
 					break
 
 			items = json.loads(source)
@@ -373,6 +375,7 @@ class Sources:
 
 					return self.url
 				except:
+					log_utils.error()
 					pass
 
 			try:
@@ -876,6 +879,7 @@ class Sources:
 			# control.execute('RunPlugin(%s)' % url)
 			control.execute('PlayMedia(%s)' % url)
 		except:
+			log_utils.error()
 			pass
 
 	# @timeIt
@@ -966,7 +970,6 @@ class Sources:
 			if d.name != 'Premiumize.me' and d.name != 'Real-Debrid':
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
-
 
 		if control.setting('debrid.only') == 'false' or debrid.status() is False:
 			filter += [i for i in self.sources if not i['source'] in self.hostprDict and i['debridonly'] is False]
@@ -1164,7 +1167,7 @@ class Sources:
 			return url
 		except:
 			if info:
-				control.infoDialog('Skipping unplayable resolveURL link', sound=False, icon='INFO')
+				control.notification(title='default', message='Skipping unplayable resolveURL link', icon='default', sound=self.notificationSound)
 			log_utils.error()
 			return
 
@@ -1226,10 +1229,10 @@ class Sources:
 					for x in range(3600):
 						try:
 							if xbmc.abortRequested:
-								control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
+								control.notification(title='default', message='Sources Cancelled', icon='default', sound=self.notificationSound)
 								return sys.exit()
 							if progressDialog.iscanceled():
-								control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
+								control.notification(title='default', message='Sources Cancelled', icon='default', sound=self.notificationSound)
 								return progressDialog.close()
 						except:
 							pass
@@ -1252,12 +1255,13 @@ class Sources:
 					for x in range(30):
 						try:
 							if xbmc.abortRequested:
-								control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
+								control.notification(title='default', message='Sources Cancelled', icon='default', sound=self.notificationSound)
 								return sys.exit()
 							if progressDialog.iscanceled():
-								control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
+								control.notification(title='default', message='Sources Cancelled', icon='default', sound=self.notificationSound)
 								return progressDialog.close()
 						except:
+							log_utils.error()
 							pass
 
 						if m == '':
@@ -1296,7 +1300,7 @@ class Sources:
 				progressDialog.close()
 			except:
 				pass
-			log_utils.log('Error %s' % str(e), log_utils.LOGNOTICE)
+			log_utils.log('Error %s' % str(e), __name__, log_utils.LOGNOTICE)
 
 	# @timeIt
 	def sourcesDirect(self, items):
@@ -1355,14 +1359,16 @@ class Sources:
 
 
 	def errorForSources(self):
-		control.sleep(200) # added 5/14
-		control.hide()
-		if self.url == 'close://':
-			control.infoDialog('Sources Cancelled', sound=False, icon='INFO')
-		else:
-			control.infoDialog(control.lang(32401).encode('utf-8'), sound=False, icon='INFO')
-		control.cancelPlayback()
-
+		try:
+			control.sleep(200) # added 5/14
+			control.hide()
+			if self.url == 'close://':
+				control.notification(title='default', message='Sources Cancelled', icon='default', sound=self.notificationSound)
+			else:
+				control.notification(title='default', message=32401, icon='default', sound=self.notificationSound)
+			control.cancelPlayback()
+		except:
+			log_utils.error()
 
 	def getLanguage(self):
 		langDict = {
@@ -1393,9 +1399,12 @@ class Sources:
 		lang = self._getPrimaryLang()
 		try:
 			t = trakt.getMovieAliases(imdb) if content == 'movie' else trakt.getTVShowAliases(imdb)
+			if not t:
+				return []
 			t = [i for i in t if i.get('country', '').lower() in [lang, '', 'us'] and i.get('title', '').lower() != localtitle.lower()]
 			return t
 		except:
+			log_utils.error()
 			return []
 
 
@@ -1427,6 +1436,7 @@ class Sources:
 			self.hostDict = [i for i in reduce(lambda x, y: x+y, self.hostDict)] # domains already in lower case
 			self.hostDict = [x for y, x in enumerate(self.hostDict) if x not in self.hostDict[:y]]
 		except:
+			log_utils.error()
 			self.hostDict = []
 
 		self.hostprDict = ['1fichier.com', 'filefactory.com', 'filefreak.com', 'multiup.org', 'nitroflare.com', 'oboom.com', 'rapidgator.net', 'rg.to', 'turbobit.net',
@@ -1436,7 +1446,7 @@ class Sources:
 									'jetload.to''kingfiles.net', 'streamin.to', 'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io',
 									'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
 
-		self.hosthqDict = ['gvideo', 'google.com', 'thevideo.me', 'rapidvideo.com', 'raptu.com', 'filez.tv', 'uptobox.com', 'uptostream.com',
+		self.hosthqDict = ['gvideo', 'google.com', 'thevideo.me', 'raptu.com', 'filez.tv', 'uptobox.com', 'uptostream.com',
 									'xvidstage.com', 'xstreamcdn.com', 'idtbox.com', 'streamvid.co']
 
 		self.hostblockDict = ['divxme.com', 'divxstage.eu', 'estream.to', 'facebook.com', 'oload.download', 'oload.fun', 'oload.icu', 'oload.info',
@@ -1455,22 +1465,26 @@ class Sources:
 		for i in self.sources:
 			a = i['url'].lower()
 			for sublist in filter:
-				b = sublist['url'].lower()
-				if 'magnet:' in a and debrid.status():
-					info_hash = re.search('magnet:.+?urn:\w+:([a-z0-9]+)', a)
-					# info_hash = i['hash'].lower()
-					if info_hash:
-						if info_hash.group(1) in b:
-						# if info_hash in b:
-							filter.remove(sublist)
-							if control.setting('remove.duplicates.logging') != 'true':
-								log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), log_utils.LOGDEBUG)
-							break
-				elif a == b:
-					filter.remove(sublist)
-					if control.setting('remove.duplicates.logging') != 'true':
-						log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
-					break
+				try:
+					b = sublist['url'].lower()
+					if 'magnet:' in a and debrid.status():
+						info_hash = re.search('magnet:.+?urn:\w+:([a-z0-9]+)', a)
+						# info_hash = i['hash'].lower()
+						if info_hash:
+							if info_hash.group(1) in b:
+							# if info_hash in b:
+								filter.remove(sublist)
+								if control.setting('remove.duplicates.logging') != 'true':
+									log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), log_utils.LOGDEBUG)
+								break
+					elif a == b:
+						filter.remove(sublist)
+						if control.setting('remove.duplicates.logging') != 'true':
+							log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
+						break
+				except:
+					log_utils.error()
+					pass
 			filter.append(i)
 		log_utils.log('Removed %s duplicate sources from list' % (len(self.sources) - len(filter)), log_utils.LOGDEBUG)
 		self.sources = filter

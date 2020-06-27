@@ -292,18 +292,6 @@ def metadataClean(metadata):
 ####################################################
 # --- Dialogs
 ####################################################
-def infoDialog(message, heading=addonInfo('name'), icon='', time=3000, sound=False):
-	if icon == '':
-		icon = addonIcon()
-	elif icon == 'INFO':
-		icon = xbmcgui.NOTIFICATION_INFO
-	elif icon == 'WARNING':
-		icon = xbmcgui.NOTIFICATION_WARNING
-	elif icon == 'ERROR':
-		icon = xbmcgui.NOTIFICATION_ERROR
-	dialog.notification(heading, message, icon, time, sound=sound)
-
-
 def notification(title=None, message=None, icon=None, time=3000, sound=False):
 	if title == 'default' or title is None:
 		title = addonName()
@@ -737,8 +725,8 @@ def clean_settings():
 			nfo_file.write(new_content)
 			nfo_file.close()
 			sleep(200)
-			notification(title = addon_name, message = lang(32084).encode('utf-8').format(str(len(removed_settings))), icon = 'INFO', sound=False)
+			notification(title=addon_name, message=lang(32084).encode('utf-8').format(str(len(removed_settings))), icon='default', sound=False)
 		except:
 			import traceback
 			traceback.print_exc()
-			notification(title = addon_name, message = 'Error Cleaning Settings.xml. Old settings.xml files Restored.', icon = 'INFO', sound=False)
+			notification(title=addon_name, message='Error Cleaning Settings.xml. Old settings.xml files Restored.', icon='default', sound=False)

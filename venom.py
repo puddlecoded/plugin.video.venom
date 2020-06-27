@@ -43,7 +43,7 @@ list_name = params.get('list_name')
 
 windowedtrailer = params.get('windowedtrailer')
 windowedtrailer = int(windowedtrailer) if windowedtrailer in ("0","1") else 0
-notificationSound = False if control.setting('notification.sound') == 'false' else True
+notificationSound = control.setting('notification.sound') == 'true'
 
 homeWindow = xbmcgui.Window(10000)
 playAction = xbmcaddon.Addon('plugin.video.venom').getSetting('hosts.mode')
@@ -68,7 +68,7 @@ if action is None:
 
 
 ####################################################
-#---News and Updates
+#---News, Updates, and Help
 ####################################################
 elif action == 'infoCheck':
 	from resources.lib.menus import navigator
@@ -81,6 +81,12 @@ elif action == 'ShowNews':
 elif action == 'ShowChangelog':
 	from resources.lib.modules import changelog
 	changelog.get()
+
+elif action == 'ShowHelp':
+	from resources.help import help
+	help.get(name)
+	control.sleep(200)
+	control.openSettings(query)
 
 
 ####################################################
@@ -578,9 +584,9 @@ elif action == 'clearPlaylist':
 elif action == 'queueItem':
 	control.queueItem()
 	if name is None:
-		control.notification(title = 35515, message = 35519, icon = 'INFO', sound = notificationSound)
+		control.notification(title=35515, message=35519, icon='default', sound=notificationSound)
 	else:
-		control.notification(title = name, message = 35519, icon = 'INFO', sound = notificationSound)
+		control.notification(title = name, message = 35519, icon='default', sound=notificationSound)
 
 
 ####################################################
@@ -655,18 +661,17 @@ elif action == 'random':
 			r += '&meta='+quote_plus("{}")
 		if rtype == "movie":
 			try:
-				control.infoDialog(rlist[rand]['title'], control.lang(32536).encode('utf-8'), time=30000)
+				control.notification(title=32536, message=rlist[rand]['title'], icon='default', sound=notificationSound)
 			except:
 				pass
 		elif rtype == "episode":
 			try:
-				control.infoDialog(rlist[rand]['tvshowtitle']+" - Season "+rlist[rand]['season']+" - "+rlist[rand]['title'], control.lang(32536).encode('utf-8'), time=30000)
+				control.notification(title=32536, message=rlist[rand]['tvshowtitle']+" - Season "+rlist[rand]['season']+" - "+rlist[rand]['title'], icon='default', sound=notificationSound)
 			except:
 				pass
 		control.execute('RunPlugin(%s)' % r)
 	except:
-		control.infoDialog(control.lang(32537).encode('utf-8'), time=8000)
-
+		control.notification(title='default', message=32537, icon='default', sound=notificationSound)
 
 ####################################################
 #---Library Actions

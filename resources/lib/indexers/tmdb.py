@@ -34,7 +34,7 @@ def get_request(url):
 		except requests.exceptions.SSLError:
 			response = requests.get(url, verify=False)
 	except requests.exceptions.ConnectionError:
-		control.notification(title='default', message=32024, icon='INFO')
+		control.notification(title='default', message=32024, icon='default')
 		return
 
 	if '200' in str(response):
@@ -42,7 +42,7 @@ def get_request(url):
 	elif 'Retry-After' in response.headers:
 		# API REQUESTS ARE BEING THROTTLED, INTRODUCE WAIT TIME (removed 12-6-20)
 		throttleTime = response.headers['Retry-After']
-		control.notification(title='default', message='TMDB Throttling Applied, Sleeping for %s seconds' % throttleTime, icon='INFO')
+		control.notification(title='default', message='TMDB Throttling Applied, Sleeping for %s seconds' % throttleTime, icon='default')
 		sleep(int(throttleTime) + 1)
 		return get_request(url)
 	else:
@@ -402,7 +402,6 @@ class Movies:
 					if len(castandart) == 150: break
 
 				try:
-					# trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube'][0]['key']
 					trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube' and i['type'] == 'Trailer'][0]['key']
 					trailer = control.trailer % trailer
 				except:
@@ -510,7 +509,12 @@ class TVshows:
 		self.tmdb_info_link = base_link + '/3/tv/%s?api_key=%s&language=%s&append_to_response=credits,content_ratings,external_ids' % ('%s', API_key, self.lang)
 ###                                                                                  other "append_to_response" options                                           alternative_titles,videos,images
 		self.tmdb_art_link = base_link + '/3/tv/%s/images?api_key=%s&include_image_language=en,%s,null' % ('%s', API_key, self.lang)
-		self.tvdb_key = 'N1I4U1paWDkwVUE5WU1CVQ=='
+		tvdb_key_list = [
+			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
+			'MUQ2MkYyRjkwMDMwQzQ0NA==',
+			'N1I4U1paWDkwVUE5WU1CVQ==']
+		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
+
 		self.imdb_user = control.setting('imdb.user').replace('ur', '')
 		self.user = str(self.imdb_user) + str(self.tvdb_key)
 
@@ -649,6 +653,7 @@ class TVshows:
 				self.meta.append(meta)
 				metacache.insert(self.meta)
 			except:
+				log_utils.error()
 				pass
 
 		items = list[:len(list)]
@@ -673,6 +678,7 @@ class TVshows:
 			else:
 				items = result['results']
 		except:
+			log_utils.error()
 			return
 
 		list = []
@@ -802,6 +808,7 @@ class TVshows:
 				self.meta.append(meta)
 				metacache.insert(self.meta)
 			except:
+				log_utils.error()
 				pass
 
 		items = list[:len(list)]
@@ -897,6 +904,7 @@ class Auth:
 			else:
 				control.notification(title='default', message='TMDb Authorization FAILED', icon='ERROR')
 		except:
+			log_utils.error()
 			pass
 
 
@@ -916,4 +924,5 @@ class Auth:
 			else:
 				control.notification(title='default', message='TMDb session_id deletion FAILED', icon='ERROR')
 		except:
+			log_utils.error()
 			pass

@@ -31,8 +31,8 @@ syshandle = int(sys.argv[1])
 
 params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
 action = params.get('action')
-notificationSound = False if control.setting('notification.sound') == 'false' else True
-is_widget = False if 'plugin' in control.infoLabel('Container.PluginName') else True
+notificationSound = control.setting('notification.sound') == 'true'
+is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
 
 
 class Collections:
@@ -1166,10 +1166,9 @@ class Collections:
 
 
 	def movieDirectory(self, items, next=True):
-		# if items is None or len(items) == 0: 
 		if not items: 
 			control.hide()
-			control.notification(title = 32000, message = 33049, icon = 'INFO', sound=notificationSound)
+			control.notification(title=32000, message=33049, icon='default', sound=notificationSound)
 			sys.exit()
 
 		settingFanart = control.setting('fanart')
@@ -1311,7 +1310,6 @@ class Collections:
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
 				cm.append(('Find similar', 'ActivateWindow(10025,%s?action=movies&url=https://api.trakt.tv/movies/%s/related,return)' % (sysaddon, imdb)))
-				# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append((control.lang(32611).encode('utf-8'), 'RunPlugin(%s?action=clearSources&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 ####################################
@@ -1402,8 +1400,6 @@ class Collections:
 
 		if context:
 			cm.append((control.lang(context[0]).encode('utf-8'), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
-
-		# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 		cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 
 		item = control.item(label=name)

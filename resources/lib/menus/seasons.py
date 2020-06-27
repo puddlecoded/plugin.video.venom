@@ -34,9 +34,9 @@ syshandle = int(sys.argv[1])
 
 params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
 action = params.get('action')
-notificationSound = False if control.setting('notification.sound') == 'false' else True
+notificationSound = control.setting('notification.sound') == 'true'
 disable_fanarttv = control.setting('disable.fanarttv')
-is_widget = False if 'plugin' in control.infoLabel('Container.PluginName') else True
+is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
 
 
 class Seasons:
@@ -53,7 +53,6 @@ class Seasons:
 			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
 			'MUQ2MkYyRjkwMDMwQzQ0NA==',
 			'N1I4U1paWDkwVUE5WU1CVQ==']
-		tvdb_api_key = control.setting('tvdb.api.key')
 		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
 
 		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/all/%s.zip' % (self.tvdb_key.decode('base64'), '%s', '%s')
@@ -200,16 +199,15 @@ class Seasons:
 		if (tvdb == '0' or tmdb == '0') and imdb != '0':
 			try:
 				trakt_ids = trakt.IdLookup('imdb', imdb, 'show')
-				if not trakt_ids:
-					raise Exception()
-				if tvdb == '0':
-					tvdb = str(trakt_ids.get('tvdb', '0'))
-					if tvdb == '' or tvdb is None or tvdb == 'None':
-						tvdb = '0'
-				if tmdb == '0':
-					tmdb = str(trakt_ids.get('tmdb', '0'))
-					if tvdb == '' or tvdb is None or tvdb == 'None':
-						tvdb = '0'
+				if trakt_ids:
+					if tvdb == '0':
+						tvdb = str(trakt_ids.get('tvdb', '0'))
+						if tvdb == '' or tvdb is None or tvdb == 'None':
+							tvdb = '0'
+					if tmdb == '0':
+						tmdb = str(trakt_ids.get('tmdb', '0'))
+						if tmdb == '' or tmdb is None or tmdb == 'None':
+							tmdb = '0'
 			except:
 				log_utils.error()
 				pass
@@ -849,7 +847,7 @@ class Seasons:
 	def seasonDirectory(self, items):
 		if not items:
 			control.hide()
-			control.notification(title = 32054, message = 33049, icon = 'INFO', sound=notificationSound)
+			control.notification(title=32054, message=33049, icon='default', sound=notificationSound)
 			sys.exit()
 
 		settingFanart = control.setting('fanart')
@@ -862,9 +860,8 @@ class Seasons:
 		except :
 			pass
 
-		unwatchedEnabled = control.setting('tvshows.unwatched.enabled')
-		unwatchedLimit = False
-		seasoncountEnabled = control.setting('tvshows.seasoncount.enabled')
+		unwatchedEnabled = control.setting('tvshows.unwatched.enabled') == 'true'
+		seasoncountEnabled = control.setting('tvshows.seasoncount.enabled') == 'true'
 
 		if trakt.getTraktIndicatorsInfo():
 			watchedMenu = control.lang(32068).encode('utf-8')
@@ -967,8 +964,6 @@ class Seasons:
 				banner3 = meta.get('banner3')
 				banner = banner3 or banner2 or banner1 or addonBanner
 
-				# clearlogo = meta.get('clearlogo')
-				# clearart = meta.get('clearart')
 				if extended_art:
 					clearlogo = extended_art.get('clearlogo')
 					clearart = extended_art.get('clearart')
@@ -1026,14 +1021,14 @@ class Seasons:
 				if 'episodeIDS' in i:
 					item.setUniqueIDs(i['episodeIDS'])
 
-				if unwatchedEnabled == 'true':
-					count = playcount.getSeasonCount(imdb, season, self.season_special, unwatchedLimit)
+				if unwatchedEnabled:
+					count = playcount.getSeasonCount(imdb, season, self.season_special)
 					if count:
 						item.setProperty('TotalEpisodes', str(count['total']))
 						item.setProperty('WatchedEpisodes', str(count['watched']))
 						item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
 
-				if seasoncountEnabled == 'true' and self.traktCredentials:
+				if seasoncountEnabled and self.traktCredentials:
 					total_seasons = trakt.getSeasons(imdb, full=False)
 					if total_seasons:
 						total_seasons = [i['number'] for i in total_seasons]

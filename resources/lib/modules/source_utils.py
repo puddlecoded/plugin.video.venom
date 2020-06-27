@@ -4,7 +4,7 @@
 	Venom Add-on
 """
 
-HDCAM = ['hdcam', 'hd cam', 'hd-cam', 'hd.cam', 'hdts', 'hd ts', 'hd-ts', 'hd.ts']
+HDCAM = ['hdcam', 'hd-cam', 'hd.cam', 'hdts', 'hd-ts', 'hd.ts']
 
 CODEC_H265 = ['hevc', 'h265', 'h.265', 'x265', 'x.265']
 CODEC_H264 = ['avc', 'h264', 'h.264', 'x264', 'x.264']
@@ -114,11 +114,3 @@ def getFileType(url):
 			type = 'SUBS'
 	type = type.rstrip('/')
 	return type
-
-
-def ck_CamSd():
-	from resources.lib.modules import control
-	try:
-		return True if control.setting('remove.CamSd.sources') == 'true' else False
-	except:
-		return False

@@ -341,17 +341,18 @@ class tvshows:
 				# if self.list['metacache'] is True:
 					# raise Exception()
 
-				if (tvdb == '0' or tmdb == '0') and imdb != '0':
+				if (imdb == '0' or tmdb == '0') and tvdb != '0':
 					from resources.lib.modules import trakt
-					trakt_ids = trakt.IdLookup('imdb', imdb, 'show')
-					if tvdb == '0':
-						tvdb = str(trakt_ids.get('tvdb', '0'))
-						if tvdb == '' or tvdb is None or tvdb == 'None':
-							tvdb = '0'
-					if tmdb == '0':
-						tmdb = str(trakt_ids.get('tmdb', '0'))
-						if tvdb == '' or tvdb is None or tvdb == 'None':
-							tvdb = '0'
+					trakt_ids = trakt.IdLookup('tvdb', tvdb, 'show')
+					if trakt_ids:
+						if imdb == '0':
+							imdb = str(trakt_ids.get('imdb', '0'))
+							if imdb == '' or imdb is None or imdb == 'None':
+								imdb = '0'
+						if tmdb == '0':
+							tmdb = str(trakt_ids.get('tmdb', '0'))
+							if tmdb == '' or tmdb is None or tmdb == 'None':
+								tmdb = '0'
 
 ###--Check TVDb by IMDB_ID for missing ID's
 				if tvdb == '0' and imdb != '0':
@@ -466,6 +467,20 @@ class tvshows:
 					if extended_art:
 						item.update(extended_art)
 						meta.update(item)
+
+				if (self.disable_fanarttv == 'true' and (poster == '0' or fanart == '0')) or (
+					self.disable_fanarttv != 'true' and ((poster == '0' and item.get('poster2') == '0') or (
+					fanart == '0' and item.get('fanart2') == '0'))):
+					from resources.lib.indexers.tmdb import TVshows
+					tmdb_art = TVshows().get_art(tmdb)
+					# log_utils.log('tmdb_art = %s' % tmdb_art, __name__, log_utils.LOGDEBUG)
+					if tmdb_art:
+						item.update(tmdb_art)
+						if item.get('landscape', '0') == '0':
+							landscape = item.get('fanart3', '0')
+							item.update({'landscape': landscape})
+						meta.update(item)
+
 
 				item = dict((k,v) for k,v in item.iteritems() if v != '0')
 				self.list.append(item)

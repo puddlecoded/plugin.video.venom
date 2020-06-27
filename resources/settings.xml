@@ -9,7 +9,8 @@
 		<setting id="page.item.limit" type="slider" label="32011" default="20" range="10,60" option="int" />
 		<setting id="fanart" type="bool" label="32318" default="true" />
 		<setting id="disable.fanarttv" type="bool" label="32012" default="false" />
-		<setting id="disable.fanarttv.notice" type="text" label="  Clear Metadata cache if changed" default="" enable="false" />
+		<setting id="clear.metacache" type="action" label="32612" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=clearMetaCache&amp;opensettings=true&amp;query=0.7)" />
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=disableFanartTV&amp;query=0.8)" option="close"/>
 		<setting id="disable.player.art" type="bool" label="Disable clearart, clearlogo, and discart in player" default="false" />
 		<setting id="hidecinema" type="bool" label="32571" default="false" />
 		<setting id="hidecinema.rollback" type="slider" label="40063" enable="eq(-1,true)" default="6" range="1,12" option="int" />
@@ -90,12 +91,13 @@
 		<setting id="unaired.identify" type="select" label="32608" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="8" enable="eq(-1,true)" />
 		<setting id="tvshows.seasoncount.enabled" type="bool" label="33890" default="false" />
 		<setting id="tvshows.unwatched.enabled" type="bool" label="33891" default="false" />
+		<setting id="multi.unwatched.enabled" type="bool" label="    allow multi Episodes to Show Unwatched Count" default="false" visible="eq(-1,true)"/>
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=multi.unwatched&amp;query=2.10)" option="close"/>
 		<setting id="tvshows.calendar.extended" type="bool" label="32023" default="false" />
 		<setting type="lsep" label="40025" />
 		<setting type="action" action="InstallAddon(service.upnext)" label="40027" option="close" visible="!System.HasAddon(service.upnext)" />
 		<setting id="enable.upnext" type="bool" default="false" label="40028" visible="System.HasAddon(service.upnext)" />
-		<!-- <setting id="upnext.notice" type="text" label="  If enabled Episodes are hard coded to Auto play" default="" enable="false" /> -->
-		<setting id="upnext.notice" type="action" label="  [COLOR FFA0C12C]If enabled Episodes are hard coded to Auto play[/COLOR]" default="[B][COLOR FFA0C12C]$ADDON[plugin.video.venom 35397][/COLOR][/B]" enable="true" />
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=upnext&amp;query=2.16)" option="close"/>
 		<setting id="upnext.time" type="slider" enable="eq(-2,true)" visible="eq(-2,true)" default="60" label="40029" option="int" range="10,60" />
 		<setting id="auto.playlistcreate" type="bool" label="40030" default="true" />
 		<setting type="lsep" label="32375" />
@@ -103,6 +105,7 @@
 		<!-- <setting id="tvshows.networks.filter" type="select" label="32379" lvalues="32380|32381|32382|32383|32384|32385" default="4" enable="eq(-1, 1)" /> -->
 		<setting label="32004" type="lsep" />
 		<setting id="tvshows.direct" type="bool" label="35492" default="false" visible="!eq(-17,)" />
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=directProgress&amp;query=2.25)" option="close"/>
 		<setting id="sort.shows.type" type="select" label="35191" lvalues="33564|33039|35187|35188|35391|35392|35393" default="0" />
 		<setting id="sort.shows.order" type="enum" label="33679" lvalues="33649|33650" default="0" subsetting="true" enable="!eq(-1,0)" />
 		<setting id="sort.progress.type" type="select" label="35572" lvalues="33564|33039|35187|35188|35391|35392|35393" default="6" visible="!eq(-20,)" />
@@ -130,7 +133,8 @@
 	<!-- Providers - 4 -->
 	<category label="32345">
 		<setting id="module.provider" type="text" label="32650" default="Openscrapers Scrapers" visible="true" enable="false" />
-		<setting id="open.settings" type="action" label="32651" option="close" action="RunPlugin(plugin://script.module.openscrapers/?mode=OpenscrapersSettings&amp;opensettings=true&amp;query=4.1)" />
+		<setting id="open.settings" type="action" label="32651" option="close" action="RunPlugin(plugin://script.module.openscrapers/?action=OpenscrapersSettings&amp;opensettings=true&amp;query=4.1)" />
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=Providers&amp;query=4.02)" option="close"/>
 		<setting type="lsep" label="40067" />
 		<setting id="clear.sources" type="action" label="32611" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=clearSources&amp;opensettings=true&amp;query=4.2)" />
 	</category>
@@ -154,7 +158,6 @@
 		<setting id="prem.identify" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="6" />
 		<setting id="enable.resquality.icons" type="bool" label="32052" default="false" />
 		<setting id="sources.extrainfo" type="bool" label="32587" default="true" />
-<!-- 		<setting id="rescrape.clr.item.providers" type="bool" label="Allow Rescrape to first clear item providers" default="true" /> -->
 		<setting type="lsep" label="32338" />
 		<setting id="hosts.quality" type="enum" label="32339" values="4K|1080p|720p|480p(SD)" default="0" />
 		<setting id="source.enablesizelimit" type="bool" label="32079" default="false" />
@@ -167,7 +170,6 @@
 		<setting id="remove.captcha" type="bool" label="32341" default="false" />
 		<setting id="remove.CamSd.sources" type="bool" label="32050" default="false" />
 		<setting id="remove.3D.sources" type="bool" label="32051" default="true" />
-
 	</category>
 
 	<!-- Torrent Settings - 6 -->
@@ -213,14 +215,14 @@
 		<setting id="tm.user" type="text" option="hidden" label="TMDb API" default="" />
 		<setting id="tmdb.username" type="text" label="TMDb username" default="" />
 		<setting id="tmdb.password" type="text" label="TMDb password" default="" />
-		<setting id="tmdb.message" type="action" label="  [COLOR FFA0C12C]Authorization rq'd to retrieve user lists[/COLOR]" default="[B][COLOR FFA0C12C]$ADDON[plugin.video.venom 35397][/COLOR][/B]" enable="true" />
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=tmdbUser&amp;query=8.7)" option="close"/>
 		<setting type="action" label="Authorize TMDb" option="close" enable="!eq(-3,) + !eq(-2,)" action="RunPlugin(plugin://plugin.video.venom/?action=authTMDb&amp;opensettings=true&amp;query=8.5)" />
 		<setting id="tmdb.session_id" type="text" default="" label="session_id" enable="false" />
 		<setting type="action" label="Revoke TMDb session_id" option="close" enable="!eq(-1,)" action="RunPlugin(plugin://plugin.video.venom/?action=revokeTMDb&amp;opensettings=true&amp;query=8.7)" />
 		<setting type="lsep" label="TVDb" />
 		<setting id="tvdb.api.key" type="select" label="TVDb API" lvalues="32369|32370|32371" default="0" />
 		<setting id="clear.cache1" type="action" label="32613" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=clearCache&amp;opensettings=true&amp;query=8.14)" />
-		<setting id="tvdb.message" type="action" label="[COLOR FFA0C12C]    Clear cache if changing keys[/COLOR]" default="[B][COLOR FFA0C12C]$ADDON[plugin.video.venom 35397][/COLOR][/B]" enable="true" />
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=tvdbApiKey&amp;query=8.15)" option="close"/>
 		<setting id="tvdb.jw" type="text" default="" visible="false" />
 		<setting type="lsep" label="IMDb" />
 		<setting id="imdb.user" type="text" label="32303" default="" />
