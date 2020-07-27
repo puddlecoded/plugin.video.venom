@@ -7,6 +7,7 @@
 import datetime
 import json
 import re
+
 try:
 	from urlparse import urlparse
 except:
@@ -25,6 +26,7 @@ class movies:
 		self.count = 40
 		self.list = []
 		self.meta = []
+		disable_fanarttv = control.setting('disable.fanarttv')
 
 		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
 
@@ -214,12 +216,12 @@ class movies:
 				meta = {}
 				meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'lang': self.lang, 'user': self.tmdb_key, 'item': item}
 
-				# fanart_thread = threading.Thread
-				from resources.lib.indexers import fanarttv
-				extended_art = cache.get(fanarttv.get_movie_art, 168, imdb, tmdb)
-				if extended_art:
-					item.update(extended_art)
-					meta.update(item)
+				if disable_fanarttv != 'true':
+					from resources.lib.indexers import fanarttv
+					extended_art = cache.get(fanarttv.get_movie_art, 168, imdb, tmdb)
+					if extended_art:
+						item.update(extended_art)
+						meta.update(item)
 
 				self.list.append(item)
 				self.meta.append(meta)
@@ -374,8 +376,11 @@ class tvshows:
 			self.fanart_tv_user = 'cf0ebcc2f7b824bd04cf3a318f15c17d'
 		self.user = self.fanart_tv_user + str('')
 
-
-		self.tvdb_key = 'N1I4U1paWDkwVUE5WU1CVQ=='
+		tvdb_key_list = [
+			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
+			'MUQ2MkYyRjkwMDMwQzQ0NA==',
+			'N1I4U1paWDkwVUE5WU1CVQ==']
+		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
 		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/%s.xml' % (self.tvdb_key.decode('base64'), '%s', self.lang)
 		self.tvdb_by_imdb = 'https://thetvdb.com/api/GetSeriesByRemoteID.php?imdbid=%s'
 		self.tvdb_by_query = 'https://thetvdb.com/api/GetSeries.php?seriesname=%s'

@@ -107,6 +107,8 @@ class Movies:
 		self.meta = []
 		self.lang = control.apiLanguage()['trakt']
 		self.tmdb_info_link = base_link + '/3/movie/%s?api_key=%s&language=%s&append_to_response=credits,release_dates,videos' % ('%s', API_key, self.lang)
+		# self.tmdb_info_link = base_link + '/3/movie/%s?api_key=%s&language=%s&append_to_response=credits,release_dates,videos,alternative_titles' % ('%s', API_key, self.lang)
+
 ###                                                                             other "append_to_response" options                             external_ids,alternative_titles,images
 		self.tmdb_art_link = base_link + '/3/movie/%s/images?api_key=%s&include_image_language=en,%s,null' % ('%s', API_key, self.lang)
 		self.tmdb_external_ids = base_link + '/3/movie/%s/external_ids?api_key=%s' % ('%s', API_key)
@@ -611,6 +613,11 @@ class TVshows:
 				except:
 					studio = '0'
 
+				try:
+					total_seasons = int(item.get('number_of_seasons', ''))
+				except:
+					total_seasons = 0
+
 				credits = item['credits']
 				director = writer = '0'
 				for person in credits['crew']:
@@ -633,7 +640,7 @@ class TVshows:
 				values = {'content': 'tvshow', 'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating,
 								'votes': votes, 'mpaa': mpaa, 'status': status, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb,
 								'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'poster2': '0', 'banner': '0', 'banner2': '0', 'fanart': fanart, 'fanart2': '0', 'clearlogo': '0', 'clearart': '0', 'landscape': fanart,
-								'metacache': False, 'next': next}
+								'total_seasons': total_seasons, 'metacache': False, 'next': next}
 
 				meta = {'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'lang': self.lang, 'user': self.user, 'item': values}
 

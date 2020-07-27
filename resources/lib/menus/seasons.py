@@ -10,7 +10,10 @@ import re
 import requests
 import StringIO
 import sys
-import zipfile, urllib2
+# import urllib2
+import zipfile
+
+
 try:
 	from urllib import quote_plus
 	from urlparse import parse_qsl
@@ -116,7 +119,6 @@ class Seasons:
 		tvshows.list = self.list
 		tvshows.worker()
 		self.list = tvshows.list
-
 
 		# Remove duplicate season entries.
 		try:
@@ -293,7 +295,7 @@ class Seasons:
 		try:
 			url = self.tvdb_info_link % (tvdb, 'en')
 			# log_utils.log('url = %s' % url, __name__, log_utils.LOGDEBUG)
-			data = requests.get(url).content # sometimes my key pulls empty xml
+			data = requests.get(url).content # sometimes one api key pulls empty xml while another does not
 			# data = urllib2.urlopen(url, timeout=30).read()
 			zip = zipfile.ZipFile(StringIO.StringIO(data))
 
@@ -343,9 +345,17 @@ class Seasons:
 				episodes = [i for i in episodes if not '<SeasonNumber>0</SeasonNumber>' in i]
 				episodes = [i for i in episodes if not '<EpisodeNumber>0</EpisodeNumber>' in i]
 
+			# season still airing check for pack scraping
+			premiered_eps = [i for i in episodes if not '<FirstAired></FirstAired>' in i]
+			unaired_eps = [i for i in premiered_eps if int(re.sub('[^0-9]', '', str(client.parseDOM(i, 'FirstAired')))) > int(re.sub('[^0-9]', '', str(self.today_date)))]
+			# log_utils.log('unaired_eps = %s' % unaired_eps, __name__, log_utils.LOGDEBUG)
+			if unaired_eps:
+				still_airing = client.parseDOM(unaired_eps, 'SeasonNumber')[0]
+			else:
+				still_airing = None
+
 			seasons = [i for i in episodes if '<EpisodeNumber>1</EpisodeNumber>' in i]
 			counts = self.seasonCountParse(seasons = seasons, episodes = episodes)
-
 			locals = [i for i in result2 if '<EpisodeNumber>' in i]
 
 			result = ''
@@ -550,14 +560,17 @@ class Seasons:
 				except:
 					seasoncount = None
 
-				self.list.append({'season': season, 'seasoncount': seasoncount, 'tvshowtitle': tvshowtitle, 'label': label, 'year': year,
-											'premiered': premiered, 'status': status, 'studio': studio, 'genre': genre, 'duration': duration,
-											'rating': rating, 'votes': votes, 'mpaa': mpaa, 'castandart': castandart, 'plot': plot, 'imdb': imdb,
-											'tmdb': tmdb, 'tvdb': tvdb, 'tvshowid': imdb, 'poster': poster, 'banner': banner, 'fanart': fanart,
-											'thumb': thumb, 'unaired': unaired})
+				try:
+					total_seasons = len([i for i in counts if i != '0'])
+				except:
+					total_seasons = None
 
+				self.list.append({'season': season, 'tvshowtitle': tvshowtitle, 'label': label, 'year': year, 'premiered': premiered,
+										'status': status, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes,
+										'mpaa': mpaa, 'castandart': castandart, 'plot': plot, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb,
+										'tvshowid': imdb, 'poster': poster, 'banner': banner, 'fanart': fanart, 'thumb': thumb,
+										'unaired': unaired, 'seasoncount': seasoncount, 'total_seasons': total_seasons})
 				self.list = sorted(self.list, key=lambda k: int(k['season'])) # fix for TVDb new sort by ID
-
 			except:
 				log_utils.error()
 				pass
@@ -589,6 +602,14 @@ class Seasons:
 				episode = client.parseDOM(item, 'EpisodeNumber')[0]
 				episode = re.sub('[^0-9]', '', '%01d' % int(episode))
 				episode = episode.encode('utf-8')
+
+				if still_airing:
+					if int(still_airing) == int(season):
+						is_airing = True
+					else:
+						is_airing = False
+				else:
+					is_airing = False
 
 # ### episode IDS
 				episodeIDS = {}
@@ -696,10 +717,17 @@ class Seasons:
 				except:
 					seasoncount = None
 
-				self.list.append({'title': title, 'label': label, 'seasoncount': seasoncount, 'season': season, 'episode': episode, 'tvshowtitle': tvshowtitle, 'year': year,
-								'premiered': premiered, 'status': status, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa,
-								'director': director, 'writer': writer, 'castandart': castandart, 'plot': episodeplot, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'banner': banner,
-								'fanart': fanart, 'thumb': thumb, 'season_poster': season_poster, 'unaired': unaired, 'episodeIDS': episodeIDS})
+				try:
+					total_seasons = len([i for i in counts if i != '0'])
+				except:
+					total_seasons = None
+
+				self.list.append({'title': title, 'label': label, 'season': season, 'episode': episode, 'tvshowtitle': tvshowtitle, 'year': year,
+										'premiered': premiered, 'status': status, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating,
+										'votes': votes, 'mpaa': mpaa, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': episodeplot,
+										'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'banner': banner, 'fanart': fanart, 'thumb': thumb,
+										'season_poster': season_poster, 'unaired': unaired, 'seasoncount': seasoncount,
+										'total_seasons': total_seasons, 'is_airing': is_airing, 'episodeIDS': episodeIDS})
 				self.list = sorted(self.list, key=lambda k: (int(k['season']), int(k['episode']))) # fix for TVDb new sort by ID
 				# meta = {}
 				# meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'lang': self.lang, 'user': self.tvdb_key, 'item': item}
@@ -861,7 +889,6 @@ class Seasons:
 			pass
 
 		unwatchedEnabled = control.setting('tvshows.unwatched.enabled') == 'true'
-		seasoncountEnabled = control.setting('tvshows.seasoncount.enabled') == 'true'
 
 		if trakt.getTraktIndicatorsInfo():
 			watchedMenu = control.lang(32068).encode('utf-8')
@@ -1028,15 +1055,12 @@ class Seasons:
 						item.setProperty('WatchedEpisodes', str(count['watched']))
 						item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
 
-				if seasoncountEnabled and self.traktCredentials:
-					total_seasons = trakt.getSeasons(imdb, full=False)
-					if total_seasons:
-						total_seasons = [i['number'] for i in total_seasons]
-						season_special = True if 0 in total_seasons else False
-						total_seasons = len(total_seasons)
-						if control.setting('tv.specials') == 'false' and season_special:
-							total_seasons = total_seasons - 1
-						item.setProperty('TotalSeasons', str(total_seasons))
+				if 'total_seasons' in meta:
+					item.setProperty('TotalSeasons', str(meta.get('total_seasons')))
+
+				# log_utils.log('status = %s for tvshowtitle = %s' % (str(meta.get('status')), str(title)), __name__, log_utils.LOGDEBUG)
+
+
 
 				item.setArt(art)
 				item.setProperty('IsPlayable', 'false')

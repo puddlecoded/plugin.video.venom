@@ -4,6 +4,7 @@
 	Venom Add-on
 '''
 
+import datetime
 import StringIO
 import time
 import re
@@ -34,10 +35,18 @@ user = str(imdb_user) + str(api_key)
 
 baseUrl = 'https://thetvdb.com'
 info_link = '%s/api/%s/series/%s/%s.xml' % (baseUrl, api_key.decode('base64'), '%s', '%s')
+all_info_link = '%s/api/%s/series/%s/all/%s.xml' % (baseUrl, api_key.decode('base64'), '%s', '%s')
+
 zip_link = '%s/api/%s/series/%s/all/%s.zip' % (baseUrl, api_key.decode('base64'), '%s', '%s')
 by_imdb = '%s/api/GetSeriesByRemoteID.php?imdbid=%s' % (baseUrl, '%s')
 by_seriesname = '%s/api/GetSeries.php?seriesname=%s' % (baseUrl, '%s')
+
 imageUrl = '%s/banners/' % baseUrl
+tvdb_poster = '%s/banners/_cache/' % baseUrl
+
+date_time = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
+today_date = (date_time).strftime('%Y-%m-%d')
+
 
 
 def getZip(tvdb):
@@ -45,14 +54,13 @@ def getZip(tvdb):
 	try:
 		data = requests.get(url).content
 		zip = zipfile.ZipFile(StringIO.StringIO(data))
-
 		result = zip.read('%s.xml' % lang)
 		artwork = zip.read('banners.xml')
 		actors = zip.read('actors.xml')
 		zip.close()
-
 		return (result, artwork, actors)
 	except:
+		log_utils.error()
 		return None
 
 
@@ -475,13 +483,13 @@ def parseAll(tvdb):
 	return list
 
 
-def parseSeasonInfo(tvdb, season):
+# def parseSeasonInfo(tvdb, season):
 
 
 def parseEpisodeInfo(tvdb, episode):
+	list = []
 	try:
 		result, artwork, actors = getZip(tvdb)
-
 
 		result = result.split('<Episode>')
 		item = [x for x in result if '<EpisodeNumber>' in x]
@@ -509,7 +517,7 @@ def parseEpisodeInfo(tvdb, episode):
 			pass
 		elif premiered == '0':
 			raise Exception()
-		elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.today_date))):
+		elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(today_date))):
 			unaired = 'true'
 			if control.setting('showunaired') != 'true':
 				raise Exception()
@@ -537,7 +545,7 @@ def parseEpisodeInfo(tvdb, episode):
 
 		poster = client.parseDOM(item2, 'poster')[0]
 		if poster and poster != '':
-			poster = self.imageUrl + poster
+			poster = imageUrl + poster
 		else: poster = '0'
 
 		season_poster = [x for x in artwork if client.parseDOM(x, 'Season')[0] == season]
@@ -546,7 +554,7 @@ def parseEpisodeInfo(tvdb, episode):
 		except:
 			season_poster = ''
 		if season_poster != '':
-			season_poster = self.imageUrl + season_poster
+			season_poster = imageUrl + season_poster
 		else:
 			season_poster = '0'
 		season_poster = client.replaceHTMLCodes(season_poster)
@@ -554,17 +562,17 @@ def parseEpisodeInfo(tvdb, episode):
 
 		banner = client.parseDOM(item2, 'banner')[0]
 		if banner and banner != '':
-			banner = self.imageUrl + banner
+			banner = imageUrl + banner
 		else: banner = '0'
 
 		fanart = client.parseDOM(item2, 'fanart')[0]
 		if fanart and fanart != '':
-			fanart = self.imageUrl + fanart
+			fanart = imageUrl + fanart
 		else: fanart = '0'
 
 		thumb = client.parseDOM(item, 'filename')[0]
 		if thumb and thumb != '':
-			thumb = self.imageUrl + thumb
+			thumb = imageUrl + thumb
 		else: thumb = '0'
 
 		if poster != '0':
@@ -584,7 +592,7 @@ def parseEpisodeInfo(tvdb, episode):
 		if thumb != '0':
 			pass
 		elif fanart != '0':
-			thumb = fanart.replace(self.imageUrl, self.tvdb_poster)
+			thumb = fanart.replace(imageUrl, tvdb_poster)
 		elif poster != '0':
 			thumb = poster
 
@@ -636,19 +644,13 @@ def parseEpisodeInfo(tvdb, episode):
 			values['airtime'] = i['airtime']
 		if 'airzone' in i and i['airzone'] is not None and i['airzone'] != '':
 			values['airzone'] = i['airzone']
-		self.list.append(values)
+		list.append(values)
 
-		return self.list
-
+		return list
 
 	except:
+		log_utils.error()
 		pass
-
-
-
-
-
-
 
 
 def parseSeasonPoster(artwork, season):
@@ -664,6 +666,7 @@ def parseSeasonPoster(artwork, season):
 		season_poster = season_poster.encode('utf-8')
 		return season_poster
 	except:
+		log_utils.error()
 		return None
 
 
@@ -736,6 +739,7 @@ def getSeries_by_id(tvdb):
 		return items
 
 	except:
+		log_utils.error()
 		return None
 
 
@@ -753,10 +757,11 @@ def getBanners(tvdb):
 		return artwork
 
 	except:
+		log_utils.error()
 		return None
 
 
-def parseBanners(artwork):
+# def parseBanners(artwork):
 
 
 
@@ -768,6 +773,7 @@ def getActors(tvdb):
 			raise Exception()
 		return actors
 	except:
+		log_utils.error()
 		return None
 
 
@@ -799,8 +805,8 @@ def parseActors(actors):
 			if len(castandart) == 150: break
 
 		return castandart
-
 	except:
+		log_utils.error()
 		return None
 
 
@@ -854,3 +860,36 @@ def getSeries_ByName(title, year):
 	except:
 		log_utils.error()
 		pass
+
+
+def get_is_airing(tvdb, season):
+	url = all_info_link % (tvdb, lang)
+	try:
+		result = requests.get(url).content
+		result = result.split('<Episode>')
+
+		episodes = [i for i in result if '<EpisodeNumber>' in i]
+		if control.setting('tv.specials') == 'true':
+			episodes = [i for i in episodes]
+		else:
+			episodes = [i for i in episodes if not '<SeasonNumber>0</SeasonNumber>' in i]
+			episodes = [i for i in episodes if not '<EpisodeNumber>0</EpisodeNumber>' in i]
+
+		# season still airing check for pack scraping
+		premiered_eps = [i for i in episodes if not '<FirstAired></FirstAired>' in i]
+		unaired_eps = [i for i in premiered_eps if int(re.sub('[^0-9]', '', str(client.parseDOM(i, 'FirstAired')))) > int(re.sub('[^0-9]', '', str(today_date)))]
+		# log_utils.log('unaired_eps = %s' % unaired_eps, __name__, log_utils.LOGDEBUG)
+		if unaired_eps:
+			still_airing = client.parseDOM(unaired_eps, 'SeasonNumber')[0]
+		else:
+			still_airing = None
+		if still_airing:
+			if int(still_airing) == int(season):
+				is_airing = True
+			else:
+				is_airing = False
+		else:
+			is_airing = False
+		return is_airing
+	except:
+		log_utils.error()

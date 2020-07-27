@@ -13,6 +13,7 @@ import StringIO
 import sys
 import xml.etree.ElementTree as ET
 import zipfile
+
 try:
 	from urllib import quote_plus, urlencode
 	from urlparse import parse_qsl, urlparse, urlsplit
@@ -47,7 +48,6 @@ class Episodes:
 		self.threads = []
 		self.type = type
 		self.lang = control.apiLanguage()['tvdb']
-		# self.season_special = False
 		self.notifications = notifications
 
 		if not is_widget:
@@ -1502,8 +1502,6 @@ class Episodes:
 			isPlayable = 'true'
 
 		multi_unwatchedEnabled = control.setting('multi.unwatched.enabled') == 'true'
-
-		# seasoncountEnabled = control.setting('tvshows.seasoncount.enabled') == 'true'
 		playlistcreate = control.setting('auto.playlistcreate') == 'true'
 
 		airEnabled = control.setting('tvshows.air.enabled') if 'ForceAirEnabled' not in items[0] else 'true'
@@ -1562,9 +1560,6 @@ class Episodes:
 						labelProgress = '[COLOR %s][I]%s[/I][/COLOR]' % (self.unairedcolor, labelProgress)
 				except:
 					pass
-
-				# if not self.season_special and control.setting('tv.specials') == 'true':
-					# self.season_special = True if int(season) == 0 else False
 
 				systitle = quote_plus(title)
 				systvshowtitle = quote_plus(tvshowtitle)
@@ -1685,7 +1680,6 @@ class Episodes:
 
 				clearlogo = meta.get('clearlogo')
 				# log_utils.log('clearlogo = %s for tvshowtitle = %s' % (str(clearlogo), str(tvshowtitle)), __name__, log_utils.LOGDEBUG)
-
 				clearart = meta.get('clearart')
 
 				art = {}
@@ -1789,15 +1783,8 @@ class Episodes:
 							item.setProperty('WatchedEpisodes', str(count['watched']))
 							item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
 
-				# if seasoncountEnabled:
-					# total_seasons = trakt.getSeasons(imdb, full=False)
-					# if total_seasons:
-						# total_seasons = [x['number'] for x in total_seasons]
-						# season_special = True if 0 in total_seasons else False
-						# total_seasons = len(total_seasons)
-						# if control.setting('tv.specials') == 'false' and season_special:
-							# total_seasons = total_seasons - 1
-						# item.setProperty('TotalSeasons', str(total_seasons))
+				# if 'total_seasons' in meta:
+					# item.setProperty('TotalSeasons', str(meta.get('total_seasons')))
 
 				item.setArt(art)
 				item.setProperty('IsPlayable', isPlayable)

@@ -4,10 +4,13 @@
 	Venom Add-on
 """
 
+import datetime
 import glob
 import os
 import re
 import sys
+import time
+
 try:
 	from urllib import urlencode
 except:
@@ -522,6 +525,28 @@ def get_video_database_path():
 	elif int(getKodiVersion()) == 18:
 		database_path = os.path.join(database_path, 'MyVideos116.db')
 	return database_path
+
+
+def datetime_workaround(string_date, format="%Y-%m-%d", date_only=True):
+	sleep(200)
+	try:
+		if string_date == '':
+			return None
+		try:
+			if date_only:
+				res = datetime.datetime.strptime(string_date, format).date()
+			else:
+				res = datetime.datetime.strptime(string_date, format)
+		except TypeError:
+			if date_only:
+				res = datetime.datetime(*(time.strptime(string_date, format)[0:6])).date()
+			else:
+				res = datetime.datetime(*(time.strptime(string_date, format)[0:6]))
+		return res
+	except:
+		import traceback
+		traceback.print_exc()
+		pass
 
 
 def add_source(source_name, source_path, source_content, source_thumbnail, type='video'):

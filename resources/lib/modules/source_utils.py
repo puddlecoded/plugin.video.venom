@@ -4,113 +4,181 @@
 	Venom Add-on
 """
 
-HDCAM = ['hdcam', 'hd-cam', 'hd.cam', 'hdts', 'hd-ts', 'hd.ts']
+import re
+
+try:
+	from urllib import unquote_plus
+except:
+	from urllib.parse import unquote_plus
+
+from resources.lib.modules import log_utils
+
+HDCAM = ['hdcam', '.hd.cam.', 'hdts', '.hd.ts.', '.hdtc.', '.hd.tc.', '.hctc.', 'hc.tc.']
 
 CODEC_H265 = ['hevc', 'h265', 'h.265', 'x265', 'x.265']
 CODEC_H264 = ['avc', 'h264', 'h.264', 'x264', 'x.264']
-CODEC_XVID = ['xvid', 'x.vid', 'x-vid']
-CODEC_DIVX = ['divx', 'div2', 'div2 ', 'div3']
-CODEC_MPEG = ['mp4', 'mpeg', 'm4v', 'mpg', 'mpg1', 'mpg2', 'mpg3', 'mpg4', 'mp4 ', 'mpeg ', 'msmpeg', 'msmpeg4', 'mpegurl']
+CODEC_XVID = ['xvid', 'x.vid']
+CODEC_DIVX = ['divx', 'divx ', 'div2', 'div2 ', 'div3']
+CODEC_MPEG = ['mpeg', 'm4v', 'mpg', 'mpg1', 'mpg2', 'mpg3', 'mpg4', 'mp4 ', '.mp.4.', 'msmpeg', 'msmpeg4',
+							'msmpeg.4.', 'mpegurl']
 CODEC_MKV = ['mkv', '.mkv', 'matroska']
 
-AUDIO_8CH = ['ch8', '8ch', '7.1', '7-1']
-AUDIO_7CH = ['ch7', '7ch', '6.1', '6-1']
-AUDIO_6CH = ['ch6', '6ch', '5.1', '5-1']
-AUDIO_2CH = ['ch2', '2ch', '2.0', 'stereo']
-AUDIO_1CH = ['ch1', '1ch', 'mono', 'monoaudio']
+AUDIO_8CH = ['ch8.', '8ch.', '.7.1.']
+AUDIO_7CH = ['ch7.', '7ch.', '.6.1.']
+AUDIO_6CH = ['ch6.', '6ch.', '.5.1.']
+AUDIO_2CH = ['ch2.', '2ch.', '2.0', 'audio.2.0.', 'stereo']
 
 MULTI_LANG = ['hindi.eng', 'ara.eng', 'ces.eng', 'chi.eng', 'cze.eng', 'dan.eng', 'dut.eng', 'ell.eng', 'esl.eng',
-							'esp.eng', 'fin.eng', 'fra.eng', 'fre.eng', 'frn.eng', 'gai.eng', 'ger.eng', 'gle.eng', 'gre.eng', 'gtm.eng',
-							'heb.eng', 'hin.eng', 'hun.eng', 'ind.eng', 'iri.eng', 'ita.eng', 'jap.eng', 'jpn.eng', 'kor.eng', 'lat.eng',
-							'lebb.eng', 'lit.eng', 'nor.eng', 'pol.eng', 'por.eng', 'rus.eng', 'som.eng', 'spa.eng', 'sve.eng',
-							'swe.eng', 'tha.eng', 'tur.eng', 'uae.eng', 'ukr.eng', 'vie.eng', 'zho.eng', 'dual audio', 'dual-audio',
-							'dual.audio', 'multi']
+			  'esp.eng', 'fin.eng', 'fra.eng', 'fre.eng', 'frn.eng', 'gai.eng', 'ger.eng', 'gle.eng', 'gre.eng',
+			  'gtm.eng', 'heb.eng', 'hin.eng', 'hun.eng', 'ind.eng', 'iri.eng', 'ita.eng', 'jap.eng', 'jpn.eng', 'kor.eng',
+			  'lat.eng', 'lebb.eng', 'lit.eng', 'nor.eng', 'pol.eng', 'por.eng', 'rus.eng', 'som.eng', 'spa.eng', 'sve.eng',
+			  'swe.eng', 'tha.eng', 'tur.eng', 'uae.eng', 'ukr.eng', 'vie.eng', 'zho.eng', 'dual.audio', 'multi']
 
-SUBS = ['subs', 'subtitula', 'subfrench', 'subspanish', 'swesub']
+SUBS = ['subita', 'subfrench', 'subs', 'subspanish', 'subtitula', 'swesub']
 ADDS = ['1xbet', 'betwin']
+
+
+def seas_ep_filter(season, episode, release_title, split=False):
+	string1 = '(s<<S>>e<<E>>)|' \
+			  '(s<<S>>\.e<<E>>)|' \
+			  '(s<<S>>ep<<E>>)|' \
+			  '(s<<S>>\.ep<<E>>)'
+
+	string2 = '(season\.<<S>>\.episode\.<<E>>)|' \
+			  '(season<<S>>\.episode<<E>>)|' \
+			  '(season<<S>>episode<<E>>)|' \
+			  '(<<S>>x<<E>>)|' \
+			  '(<<S>>\.<<E>>\.)|' \
+			  '(s<<S>>e\(<<E>>\))|' \
+			  '(s<<S>>\.e\(<<E>>\))'
+
+	string_list = []
+	string_list.append(string1.replace('<<S>>', str(season).zfill(2)).replace('<<E>>', str(episode).zfill(2)))
+	string_list.append(string1.replace('<<S>>', str(season)).replace('<<E>>', str(episode).zfill(2)))
+	string_list.append(string2.replace('<<S>>', str(season).zfill(2)).replace('<<E>>', str(episode).zfill(2)))
+	string_list.append(string2.replace('<<S>>', str(season)).replace('<<E>>', str(episode).zfill(2)))
+	string_list.append(string2.replace('<<S>>', str(season).zfill(2)).replace('<<E>>', str(episode)))	
+	string_list.append(string2.replace('<<S>>', str(season)).replace('<<E>>', str(episode)))
+
+	final_string = '|'.join(string_list)
+	reg_pattern = re.compile(final_string)
+
+	if split:
+		return release_title.split(re.search(reg_pattern, release_title).group(), 1)[1]
+	else:
+		return bool(re.search(reg_pattern, release_title))
+
+
+def episode_extras_filter():
+	return ['extra', 'extras', 'deleted', 'unused', 'footage', 'inside', 'blooper', 'bloopers', 'making of', 'feature']
+
+
+def supported_video_extensions():
+	import xbmc
+	supported_video_extensions = xbmc.getSupportedMedia('video').split('|')
+	return [i for i in supported_video_extensions if i != '' and i != '.zip']
 
 
 def getFileType(url):
 	try:
-		url = url.lower()
-		url = url.replace(' ', '.')
+		type = ''
+		fmt = url_strip(url)
+		# log_utils.log('fmt = %s' % fmt, log_utils.LOGDEBUG)
+		if fmt is None:
+			return type
+		if any(value in fmt for value in ['blu.ray', 'bluray', '.bd.']):
+			type += ' BLURAY /'
+		if any(value in fmt for value in ['bd.r', 'bdr', 'bd.rip', 'bdrip', 'br.rip', 'brrip']):
+			type += ' BR-RIP /'
+		if 'remux' in fmt:
+			type += ' REMUX /'
+		if any(i in fmt for i in ['dvd.rip', 'dvdrip']):
+			type += ' DVD /'
+		if any(value in fmt for value in ['web.dl', 'webdl', 'web.rip', 'webrip']):
+			type += ' WEB /'
+		if 'hdtv' in fmt:
+			type += ' HDTV /'
+		if 'sdtv' in fmt:
+			type += ' SDTV /'
+		if any(value in fmt for value in ['hd.rip', 'hdrip']):
+			type += ' HDRIP /'
+		if 'hdr.' in fmt:
+			type += ' HDR /'
+		if any(value in fmt for value in ['dd.5.1.', 'dd.5.1ch.', 'dd5.1.', 'dolby.digital', 'dolbydigital']):
+			type += ' DOLBYDIGITAL /'
+		if any(value in fmt for value in ['.dd.ex.', 'ddex', 'dolby.ex.', 'dolby.digital.ex.', 'dolbydigital.ex.']):
+			type += ' DD-EX /'
+		if any(value in fmt for value in ['dolby.digital.plus', 'dolbydigital.plus', 'dolbydigitalplus', 'dd.plus.', 'ddplus']):
+			type += ' DD+ /'
+		if any(value in fmt for value in ['dd.7.1ch', 'dd.true.hd.', 'dd.truehd', 'ddtruehd']):
+			type += ' DOLBY-TRUEHD /'
+		if 'atmos' in fmt:
+			type += ' ATMOS /'
+		if '.dts.' in fmt:
+			type += ' DTS /'
+		if any(value in fmt for value in ['dts.hd.', 'dtshd']):
+			type += ' DTS-HD /'
+		if any(value in fmt for value in ['dts.hd.ma.', 'dtshd.ma.', 'dtshdma', '.hd.ma.', 'hdma']):
+			type += ' DTS-HD MA/'
+		if any(value in fmt for value in ['dts.x.', 'dtsx']):
+			type += ' DTS-X /'
+		if any(value in fmt for value in AUDIO_8CH):
+			type += ' 8CH /'
+		if any(value in fmt for value in AUDIO_7CH):
+			type += ' 7CH /'
+		if any(value in fmt for value in AUDIO_6CH):
+			type += ' 6CH /'
+		if any(value in fmt for value in AUDIO_2CH):
+			type += ' 2CH /'
+		if any(value in fmt for value in CODEC_XVID):
+			type += ' XVID /'
+		if any(value in fmt for value in CODEC_DIVX):
+			type += ' DIVX /'
+		if any(value in fmt for value in CODEC_MPEG):
+			type += ' MPEG /'
+		if '.avi' in fmt:
+			type += ' AVI /'
+		if any(value in fmt for value in ['.ac3', '.ac.3.']):
+			type += ' AC3 /'
+		if any(value in fmt for value in CODEC_H264):
+			type += ' X264 /'
+		if any(value in fmt for value in CODEC_H265):
+			type += ' X265 /'
+		if any(value in fmt for value in CODEC_MKV):
+			type += ' MKV /'
+		if any(value in fmt for value in HDCAM):
+			type += ' HDCAM /'
+		if any(value in fmt for value in MULTI_LANG):
+			type += ' MULTI-LANG /'
+		if any(value in fmt for value in ADDS):
+			type += ' ADDS /'
+		if any(value in fmt for value in SUBS):
+			if type != '':
+				type += ' WITH SUBS'
+			else:
+				type = 'SUBS'
+		type = type.rstrip('/')
+		return type
 	except:
-		url = str(url)
-	type = ''
-	if any(value in url for value in ['bluray', 'blu-ray', 'blu.ray']):
-		type += ' BLURAY /'
-	if any(value in url for value in ['bd-r', 'bd.r', 'bdr', 'bd-rip', 'bd.rip', 'bdrip', 'brrip', 'br.rip']):
-		type += ' BR-RIP /'
-	if 'remux' in url:
-		type += ' REMUX /'
-	if any(i in url for i in ['dvd-rip', 'dvd.rip', 'dvdrip']):
-		type += ' DVD /'
-	if any(value in url for value in ['web-dl', 'web.dl', 'webdl', 'web-rip', 'web.rip', 'webrip']):
-		type += ' WEB /'
-	if 'hdtv' in url:
-		type += ' HDTV /'
-	if 'sdtv' in url:
-		type += ' SDTV /'
-	if any(value in url for value in ['hd-rip', 'hd.rip', 'hdrip']):
-		type += ' HDRIP /'
-	if 'hdr.' in url:
-		type += ' HDR /'
-	if any(value in url for value in ['dd5.1', 'dd-5.1', 'dd5-1', 'dolby-digital', 'dolby.digital']):
-		type += ' DOLBYDIGITAL /'
-	if any(value in url for value in ['.ddex', 'dd-ex', 'dolby-ex', 'dolby.digital.ex']):
-		type += ' DD-EX /'
-	if any(value in url for value in ['dolby-digital-plus', 'dolby.digital.plus', 'ddplus', 'dd-plus']):
-		type += ' DD+ /'
-	if any(value in url for value in ['true-hd', 'truehd', '.ddhd']):
-		type += ' DOLBY-TRUEHD /'
-	if 'atmos' in url:
-		type += ' ATMOS /'
-	if '.dts.' in url:
-		type += ' DTS /'
-	if any(value in url for value in ['dts-hd', 'dtshd', 'dts.hd']):
-		type += ' DTS-HD /'
-	if any(value in url for value in ['dts-es', 'dtses', 'dts.es']):
-		type += ' DTS-ES /'
-	if any(value in url for value in ['dts-neo', 'dtsneo', 'dts.neo']):
-		type += ' DTS-NEO /'
-	if '.thx.' in url:
-		type += ' THX /'
-	if any(value in url for value in ['.thx-ex', 'thxex']):
-		type += ' THX-EX /'
-	if any(value in url for value in AUDIO_8CH):
-		type += ' 8CH /'
-	if any(value in url for value in AUDIO_7CH):
-		type += ' 7CH /'
-	if any(value in url for value in AUDIO_6CH):
-		type += ' 6CH /'
-	if any(value in url for value in AUDIO_2CH):
-		type += ' 2CH /'
-	if any(value in url for value in CODEC_XVID):
-		type += ' XVID /'
-	if any(value in url for value in CODEC_DIVX):
-		type += ' DIVX /'
-	if any(value in url for value in CODEC_MPEG):
-		type += ' MPEG /'
-	if '.avi' in url:
-		type += ' AVI /'
-	if 'ac3' in url:
-		type += ' AC3 /'
-	if any(value in url for value in CODEC_H264):
-		type += ' X264 /'
-	if any(value in url for value in CODEC_H265):
-		type += ' X265 /'
-	if any(value in url for value in CODEC_MKV):
-		type += ' MKV /'
-	if any(value in url for value in HDCAM):
-		type += ' HDCAM /'
-	if any(value in url for value in MULTI_LANG):
-		type += ' MULTI-LANG /'
-	if any(value in url for value in ADDS):
-		type += ' ADDS /'
-	if any(value in url for value in SUBS):
-		if type != '':
-			type += ' WITH SUBS'
+		log_utils.error()
+		return ''
+
+
+def url_strip(url):
+	try:
+		url = unquote_plus(url)
+		if 'magnet' in url:
+			url = url.split('&dn=')[1]
+		url = url.lower().replace("'", "").lstrip('.').rstrip('.')
+		fmt = re.sub('[^a-z0-9]+', '.', url)
+		fmt = '.%s.' % fmt
+		fmt = re.sub(r'(.+)((?:19|20)[0-9]{2}|season.\d+|s[0-3]{1}[0-9]{1}|e\d+|complete)(.complete\.|.episode\.\d+\.|.episodes\.\d+\.\d+\.|.series|.extras|.ep\.\d+\.|.\d{1,2}\.|-|\.|\s)', '', fmt) # new for pack files
+		if '.http' in fmt:
+			fmt = None
+		if fmt == '':
+			return None
 		else:
-			type = 'SUBS'
-	type = type.rstrip('/')
-	return type
+			return '.%s' % fmt
+	except:
+		log_utils.error()
+		return None

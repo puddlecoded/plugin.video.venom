@@ -240,13 +240,10 @@ class lib_tools:
 					break
 
 				last_service = control.window.getProperty(self.property)
-				# log_utils.log('last_service = %s' % last_service, log_utils.LOGDEBUG)
-
 				t1 = datetime.timedelta(hours=6)
-				t2 = datetime.datetime.strptime(last_service, '%Y-%m-%d %H:%M:%S.%f')
+				t2 = control.datetime_workaround(str(last_service), '%Y-%m-%d %H:%M:%S.%f', False)
 				t3 = datetime.datetime.now()
 				check = abs(t3 - t2) >= t1
-				# if check is False:
 				if not check:
 					continue
 

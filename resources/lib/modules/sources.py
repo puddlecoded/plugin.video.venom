@@ -4,18 +4,20 @@
 	Venom Add-on
 """
 
-import datetime
+from datetime import datetime, timedelta
 import json
-import random
+# import random
 import re
+# Import _strptime to workaround python 2 bug with threads
+import _strptime
 import sys
 import time
 
 try:
-	from urllib import quote_plus
+	from urllib import quote_plus, unquote
 	from urlparse import parse_qsl
 except:
-	from urllib.parse import quote_plus, parse_qsl
+	from urllib.parse import quote_plus, parse_qsl, unquote
 import xbmc
 
 from resources.lib.modules import cleantitle
@@ -23,6 +25,7 @@ from resources.lib.modules import client
 from resources.lib.modules import control
 from resources.lib.modules import debrid
 from resources.lib.modules import log_utils
+from resources.lib.modules import metacache
 from resources.lib.modules import premiumize
 from resources.lib.modules import providerscache
 from resources.lib.modules import realdebrid
@@ -42,10 +45,21 @@ except:
 
 class Sources:
 	def __init__(self):
+		self.time = datetime.now()
+		self.expiry = timedelta(minutes=240)
 		self.notificationSound = control.setting('notification.sound') == 'true'
 		self.getConstants()
 		self.sources = []
 		self.sourceFile = control.providercacheFile
+		self.enablePacks = control.setting('enable.season.packs') == 'true'
+		self.dev_mode = control.setting('dev.mode.enable') == 'true'
+		self.dev_disable_single = control.setting('dev.disable.single') == 'true'
+		# self.dev_disable_single_filter = control.setting('dev.disable.single.filter') == 'true'
+		self.dev_disable_season_packs = control.setting('dev.disable.season.packs') == 'true'
+		self.dev_disable_season_filter = control.setting('dev.disable.season.filter') == 'true'
+		self.dev_disable_show_packs = control.setting('dev.disable.show.packs') == 'true'
+		self.dev_disable_show_filter = control.setting('dev.disable.show.filter') == 'true'
+
 
 	def timeIt(func):
 		import time
@@ -83,13 +97,29 @@ class Sources:
 		try:
 			url = None
 			self.title = title
+			self.meta = meta
+			external_caller = 'plugin.video.venom' not in control.infoLabel('Container.PluginName')
+			isSTRM = control.infoLabel('ListItem.FileExtension') == 'strm'
 
-			# if 'plugin.video.themoviedb.helper' in control.infoLabel('Container.PluginName'):
-				# rescrape = True
+			#check IMDB for year since TMDB and Trakt differ on a ratio of 1 in 20 and year is off by 1 and some meta titles mismatch
+			if tvshowtitle is None:
+				year, title = self.movie_chk_imdb(imdb, title, year)
 
-			if rescrape:
+			# fix incorect year passed from TMDBHelper. Need series premiered not variable season premiered.
+			if external_caller and tvshowtitle is not None:
+				year = self.tmdbhelper_fix(imdb)
+
+			# get "total_season" to satisfy showPack scrapers. 1st=passed meta, 2nd=matacache check, 3rd=trakt.getSeasons() request
+			# also get "is_airing" status of season for showPack scrapers. 1st=passed meta, 2nd=matacache check, 3rd=tvdb v1 xml request
+			if tvshowtitle is not None:
+				self.total_seasons, self.is_airing = self.get_season_info(imdb, tvdb, meta, season)
+
+			if rescrape :
 				self.clr_item_providers(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-			items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
+			if isSTRM or external_caller:
+				items = self.getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
+			else:
+				items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 
 			if not items:
 				self.url = url
@@ -143,6 +173,7 @@ class Sources:
 			log_utils.error()
 			pass
 
+
 	# @timeIt
 	def addItem(self, title):
 		control.sleep(200)
@@ -163,6 +194,7 @@ class Sources:
 			sys.exit()
 
 		meta = control.window.getProperty(self.metaProperty)
+		# log_utils.log('meta = %s' % str(meta), __name__, log_utils.LOGDEBUG)
 		meta = json.loads(meta)
 		meta = sourcesDirMeta(meta)
 
@@ -204,6 +236,9 @@ class Sources:
 				if downloads:
 					cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&source=%s)' %
 							(sysaddon, sysname, sysimage, syssource)))
+				if 'package' in items[i]:
+					cm.append(('Browse Debrid Pack', 'RunPlugin(%s?action=showDebridPack&provider=%s&name=%s&magnet_url=%s&info_hash=%s)' %
+							(sysaddon, quote_plus(items[i]['debrid']), quote_plus(items[i]['name']), quote_plus(items[i]['url']), quote_plus(items[i]['hash']))))
 
 				if control.setting('enable.resquality.icons') == 'true':
 					quality = items[i]['quality']
@@ -274,7 +309,6 @@ class Sources:
 					u = json.loads(u['source'])[0]
 					prev.append(u)
 				except:
-					log_utils.error()
 					break
 
 			items = json.loads(source)
@@ -401,13 +435,22 @@ class Sources:
 		sourceDict = self.sourceDict
 		progressDialog.update(0, control.lang(32600).encode('utf-8'))
 
+		try:
+			# meta = json.loads(control.window.getProperty(self.metaProperty))
+			meta = json.loads(self.meta)
+			genres = [i.lower() for i in meta.get('genre')]
+		except:
+			genres = None
+
 		content = 'movie' if tvshowtitle is None else 'episode'
 		if content == 'movie':
 			sourceDict = [(i[0], i[1], getattr(i[1], 'movie', None)) for i in sourceDict]
-			genres = trakt.getGenre('movie', 'imdb', imdb)
+			if not genres:
+				genres = trakt.getGenre('movie', 'imdb', imdb)
 		else:
 			sourceDict = [(i[0], i[1], getattr(i[1], 'tvshow', None)) for i in sourceDict]
-			genres = trakt.getGenre('show', 'tvdb', tvdb)
+			if not genres:
+				genres = trakt.getGenre('show', 'tvdb', tvdb)
 
 		sourceDict = [(i[0], i[1], i[2]) for i in sourceDict if not hasattr(i[1], 'genre_filter') or not i[1].genre_filter or any(
 								x in i[1].genre_filter for x in genres)]
@@ -690,6 +733,8 @@ class Sources:
 
 		if len(self.sources) > 0:
 			self.sourcesFilter()
+
+
 		return self.sources
 
 	# @timeIt
@@ -711,7 +756,7 @@ class Sources:
 	# @timeIt
 	def getMovieSource(self, title, localtitle, aliases, year, imdb, source, call):
 		try:
-			dbcon = database.connect(self.sourceFile)
+			dbcon = database.connect(self.sourceFile, timeout=60)
 			dbcur = dbcon.cursor()
 		except:
 			pass
@@ -738,9 +783,8 @@ class Sources:
 				source, imdb, '', ''))
 			match = dbcur.fetchone()
 			if match:
-				t1 = int(re.sub('[^0-9]', '', str(match[5])))
-				t2 = int(datetime.datetime.now().strftime("%Y%m%d%H%M"))
-				update = abs(t2 - t1) > 60
+				timestamp = control.datetime_workaround(str(match[5]), '%Y-%m-%d %H:%M:%S.%f', False)
+				update = abs(self.time - timestamp) > self.expiry
 				if update is False:
 					sources = eval(match[4].encode('utf-8'))
 					return self.sources.extend(sources)
@@ -778,7 +822,7 @@ class Sources:
 				for i in sources:
 					i.update({'provider': source})
 				self.sources.extend(sources)
-				dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, '', '', repr(sources), datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
+				dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, '', '', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 				dbcur.connection.commit()
 		except:
 			log_utils.error()
@@ -788,24 +832,78 @@ class Sources:
 	# @timeIt
 	def getEpisodeSource(self, title, year, imdb, tvdb, season, episode, tvshowtitle, localtvshowtitle, aliases, premiered, source, call):
 		try:
-			dbcon = database.connect(self.sourceFile)
+			dbcon = database.connect(self.sourceFile, timeout=60)
+			self.dbcon = dbcon
 			dbcur = dbcon.cursor()
 		except:
 			pass
 
 		try:
+			# singleEpisodes db check
+			db_singleEpisodes = None
+			if self.dev_mode and self.dev_disable_single:
+				raise Exception()
 			sources = []
 			dbcur.execute(
 				"SELECT * FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 				source, imdb, season, episode))
-			match = dbcur.fetchone()
-			if match:
-				t1 = int(re.sub('[^0-9]', '', str(match[5])))
-				t2 = int(datetime.datetime.now().strftime("%Y%m%d%H%M"))
-				update = abs(t2 - t1) > 60
+			db_singleEpisodes = dbcur.fetchone()
+			if db_singleEpisodes:
+				timestamp = control.datetime_workaround(str(db_singleEpisodes[5]), '%Y-%m-%d %H:%M:%S.%f', False)
+				update = abs(self.time - timestamp) > self.expiry
 				if update is False:
-					sources = eval(match[4].encode('utf-8'))
-					return self.sources.extend(sources)
+					sources = eval(db_singleEpisodes[4].encode('utf-8'))
+					self.sources.extend(sources)
+					if not self.enablePacks:
+						return self.sources
+		except:
+			log_utils.error()
+			pass
+
+		try:
+			# seasonPacks db check
+			db_seasonPacks = None
+			if not self.enablePacks:
+				raise Exception()
+			if self.is_airing:
+				raise Exception()
+			if self.dev_mode and self.dev_disable_season_packs:
+				raise Exception()
+			sources = []
+			dbcur.execute(
+				"SELECT * FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+				source, imdb, season, ''))
+			db_seasonPacks = dbcur.fetchone()
+			if db_seasonPacks:
+				timestamp = control.datetime_workaround(str(db_seasonPacks[5]), '%Y-%m-%d %H:%M:%S.%f', False)
+				update = abs(self.time - timestamp) > self.expiry
+				if update is False:
+					sources = eval(db_seasonPacks[4].encode('utf-8'))
+					self.sources.extend(sources)
+		except:
+			log_utils.error()
+			pass
+
+		try:
+			# # showPacks db check
+			if not self.enablePacks:
+				raise Exception()
+			if self.dev_mode and self.dev_disable_show_packs:
+				raise Exception()
+			sources = []
+			dbcur.execute(
+				"SELECT * FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+				source, imdb, '', ''))
+			db_showPacks = dbcur.fetchone()
+			if db_showPacks:
+				timestamp = control.datetime_workaround(str(db_showPacks[5]), '%Y-%m-%d %H:%M:%S.%f', False)
+				update = abs(self.time - timestamp) > self.expiry
+				if update is False:
+					sources = eval(db_showPacks[4].encode('utf-8'))
+					sources = [i for i in sources if i.get('last_season') >= int(season)] # filter out range items that do not apply to current season
+					self.sources.extend(sources)
+					if db_singleEpisodes and db_seasonPacks:
+						return self.sources
 		except:
 			log_utils.error()
 			pass
@@ -855,15 +953,63 @@ class Sources:
 			pass
 
 		try:
+			# singleEpisodes scraper call
+			if self.dev_mode and self.dev_disable_single:
+				raise Exception()
+			if db_singleEpisodes:
+				raise Exception()
 			sources = []
 			sources = call.sources(ep_url, self.hostDict, self.hostprDict)
-			if sources is not None and sources != []:
+			if sources:
 				sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
 				for i in sources:
 					i.update({'provider': source})
 				self.sources.extend(sources)
-				dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, season, episode, repr(sources), datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
+				dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, season, episode, repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 				dbcur.connection.commit()
+		except:
+			log_utils.error()
+			pass
+
+		try:
+		# seasonPacks scraper call
+			if self.dev_mode and self.dev_disable_season_packs:
+				raise Exception()
+			if self.is_airing:
+				raise Exception()
+			if self.enablePacks and source in self.packDict:
+				if db_seasonPacks:
+					raise Exception()
+				sources = []
+				sources = call.sources_packs(ep_url, self.hostDict, self.hostprDict, bypass_filter=self.dev_disable_season_filter)
+				if sources:
+					sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
+					for i in sources:
+						i.update({'provider': source})
+					self.sources.extend(sources)
+					dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, season,'', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
+					dbcur.connection.commit()
+		except:
+			log_utils.error()
+			pass
+
+		try:
+		# showPacks scraper call
+			if self.dev_mode and self.dev_disable_show_packs:
+				raise Exception()
+			if self.enablePacks and source in self.packDict:
+				if db_showPacks:
+					raise Exception()
+				sources = []
+				sources = call.sources_packs(ep_url, self.hostDict, self.hostprDict, search_series=True, total_seasons=self.total_seasons, bypass_filter=self.dev_disable_show_filter)
+				if sources:
+					sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
+					for i in sources:
+						i.update({'provider': source})
+					dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, '', '', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
+					dbcur.connection.commit()
+					sources = [i for i in sources if i.get('last_season') >= int(season)] # filter out range items that do not apply to current season
+					self.sources.extend(sources)
 		except:
 			log_utils.error()
 			pass
@@ -907,7 +1053,6 @@ class Sources:
 			self.sources = [i for i in self.sources if '3D' not in i.get('info', '')] # scrapers write 3D to info
 
 		# random.shuffle(self.sources) # why?
-
 		if control.setting('hosts.sort.provider') == 'true':
 			self.sources = sorted(self.sources, key=lambda k: k['provider'])
 
@@ -938,7 +1083,7 @@ class Sources:
 							raise Exception()
 						pmCached = self.pm_cache_chk_list(pmTorrent_List, d)
 						if control.setting('pm.remove.uncached') == 'true':
-							filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if i['source'] == 'cached torrent']
+							filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if re.match(r'cached.*torrent', i['source'])]
 						else:
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if 'magnet:' in i['url']]
 					except:
@@ -957,7 +1102,7 @@ class Sources:
 							raise Exception()
 						rdCached = self.rd_cache_chk_list(rdTorrent_List, d)
 						if control.setting('rd.remove.uncached') == 'true':
-							filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if i['source'] == 'cached torrent']
+							filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if re.match(r'cached.*torrent', i['source'])]
 						else:
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if 'magnet:' in i['url']]
 					except:
@@ -1111,6 +1256,21 @@ class Sources:
 
 
 	def sourcesResolve(self, item, info=False):
+		if 'package' in item:
+			try:
+				# meta = json.loads(control.window.getProperty(self.metaProperty))
+				meta = json.loads(self.meta)
+				if item['debrid'] == 'Real-Debrid':
+					from resources.lib.modules.realdebrid import RealDebrid
+					url = RealDebrid().resolve_magnet_pack(item['url'], item['hash'], meta['season'], meta['episode'], meta['title'])
+				elif item['debrid'] == 'Premiumize.me':
+					from resources.lib.modules.premiumize import Premiumize
+					url = Premiumize().resolve_magnet_pack(item['url'], meta['season'], meta['episode'], meta['title'])
+				self.url = url
+				return url
+			except:
+				log_utils.error()
+				return
 		try:
 			self.url = None
 			u = url = item['url']
@@ -1120,10 +1280,8 @@ class Sources:
 			provider = item['provider']
 			call = [i[1] for i in self.sourceDict if i[0] == provider][0]
 			u = url = call.resolve(url)
-
 			if url is None or ('://' not in url and not local and 'magnet:' not in url):
 				raise Exception()
-
 			if not local:
 				url = url[8:] if url.startswith('stack:') else url
 				urls = []
@@ -1137,19 +1295,15 @@ class Sources:
 							part = hmf.resolve()
 					urls.append(part)
 				url = 'stack://' + ' , '.join(urls) if len(urls) > 1 else urls[0]
-
 			if url is False or url is None:
 				raise Exception()
-
 			ext = url.split('?')[0].split('&')[0].split('|')[0].rsplit('.')[-1].replace('/', '').lower()
 			if ext == 'rar':
 				raise Exception()
-
 			try:
 				headers = url.rsplit('|', 1)[1]
 			except:
 				headers = ''
-
 			headers = quote_plus(headers).replace('%3D', '=') if ' ' in headers else headers
 			headers = dict(parse_qsl(headers))
 
@@ -1170,6 +1324,7 @@ class Sources:
 				control.notification(title='default', message='Skipping unplayable resolveURL link', icon='default', sound=self.notificationSound)
 			log_utils.error()
 			return
+
 
 	# @timeIt
 	def sourcesDialog(self, items):
@@ -1225,7 +1380,6 @@ class Sources:
 						offset = 0
 
 					m = ''
-
 					for x in range(3600):
 						try:
 							if xbmc.abortRequested:
@@ -1302,6 +1456,7 @@ class Sources:
 				pass
 			log_utils.log('Error %s' % str(e), __name__, log_utils.LOGNOTICE)
 
+
 	# @timeIt
 	def sourcesDirect(self, items):
 		filter = [i for i in items if i['source'] in self.hostcapDict and i['debrid'] == '']
@@ -1358,6 +1513,74 @@ class Sources:
 		return u
 
 
+	def debridPackDialog(self, provider, name, magnet_url, info_hash):
+		try:
+			if provider == 'Real-Debrid':
+				from resources.lib.modules.realdebrid import RealDebrid as debrid_function
+			elif provider == 'Premiumize.me':
+				from resources.lib.modules.premiumize import Premiumize as debrid_function
+
+			debrid_files = None
+			control.busy()
+
+			try: debrid_files = debrid_function().display_magnet_pack(magnet_url, info_hash)
+			except: pass
+
+			if not debrid_files:
+				control.hide()
+				return control.notification(message='Error with Debrid Pack')
+
+			debrid_files = sorted(debrid_files, key=lambda k: k['filename'].lower())
+
+			display_list = ['%02d | [B]%.2f GB[/B] | [I]%s[/I]' % \
+							(count,
+							i['size'],
+							i['filename'].upper()) for count, i in enumerate(debrid_files, 1)]
+
+			control.hide()
+
+			chosen = control.selectDialog(display_list, heading=name)
+			if chosen < 0:
+				return None
+
+			chosen_result = debrid_files[chosen]
+
+			if provider  == 'Real-Debrid':
+				self.url = debrid_function().unrestrict_link(chosen_result['link'])
+			elif provider == 'Premiumize.me':
+				self.url = debrid_function().add_headers_to_url(chosen_result['link'])
+
+			from resources.lib.modules import player
+			from resources.lib.modules.source_utils import seas_ep_filter
+
+			meta = control.window.getProperty(self.metaProperty)
+			meta = json.loads(meta)
+			# meta = json.loads(self.meta)
+
+			title = meta['tvshowtitle']
+			year = meta['year'] if 'year' in meta else None
+
+			if 'tvshowtitle' in meta:
+				year = meta['tvshowyear'] if 'tvshowyear' in meta else year
+
+			season = meta['season'] if 'season' in meta else None
+			episode = meta['episode'] if 'episode' in meta else None
+
+			imdb = meta['imdb'] if 'imdb' in meta else None
+			tvdb = meta['tvdb'] if 'tvdb' in meta else None
+
+			release_title = re.sub('[^A-Za-z0-9]+', '.', unquote(chosen_result['filename'])).lower()
+
+			if seas_ep_filter(season, episode, release_title):
+				return player.Player().play_source(title, year, season, episode, imdb, tvdb, self.url, meta, select='1')
+			else:
+				return player.Player().play(self.url)
+
+		except Exception as e:
+			control.hide()
+			log_utils.log('Error debridPackDialog %s' % str(e), __name__, log_utils.LOGNOTICE)
+
+
 	def errorForSources(self):
 		try:
 			control.sleep(200) # added 5/14
@@ -1369,6 +1592,7 @@ class Sources:
 			control.cancelPlayback()
 		except:
 			log_utils.error()
+
 
 	def getLanguage(self):
 		langDict = {
@@ -1402,7 +1626,9 @@ class Sources:
 			if not t:
 				return []
 			t = [i for i in t if i.get('country', '').lower() in [lang, '', 'us'] and i.get('title', '').lower() != localtitle.lower()]
-			return t
+			# t = [i['title'] for i in t if i.get('country', '').lower() in [lang, '', 'us'] and i.get('title', '').lower() != localtitle.lower()]
+			# return t
+			return json.dumps(t)
 		except:
 			log_utils.error()
 			return []
@@ -1426,9 +1652,12 @@ class Sources:
 	def getConstants(self):
 		self.itemProperty = 'plugin.video.venom.container.items'
 		self.metaProperty = 'plugin.video.venom.container.meta'
-		from openscrapers import sources
 
+		from openscrapers import sources
 		self.sourceDict = sources()
+
+		from openscrapers import pack_sources
+		self.packDict = pack_sources()
 
 		try:
 			self.hostDict = resolveurl.relevant_resolvers(order_matters=True)
@@ -1458,7 +1687,6 @@ class Sources:
 									'streamdreams', 'timewatch', 'xwatchseries', 'ganool', 'maxrls', 'mkvhub', 'rapidmoviez', 'rlsbb', 'scenerls', 'tvdownload', 'btdb',
 									'extratorrent', 'limetorrents', 'moviemagnet', 'torrentgalaxy', 'torrentz']
 
-
 	# @timeIt
 	def filter_dupes(self):
 		filter = []
@@ -1468,11 +1696,11 @@ class Sources:
 				try:
 					b = sublist['url'].lower()
 					if 'magnet:' in a and debrid.status():
-						info_hash = re.search('magnet:.+?urn:\w+:([a-z0-9]+)', a)
-						# info_hash = i['hash'].lower()
+						# info_hash = re.search('magnet:.+?urn:\w+:([a-z0-9]+)', a)
+						info_hash = i['hash'].lower()
 						if info_hash:
-							if info_hash.group(1) in b:
-							# if info_hash in b:
+							# if info_hash.group(1) in b:
+							if info_hash in b:
 								filter.remove(sublist)
 								if control.setting('remove.duplicates.logging') != 'true':
 									log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), log_utils.LOGDEBUG)
@@ -1501,9 +1729,15 @@ class Sources:
 			count = 0
 			for i in torrent_List:
 				if cached[count] is False:
-					i.update({'source': 'uncached torrent'})
+					if 'package' in i:
+						i.update({'source': 'uncached (pack) torrent'})
+					else:
+						i.update({'source': 'uncached torrent'})
 				else:
-					i.update({'source': 'cached torrent'})
+					if 'package' in i:
+						i.update({'source': 'cached (pack) torrent'})
+					else:
+						i.update({'source': 'cached torrent'})
 				count += 1
 			return torrent_List
 		except:
@@ -1519,12 +1753,21 @@ class Sources:
 			cached = realdebrid.RealDebrid().check_cache_list(hashList)
 			for i in torrent_List:
 				if 'rd' not in cached.get(i['hash'].lower(), {}):
-					i.update({'source': 'uncached torrent'})
+					if 'package' in i:
+						i.update({'source': 'uncached (pack) torrent'})
+					else:
+						i.update({'source': 'uncached torrent'})
 					continue
 				elif len(cached[i['hash'].lower()]['rd']) >= 1:
-					i.update({'source': 'cached torrent'})
+					if 'package' in i:
+						i.update({'source': 'cached (pack) torrent'})
+					else:
+						i.update({'source': 'cached torrent'})
 				else:
-					i.update({'source': 'uncached torrent'})
+					if 'package' in i:
+						i.update({'source': 'uncached (pack) torrent'})
+					else:
+						i.update({'source': 'uncached torrent'})
 			return torrent_List
 		except:
 			log_utils.error()
@@ -1539,13 +1782,90 @@ class Sources:
 			dbcon = database.connect(self.sourceFile)
 			dbcur = dbcon.cursor()
 			dbcur.execute("SELECT count(name) FROM sqlite_master WHERE type='table' AND name='rel_url'")
-			if dbcur.fetchone()[0] == 1: # table exists so both will exist
+			if dbcur.fetchone()[0] == 1: # table exists so both all will
 				dbcur.execute(
-					"DELETE FROM rel_url WHERE imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (imdb, season, episode))
+					"DELETE FROM rel_url WHERE imdb_id = '%s'" % imdb)
 				dbcur.execute(
-					"DELETE FROM rel_src WHERE imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (imdb, season, episode))
+					"DELETE FROM rel_src WHERE imdb_id = '%s'" % imdb)
 				dbcur.connection.commit()
 				dbcon.close()
 		except:
 			log_utils.error()
 			pass
+
+
+	def movie_chk_imdb(self, imdb, title, year):
+		try:
+			if not imdb or imdb == '0':
+				raise Exception()
+			result = client.request('https://www.imdb.com/title/%s/' % imdb)
+			result = client.parseDOM(result, 'meta', attrs={'name': 'title'}, ret='content')[0].encode('utf-8')
+			title_ck = re.sub(r'\s\((?:19|20)[0-9]{2}.+', '', result)
+			year_ck = re.findall('(?:19|20)[0-9]{2}', result)[0]
+			year_ck = year_ck.encode('utf-8')
+			if not year_ck or not title_ck:
+				raise Exception()
+			if year != year_ck:
+				year = year_ck
+			if title != title_ck:
+				title = title_ck
+			return year, title
+		except:
+			log_utils.error()
+			return year, title
+
+
+	def tmdbhelper_fix(self, imdb):
+		try:
+			if not imdb or imdb == '0':
+				raise Exception()
+			result = client.request('https://www.imdb.com/title/%s/' % imdb)
+			result = client.parseDOM(result, 'meta', attrs={'name': 'title'}, ret='content')[0].encode('utf-8')
+			year_ck = re.findall('(?:19|20)[0-9]{2}', result)[0]
+			return year_ck
+		except:
+			log_utils.error()
+			return year
+
+
+	def get_season_info(self, imdb, tvdb, meta, season):
+		try:
+			if not isinstance(meta, dict):
+				meta_data = json.loads(meta)
+			else:
+				meta_data = meta
+			total_seasons = meta_data.get('total_seasons')
+			is_airing = meta_data.get('is_airing')
+
+			if not total_seasons or is_airing is None:
+				imdb_user = control.setting('imdb.user').replace('ur', '')
+				tvdb_key_list = [
+					'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
+					'MUQ2MkYyRjkwMDMwQzQ0NA==',
+					'N1I4U1paWDkwVUE5WU1CVQ==']
+				tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
+				user = str(imdb_user) + str(tvdb_key)
+				meta_lang = control.apiLanguage()['tvdb']
+				ids = [{'imdb': imdb, 'tvdb': tvdb}]
+				meta2 = metacache.fetch(ids, meta_lang, user)[0]
+				if not total_seasons:
+					total_seasons = meta2.get('total_seasons', None)
+				if is_airing is None:
+					is_airing = meta2.get('is_airing', None)
+
+				if not total_seasons:
+					total_seasons = trakt.getSeasons(imdb, full=False)
+					if total_seasons:
+						total_seasons = [i['number'] for i in total_seasons]
+						season_special = True if 0 in total_seasons else False
+						total_seasons = len(total_seasons)
+						if season_special:
+							total_seasons = total_seasons - 1
+
+				if is_airing is None:
+					from resources.lib.indexers import tvdb_v1
+					is_airing = tvdb_v1.get_is_airing(tvdb, season)
+			return total_seasons, is_airing
+		except:
+			log_utils.error()
+			return None, None

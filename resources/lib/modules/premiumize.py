@@ -6,10 +6,11 @@
 
 import re
 import requests
+import json
 try:
-	from urllib import quote_plus, urlencode
+	from urllib import quote_plus, urlencode, unquote
 except:
-	from urllib.parse import quote_plus, urlencode
+	from urllib.parse import quote_plus, urlencode, unquote
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -127,6 +128,82 @@ class Premiumize:
 		return False
 
 
+	def resolve_magnet_pack(self, media_id, season, episode, ep_title):
+		from resources.lib.modules.source_utils import seas_ep_filter, episode_extras_filter, supported_video_extensions
+		try:
+
+			file_url = None
+			correct_files = []
+			
+			extensions = supported_video_extensions()
+			extras_filtering_list = episode_extras_filter()
+			
+			data = {'src': media_id}
+			url = '%s/transfer/directdl' % BaseUrl
+			result = requests.post(url, data=data, headers=self.headers, timeout=5).text
+			result = json.loads(result)
+			
+			if not 'status' in result or result['status'] != 'success': return None
+			
+			valid_results = [i for i in result.get('content')if any(i.get('path').lower().endswith(x) for x in extensions) and not i.get('link', '') == '']
+			if len(valid_results) == 0: return
+
+			for item in valid_results:
+
+				if seas_ep_filter(season, episode, re.sub('[^A-Za-z0-9]+', '.', unquote(item['path'].split('/')[-1])).lower()):
+					correct_files.append(item)
+				
+				if len(correct_files) == 0: continue
+				
+				episode_title = re.sub('[^A-Za-z0-9]+', '.', ep_title).lower()
+				
+				for i in correct_files:
+					
+					compare_link = re.sub('[^A-Za-z0-9]+', '.', unquote(i['path'])).lower()
+					compare_link = seas_ep_filter(season, episode, compare_link, split=True)
+					compare_link = re.sub(episode_title, '', compare_link)
+					
+					if not any(x in compare_link for x in extras_filtering_list):
+						file_url = i['link']
+						break
+			
+			if file_url:
+				return self.add_headers_to_url(file_url)
+		
+		except Exception as e:
+			log_utils.log('Error resolve_magnet_pack: %s' % str(e), __name__, log_utils.LOGDEBUG)
+			return None
+
+
+	def display_magnet_pack(self, magnet_url, info_hash):
+		from resources.lib.modules.source_utils import supported_video_extensions
+		try:
+			end_results = []
+			extensions = supported_video_extensions()
+			
+			data = {'src': magnet_url}
+			url = '%s/transfer/directdl' % BaseUrl
+			result = requests.post(url, data=data, headers=self.headers, timeout=5).text
+			result = json.loads(result)
+			
+			if not 'status' in result or result['status'] != 'success': return None
+			
+			for item in result.get('content'):
+				if any(item.get('path').lower().endswith(x) for x in extensions) and not item.get('link', '') == '':
+					try: path = item['path'].split('/')[-1]
+					except: path = item['path']
+					end_results.append({'link': item['link'], 'filename': path, 'size': float(item['size'])/1073741824})
+			
+			return end_results
+		except Exception as e:
+			log_utils.log('Error display_magnet_pack: %s' % str(e), __name__, log_utils.LOGDEBUG)
+			return None
+	
+
+	def add_headers_to_url(self, url):
+		return url + '|' + urlencode(self.headers)
+
+
 	def check_cache_item(self, media_id):
 		try:
 			media_id = media_id.encode('ascii', errors='ignore').decode('ascii', errors='ignore')
@@ -176,3 +253,4 @@ class Premiumize:
 				log_utils.error()
 				pass
 		return ""
+

@@ -7,6 +7,10 @@
 import json
 import re
 import requests
+try:
+	from urllib import unquote
+except:
+	from urllib.parse import unquote
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -15,7 +19,6 @@ try:
 	from resolveurl.plugins.realdebrid import RealDebridResolver
 except:
 	pass
-
 
 CLIENT_ID = 'X245A4XAIBGVM'
 USER_AGENT = 'ResolveURL for Kodi/%s' % control.getKodiVersion()
@@ -58,13 +61,31 @@ class RealDebrid:
 		else:
 			url += "&auth_token=%s" % self.token
 
-		response = requests.get(url, timeout=5).text
+		response = requests.get(url, timeout=12).text
 
 		if 'bad_token' in response or 'Bad Request' in response:
 			if not fail_check:
 				if self.refresh_token() and token_ck:
 					return
 				response = self.get_url(original_url, fail_check=True)
+		try:
+			return json.loads(response)
+		except:
+			return response
+
+
+	def post_url(self, url, data):
+		original_url = url
+		url = rest_base_url + url
+		if self.token == '': return None
+		if '?' not in url:
+			url += "?auth_token=%s" % self.token
+		else:
+			url += "&auth_token=%s" % self.token
+		response = requests.post(url, data=data, timeout=5).text
+		if 'bad_token' in response or 'Bad Request' in response:
+			self.refresh_token()
+			response = self.post_url(original_url, data)
 		try:
 			return json.loads(response)
 		except:
@@ -100,12 +121,149 @@ class RealDebrid:
 			pass
 
 
+	def resolve_magnet_pack(self, media_id, info_hash, season, episode, ep_title):
+		from resources.lib.modules.source_utils import seas_ep_filter, episode_extras_filter, supported_video_extensions
+		try:
+			info_hash = info_hash.lower()
+			torrent_id = None
+			rd_url = None
+			match = False
+
+			extensions = supported_video_extensions()
+			extras_filtering_list = episode_extras_filter()
+
+			info_hash = info_hash.lower()
+
+			torrent_files = self.get_url(check_cache_path + '/' + info_hash)
+			if not info_hash in torrent_files: return None
+
+			torrent_id = self.__add_magnet(media_id)
+
+			torrent_files = torrent_files[info_hash]['rd']
+
+			for item in torrent_files:
+
+				video_only = self.__video_only(item, extensions)
+				if not video_only: continue
+
+				correct_file_check = False
+				
+				item_values = [i['filename'] for i in item.values()]
+				
+				for value in item_values:
+					correct_file_check = seas_ep_filter(season, episode, re.sub('[^A-Za-z0-9]+', '.', unquote(value)).lower())
+					if correct_file_check: break
+				
+				if not correct_file_check: continue
+
+				torrent_keys = item.keys()
+				if len(torrent_keys) == 0:
+					continue
+				
+				torrent_keys = ','.join(torrent_keys)
+
+				self.__select_file(torrent_id, torrent_keys)
+
+				torrent_info = self.__torrent_info(torrent_id)
+
+				selected_files = [(idx, i) for idx, i in enumerate([i for i in torrent_info['files'] if i['selected'] == 1])]
+				
+				correct_files = []
+				correct_file_check = False
+				
+				for value in selected_files:
+					checker = re.sub('[^A-Za-z0-9]+', '.', unquote(value[1]['path'])).lower()
+					correct_file_check = seas_ep_filter(season, episode, checker)
+					if correct_file_check:
+						correct_files.append(value[1])
+						break
+				
+				if len(correct_files) == 0: continue				
+				
+				episode_title = re.sub('[^A-Za-z0-9]+', '.', ep_title).lower()
+				
+				for i in correct_files:
+					compare_link = re.sub('[^A-Za-z0-9]+', '.', unquote(i['path'])).lower()
+					compare_link = seas_ep_filter(season, episode, compare_link, split=True)
+					compare_link = re.sub(episode_title, '', compare_link)
+					
+					if any(x in compare_link for x in extras_filtering_list):
+						continue
+					else:
+						match = True
+						break
+				
+				if match:
+					index = [i[0] for i in selected_files if i[1]['path'] == correct_files[0]['path']][0]
+
+
+				rd_link = torrent_info['links'][index]
+				rd_url = self.__unrestrict_link(rd_link)
+
+				self.__delete_torrent(torrent_id)
+				
+				return rd_url
+
+			self.__delete_torrent(torrent_id)
+		except Exception as e:
+			if torrent_id: self.__delete_torrent(torrent_id)
+			log_utils.log('Real-Debrid Error: RESOLVE MAGNET PACK | %s' % e, __name__, log_utils.LOGDEBUG)
+			raise
+
+
+	def display_magnet_pack(self, magnet_url, info_hash):
+		from resources.lib.modules.source_utils import supported_video_extensions
+		try:
+			torrent_id = None
+			rd_url = None
+			match = False
+			video_only_items = []
+			list_file_items = []
+			info_hash = info_hash.lower()
+			extensions = supported_video_extensions()
+
+			torrent_files = self.get_url(check_cache_path + '/' + info_hash)
+			if not info_hash in torrent_files: return None
+
+			torrent_id = self.__add_magnet(magnet_url)
+			if not torrent_id: return None
+
+			torrent_files = torrent_files[info_hash]['rd']
+
+			for item in torrent_files:
+
+				video_only = self.__video_only(item, extensions)
+				if not video_only: continue
+
+				torrent_keys = item.keys()
+				if len(torrent_keys) == 0: continue
+
+				video_only_items.append(torrent_keys)
+
+			video_only_items = max(video_only_items, key=len)
+
+			torrent_keys = ','.join(video_only_items)
+
+			self.__select_file(torrent_id, torrent_keys)
+
+			torrent_info = self.__torrent_info(torrent_id)
+
+			list_file_items = [dict(i, **{'link':torrent_info['links'][idx]})  for idx, i in enumerate([i for i in torrent_info['files'] if i['selected'] == 1])]
+			list_file_items = [{'link': i['link'], 'filename': i['path'].replace('/', ''), 'size': float(i['bytes'])/1073741824} for i in list_file_items]
+
+			self.__delete_torrent(torrent_id)
+
+			return list_file_items
+		except Exception as e:
+			if torrent_id: self.__delete_torrent(torrent_id)
+			log_utils.log('Real-Debrid Error: DISPLAY MAGNET PACK | %s' % str(e), __name__, log_utils.LOGDEBUG)
+			raise
+
+
 	def __torrent_info(self, torrent_id):
 		try:
-			url = '%s/%s/%s' % (rest_base_url, torrents_info_path, torrent_id)
-			result = self.net.http_GET(url, headers=self.headers).content
-			js_result = json.loads(result)
-			return js_result
+			url = torrents_info_path + "/%s" % torrent_id
+			return self.get_url(url)
 		except Exception as e:
 			log_utils.log('Real-Debrid Error: TORRENT INFO | %s' % e, __name__, log_utils.LOGDEBUG)
 			raise
@@ -113,10 +271,8 @@ class RealDebrid:
 
 	def __add_magnet(self, media_id):
 		try:
-			url = '%s/%s' % (rest_base_url, add_magnet_path)
 			data = {'magnet': media_id}
-			result = self.net.http_POST(url, form_data=data, headers=self.headers).content
-			js_result = json.loads(result)
+			js_result = self.post_url(add_magnet_path, data)
 			log_utils.log('Real-Debrid: Sending MAGNET URL to the real-debrid cloud', __name__, log_utils.LOGDEBUG)
 			return js_result.get('id', "")
 		except Exception as e:
@@ -126,9 +282,9 @@ class RealDebrid:
 
 	def __select_file(self, torrent_id, file_id):
 		try:
-			url = '%s/%s/%s' % (rest_base_url, select_files_path, torrent_id)
+			url = '%s/%s' % (select_files_path, torrent_id)
 			data = {'files': file_id}
-			self.net.http_POST(url, form_data=data, headers=self.headers)
+			self.post_url(url, data)
 			log_utils.log('Real-Debrid: Selected file ID %s from Torrent ID %s to transfer' % (file_id, torrent_id), __name__, log_utils.LOGDEBUG)
 			return True
 		except Exception as e:
@@ -136,11 +292,20 @@ class RealDebrid:
 			return False
 
 
+	def unrestrict_link(self, link):
+		return self.__unrestrict_link(link)
+
+	def __unrestrict_link(self, link):
+		post_data = {'link': link}
+		response = self.post_url(unrestrict_link_path, post_data)
+		try: return response['download']
+		except: return None
+
+
 	def __delete_torrent(self, torrent_id):
 		try:
-			url = '%s/%s/%s' % (rest_base_url, torrents_delete_path, torrent_id)
-			self.net.http_DELETE(url, headers=self.headers)
-
+			url = torrents_delete_path + "/%s&auth_token=%s" % (torrent_id, self.token)
+			response = requests.delete(rest_base_url + url)
 			log_utils.log('Real-Debrid: Torrent ID %s was removed from your active torrents' % torrent_id, __name__, log_utils.LOGDEBUG)
 			return True
 		except Exception as e:
@@ -155,6 +320,11 @@ class RealDebrid:
 			else:
 				label = link['download']
 			return label, link['download']
+
+
+	def __video_only(self, storage_variant, extensions):
+		#from Seren
+		return False if len([i for i in storage_variant.values() if not i['filename'].lower().endswith(tuple(extensions))]) > 0 else True
 
 
 	# SiteAuth methods
@@ -180,6 +350,7 @@ class RealDebrid:
 				return True
 		except:
 			return False
+
 
 	def authorize_resolver(self):
 		url = '%s/%s?client_id=%s&new_credentials=yes' % (oauth_base_url, device_endpoint_path, CLIENT_ID)
@@ -309,6 +480,8 @@ class RealDebrid:
 		xml.append('<setting id="%s_client_secret" visible="false" type="text" default=""/>' % cls.__name__)
 		return xml
 
+
 	@classmethod
 	def isUniversal(cls):
 		return True
+

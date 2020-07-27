@@ -1088,7 +1088,7 @@ def SearchEpisode(title, season, episode, full=True):
 def getGenre(content, type, type_id):
 	try:
 		r = '/search/%s/%s?type=%s&extended=full' % (type, type_id, content)
-		r = cache.get(getTraktAsJson, 48, r)
+		r = cache.get(getTraktAsJson, 96, r)
 		r = r[0].get(content, {}).get('genres', [])
 		return r
 	except:
@@ -1099,7 +1099,7 @@ def getGenre(content, type, type_id):
 def IdLookup(id_type, id, type):
 	try:
 		r = '/search/%s/%s?type=%s' % (id_type, id, type)
-		r = cache.get(getTraktAsJson, 48, r)
+		r = cache.get(getTraktAsJson, 96, r)
 		if not r:
 			return None
 		return r[0].get(type).get('ids')

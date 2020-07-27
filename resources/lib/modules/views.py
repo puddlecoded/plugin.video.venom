@@ -89,7 +89,6 @@ def setView(content, viewDict=None):
 				view = view[2]
 				return control.execute('Container.SetViewMode(%s)' % str(view))
 			except:
-				log_utils.error()
 				try:
 					if skin not in viewDict:
 						return

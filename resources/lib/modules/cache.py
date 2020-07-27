@@ -168,6 +168,7 @@ def cache_clear_all():
 def cache_clear_providers():
 	cursor = _get_connection_cursor_providers()
 	for t in ['cache', 'rel_src', 'rel_url']:
+	# for t in ['cache', 'rel_src', 'rel_url', 'rel_src_seasonPack', 'rel_src_showPack']:
 		try:
 			cursor.execute("DROP TABLE IF EXISTS %s" % t)
 			cursor.execute("VACUUM")

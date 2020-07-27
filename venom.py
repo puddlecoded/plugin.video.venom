@@ -40,6 +40,9 @@ source = params.get('source')
 content = params.get('content')
 table = params.get('table')
 list_name = params.get('list_name')
+provider = params.get('provider')
+magnet_url = params.get('magnet_url')
+info_hash = params.get('info_hash')
 
 windowedtrailer = params.get('windowedtrailer')
 windowedtrailer = int(windowedtrailer) if windowedtrailer in ("0","1") else 0
@@ -85,7 +88,6 @@ elif action == 'ShowChangelog':
 elif action == 'ShowHelp':
 	from resources.help import help
 	help.get(name)
-	control.sleep(200)
 	control.openSettings(query)
 
 
@@ -615,6 +617,10 @@ elif action == 'alterSources':
 elif action == 'trailer':
 	from resources.lib.modules import trailer
 	trailer.Trailer().play(type, name, year, url, imdb, windowedtrailer)
+
+elif action == 'showDebridPack':
+	from resources.lib.modules.sources import Sources
+	Sources().debridPackDialog(provider, name, magnet_url, info_hash) 
 
 elif action == 'random':
 	rtype = params.get('rtype')

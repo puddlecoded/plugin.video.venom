@@ -118,6 +118,7 @@ def cache_insert(key, value):
 def cache_clear_providers():
 	cursor = _get_connection_cursor()
 	for t in ['cache', 'rel_src', 'rel_url']:
+	# for t in ['cache', 'rel_src', 'rel_url', 'rel_src_seasonPack', 'rel_src_showPack']:
 		try:
 			cursor.execute("DROP TABLE IF EXISTS %s" % t)
 			cursor.execute("VACUUM")

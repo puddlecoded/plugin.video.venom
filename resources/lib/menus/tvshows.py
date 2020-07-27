@@ -61,6 +61,7 @@ class TVshows:
 		self.user = str(self.imdb_user) + str(self.tvdb_key)
 
 		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/%s.xml' % (self.tvdb_key.decode('base64'), '%s', '%s')
+		self.tvdb_all_info_link = 'https://thetvdb.com/api/%s/series/%s/all/%s.xml' % (self.tvdb_key.decode('base64'), '%s', '%s')
 		self.tvdb_by_query = 'https://thetvdb.com/api/GetSeries.php?seriesname=%s'
 		self.tvdb_by_imdb = 'https://thetvdb.com/api/GetSeriesByRemoteID.php?imdbid=%s'
 		self.tvdb_image = 'https://thetvdb.com/banners/'
@@ -1109,9 +1110,10 @@ class TVshows:
 			if tvdb == '0' or tvdb is None:
 				return
 
-			url = self.tvdb_info_link % (tvdb, self.lang)
-			item = requests.get(url).content
+			# url = self.tvdb_info_link % (tvdb, self.lang)
+			url = self.tvdb_all_info_link % (tvdb, self.lang)
 
+			item = requests.get(url).content
 			if imdb == '0':
 				try:
 					imdb = client.parseDOM(item, 'IMDB_ID')[0]
@@ -1167,6 +1169,16 @@ class TVshows:
 				mpaa = client.parseDOM(item, 'ContentRating')[0]
 			else:
 				mpaa = self.list[i]['mpaa']
+
+			try:
+				seasons = client.parseDOM(item, 'SeasonNumber')
+				seasons_list = [] 
+				[seasons_list.append(x) for x in seasons if x not in seasons_list and x != '0'] 
+				total_seasons = len(seasons_list)
+			except:
+				total_seasons = ''
+				log_utils.error()
+				pass
 
 			if 'castandart' not in self.list[i] or self.list[i]['castandart'] == []:
 				url2 = self.tvdb_info_link % (tvdb, 'actors')
@@ -1240,13 +1252,14 @@ class TVshows:
 			else:
 				fanart = self.list[i]['fanart']
 
-			item = {'extended': True, 'tvshowtitle': title, 'title': title, 'tvshowyear': year, 'year': year, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration,
-						'rating': rating, 'votes': votes, 'mpaa': mpaa, 'castandart': castandart, 'plot': plot, 'status': status, 'poster': poster, 'poster2': '0', 'poster3': '0', 'banner': banner,
-						'banner2': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0', 'landscape': fanart, 'metacache': False}
-
+			item = {'extended': True, 'tvshowtitle': title, 'title': title, 'tvshowyear': year, 'year': year, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb,
+						'total_seasons': total_seasons, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating,
+						'votes': votes, 'mpaa': mpaa, 'castandart': castandart, 'plot': plot, 'status': status, 'poster': poster, 'poster2': '0', 'poster3': '0',
+						'banner': banner, 'banner2': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0',
+						'landscape': fanart, 'metacache': False}
 			meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'lang': self.lang, 'user': self.user, 'item': item}
 
-			if (poster == '0' or fanart == '0') or (self.disable_fanarttv != 'true'):
+			if self.disable_fanarttv != 'true':
 				if tvdb is not None and tvdb != '0':
 					from resources.lib.indexers import fanarttv
 					extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
@@ -1284,15 +1297,11 @@ class TVshows:
 			sys.exit()
 
 		settingFanart = control.setting('fanart')
-
 		addonPoster = control.addonPoster()
 		addonFanart = control.addonFanart()
 		addonBanner = control.addonBanner()
-
 		indicators = playcount.getTVShowIndicators()
-
 		unwatchedEnabled = control.setting('tvshows.unwatched.enabled') == 'true'
-		seasoncountEnabled = control.setting('tvshows.seasoncount.enabled') == 'true'
 		flatten = control.setting('flatten.tvshows') == 'true'
 
 		if trakt.getTraktIndicatorsInfo():
@@ -1421,15 +1430,8 @@ class TVshows:
 						item.setProperty('WatchedEpisodes', str(count['watched']))
 						item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
 
-				if seasoncountEnabled and self.traktCredentials:
-					total_seasons = trakt.getSeasons(imdb, full=False)
-					if total_seasons:
-						total_seasons = [i['number'] for i in total_seasons]
-						season_special = True if 0 in total_seasons else False
-						total_seasons = len(total_seasons)
-						if control.setting('tv.specials') == 'false' and season_special:
-							total_seasons = total_seasons - 1
-						item.setProperty('TotalSeasons', str(total_seasons))
+				if 'total_seasons' in meta:
+					item.setProperty('TotalSeasons', str(meta.get('total_seasons')))
 
 				item.setArt(art)
 				item.setProperty('IsPlayable', 'false')

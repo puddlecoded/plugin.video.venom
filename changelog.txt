@@ -1,3 +1,39 @@
+[B][COLOR red]Update - v4.0 - July 26, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Pack scraping support added.  This is off by default so
+    enable under "Source Options". Resolving support for
+    RD and PM only at this time.  Special thanks to Tikipeter
+    for his collaboration in this project!!![/I]
+[COLOR yellow]--[/COLOR][I] Added "is_airing" for seasons containing unaired
+    episodes. This flag will avoid seasonPack scraping for
+    seasons that are still airing, which returns nothing
+    but incomplete season packs anyway.[/I]
+[COLOR yellow]--[/COLOR][I] Added the ability to view pack files via context menu
+    option courtesy of TikiPeter. You can pick and play
+    any video content.[/I]
+[COLOR yellow]--[/COLOR][I] Added "Dev mode" to "Debugging" settings section.
+    Please DO NOT USE.  This is for my own testing of
+    scrapers to enable or disable and isolate issues.  I
+    will not field questions or speak of this section.[/I]
+[COLOR yellow]--[/COLOR][I] Added IMDb check for titles and year, just prior to
+    scraping.  A number of titles the meta from trakt and
+    tmdb differ from IMDb by a year, ex.
+    "Dragged Across Concrete" and "Oculus".  Some titles also differ,
+    ex. "Star Wars: The Rise of Skywalker" vs.
+    "Star Wars: Episode IX - The Rise of Skywalker".[/I]
+[COLOR yellow]--[/COLOR][I] Season count is now hard coded ON.  Previously
+    a trakt api request was used to fetch total season
+    and the need to disable for speed was apparent.
+    Now the season count is parsed from and counted
+    from the tvdb v1 api xml files already received so
+    there is no longer a need to disable.[/I]
+[COLOR yellow]--[/COLOR][I] Removed Season0 from season count when option is
+    enabled.  Season count will no longer include
+    Season0 regardless of setting.[/I]
+[COLOR yellow]--[/COLOR][I] Changed TV Specials (Season0) to default "false"(off).[/I]
+[COLOR yellow]--[/COLOR][I] Fixed  function cache scraping from library .strm files.[/I]
+[COLOR yellow]--[/COLOR][I] Added alias title check matching to scraped query results[/I]
+
+
 [B][COLOR red]Update - v3.7.4 - June 27, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Added new ability to show "Help" file text for settings options
     deemed confusing.  I will add more upon request[/I]

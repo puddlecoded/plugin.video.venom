@@ -5,18 +5,28 @@
 """
 
 import base64
-import cookielib
 import gzip
 import random
 import re
-import StringIO
 import sys
 import time
-import urllib2
+# import urllib2
+try:
+	import cookielib
+except:
+	import http.cookiejar as cookielib
 try:
 	from HTMLParser import HTMLParser
 except:
 	from html.parser import HTMLParser
+try:
+	from StringIO import StringIO
+except:
+	from io import StringIO
+try:
+	import urllib2
+except:
+	import urllib.request as urllib2
 try:
 	from urllib import quote_plus, urlencode
 	from urlparse import parse_qs, urlparse, urljoin
@@ -143,7 +153,7 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 						encoding = None
 
 					if encoding == 'gzip':
-						cf_result = gzip.GzipFile(fileobj=StringIO.StringIO(cf_result)).read()
+						cf_result = gzip.GzipFile(fileobj=StringIO(cf_result)).read()
 
 					if flare and 'cloudflare' in str(response.info()).lower():
 						try:
@@ -236,8 +246,7 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 			encoding = None
 
 		if encoding == 'gzip':
-			result = gzip.GzipFile(fileobj=StringIO.StringIO(result)).read()
-
+			result = gzip.GzipFile(fileobj=StringIO(result)).read()
 
 		if 'sucuri_cloudproxy_js' in result:
 			su = sucuri().get(result)
@@ -261,7 +270,7 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 			except:
 				encoding = None
 			if encoding == 'gzip':
-				result = gzip.GzipFile(fileobj=StringIO.StringIO(result)).read()
+				result = gzip.GzipFile(fileobj=StringIO(result)).read()
 
 		if 'Blazingfast.io' in result and 'xhr.open' in result:
 			netloc = '%s://%s' % (urlparse(url).scheme, urlparse(url).netloc)
@@ -299,7 +308,7 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 			return result
 
 	except Exception as e:
-		log_utils.error()
+		# log_utils.error()
 		log_utils.log('Request-Error: (%s) => %s' % (str(e), url), log_utils.LOGDEBUG)
 		return None
 
@@ -348,7 +357,7 @@ def _get_result(response, limit=None):
 	except:
 		encoding = None
 	if encoding == 'gzip':
-		result = gzip.GzipFile(fileobj=StringIO.StringIO(result)).read()
+		result = gzip.GzipFile(fileobj=StringIO(result)).read()
 
 	return result
 
@@ -437,7 +446,7 @@ class cfcookie:
 				except:
 					encoding = None
 				if encoding == 'gzip':
-					result = gzip.GzipFile(fileobj=StringIO.StringIO(result)).read()
+					result = gzip.GzipFile(fileobj=StringIO(result)).read()
 
 			jschl = re.findall('name="jschl_vc" value="(.+?)"/>', result)[0]
 			init = re.findall('setTimeout\(function\(\){\s*.*?.*:(.*?)};', result)[-1]

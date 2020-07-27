@@ -1107,7 +1107,15 @@ class Movies:
 			except:
 				originaltitle = title
 
-			year = str(item.get('release_date')[:4])
+#add these
+			# aliases = item.get('alternative_titles').get('titles')
+			# log_utils.log('aliases = %s' % str(aliases), __name__, log_utils.LOGDEBUG)
+
+
+			if 'year' not in self.list[i] or self.list[i]['year'] == '0':
+				year = str(item.get('release_date')[:4])
+			else:
+				year = self.list[i]['year'] or '0'
 
 			if imdb == '0' or imdb is None:
 				imdb = item.get('imdb_id', '0')

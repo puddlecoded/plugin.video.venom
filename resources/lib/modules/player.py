@@ -62,7 +62,6 @@ class Player(xbmc.Player):
 				control.cancelPlayback()
 				raise Exception
 
-			control.sleep(200)
 			self.media_type = 'movie' if season is None or episode is None else 'episode'
 			self.title = title
 			self.year = str(year)
@@ -95,7 +94,11 @@ class Player(xbmc.Player):
 			self.tmdb_key = control.setting('tm.user')
 			if self.tmdb_key == '' or self.tmdb_key is None:
 				self.tmdb_key = '3320855e65a9758297fec4f7c9717698'
-			self.tvdb_key = 'N1I4U1paWDkwVUE5WU1CVQ=='
+			tvdb_key_list = [
+				'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
+				'MUQ2MkYyRjkwMDMwQzQ0NA==',
+				'N1I4U1paWDkwVUE5WU1CVQ==']
+			self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
 
 			if self.media_type == 'episode':
 				self.user = str(self.imdb_user) + str(self.tvdb_key)
