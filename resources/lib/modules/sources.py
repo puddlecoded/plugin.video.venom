@@ -95,9 +95,10 @@ class Sources:
 	def play(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=None):
 		control.busy()
 		try:
+			control.window.clearProperty(self.metaProperty)
+			control.window.setProperty(self.metaProperty, meta)
 			url = None
 			self.title = title
-			self.meta = meta
 			external_caller = 'plugin.video.venom' not in control.infoLabel('Container.PluginName')
 			isSTRM = control.infoLabel('ListItem.FileExtension') == 'strm'
 
@@ -145,8 +146,6 @@ class Sources:
 				if select == '1' and 'plugin' in control.infoLabel('Container.PluginName'):
 					control.window.clearProperty(self.itemProperty)
 					control.window.setProperty(self.itemProperty, json.dumps(items))
-					control.window.clearProperty(self.metaProperty)
-					control.window.setProperty(self.metaProperty, meta)
 					control.sleep(200)
 					control.hide()
 					return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], quote_plus(title)))
@@ -160,7 +159,7 @@ class Sources:
 				return self.errorForSources()
 
 			try:
-				meta = json.loads(meta)
+				meta = json.loads(unquote(meta.replace('%22', '\\"')))
 			except:
 				pass
 
@@ -193,9 +192,7 @@ class Sources:
 			control.hide()
 			sys.exit()
 
-		meta = control.window.getProperty(self.metaProperty)
-		# log_utils.log('meta = %s' % str(meta), __name__, log_utils.LOGDEBUG)
-		meta = json.loads(meta)
+		meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
 		meta = sourcesDirMeta(meta)
 
 		sysaddon = sys.argv[0]
@@ -270,9 +267,7 @@ class Sources:
 
 	def playItem(self, title, source):
 		try:
-			meta = control.window.getProperty(self.metaProperty)
-			meta = json.loads(meta)
-
+			meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
 			year = meta['year'] if 'year' in meta else None
 			if 'tvshowtitle' in meta:
 				year = meta['tvshowyear'] if 'tvshowyear' in meta else year #year was changed to year of premiered in episodes module so can't use that, need original shows year.
@@ -436,8 +431,7 @@ class Sources:
 		progressDialog.update(0, control.lang(32600).encode('utf-8'))
 
 		try:
-			# meta = json.loads(control.window.getProperty(self.metaProperty))
-			meta = json.loads(self.meta)
+			meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
 			genres = [i.lower() for i in meta.get('genre')]
 		except:
 			genres = None
@@ -1258,8 +1252,7 @@ class Sources:
 	def sourcesResolve(self, item, info=False):
 		if 'package' in item:
 			try:
-				# meta = json.loads(control.window.getProperty(self.metaProperty))
-				meta = json.loads(self.meta)
+				meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
 				if item['debrid'] == 'Real-Debrid':
 					from resources.lib.modules.realdebrid import RealDebrid
 					url = RealDebrid().resolve_magnet_pack(item['url'], item['hash'], meta['season'], meta['episode'], meta['title'])
@@ -1553,10 +1546,7 @@ class Sources:
 			from resources.lib.modules import player
 			from resources.lib.modules.source_utils import seas_ep_filter
 
-			meta = control.window.getProperty(self.metaProperty)
-			meta = json.loads(meta)
-			# meta = json.loads(self.meta)
-
+			meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
 			title = meta['tvshowtitle']
 			year = meta['year'] if 'year' in meta else None
 
@@ -1831,9 +1821,11 @@ class Sources:
 	def get_season_info(self, imdb, tvdb, meta, season):
 		try:
 			if not isinstance(meta, dict):
-				meta_data = json.loads(meta)
+				# meta_data = json.loads(meta)
+				meta_data = json.loads(unquote(meta.replace('%22', '\\"')))
 			else:
 				meta_data = meta
+
 			total_seasons = meta_data.get('total_seasons')
 			is_airing = meta_data.get('is_airing')
 

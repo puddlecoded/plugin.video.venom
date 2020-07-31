@@ -1,3 +1,9 @@
+[B][COLOR red]Update - v4.0.1 - July 30, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed pack file resolving when "Directory"
+    source select mode is chosen.[/I]
+[COLOR yellow]--[/COLOR][I] Fixed issue with TMDBHelper passing
+    plot that contains quotes.[/I]
+
 [B][COLOR red]Update - v4.0 - July 26, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Pack scraping support added.  This is off by default so
     enable under "Source Options". Resolving support for
