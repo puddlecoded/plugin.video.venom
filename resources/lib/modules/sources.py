@@ -107,8 +107,9 @@ class Sources:
 				year, title = self.movie_chk_imdb(imdb, title, year)
 
 			# fix incorect year passed from TMDBHelper. Need series premiered not variable season premiered.
+			# TMDBHelper added "{showyear}" for player files 7/29/20. Check on removing this
 			if external_caller and tvshowtitle is not None:
-				year = self.tmdbhelper_fix(imdb)
+				year = self.tmdbhelper_fix(imdb, year)
 
 			# get "total_season" to satisfy showPack scrapers. 1st=passed meta, 2nd=matacache check, 3rd=trakt.getSeasons() request
 			# also get "is_airing" status of season for showPack scrapers. 1st=passed meta, 2nd=matacache check, 3rd=tvdb v1 xml request
@@ -1616,8 +1617,6 @@ class Sources:
 			if not t:
 				return []
 			t = [i for i in t if i.get('country', '').lower() in [lang, '', 'us'] and i.get('title', '').lower() != localtitle.lower()]
-			# t = [i['title'] for i in t if i.get('country', '').lower() in [lang, '', 'us'] and i.get('title', '').lower() != localtitle.lower()]
-			# return t
 			return json.dumps(t)
 		except:
 			log_utils.error()
@@ -1765,7 +1764,7 @@ class Sources:
 
 
 	def clr_item_providers(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered):
-		providerscache.remove(self.getSources, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
+		providerscache.remove(self.getSources, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered) # function cache removal of item
 		if not season:
 			season = episode = ''
 		try:
@@ -1784,15 +1783,15 @@ class Sources:
 			pass
 
 
+	# @timeIt
 	def movie_chk_imdb(self, imdb, title, year):
 		try:
 			if not imdb or imdb == '0':
 				raise Exception()
-			result = client.request('https://www.imdb.com/title/%s/' % imdb)
-			result = client.parseDOM(result, 'meta', attrs={'name': 'title'}, ret='content')[0].encode('utf-8')
-			title_ck = re.sub(r'\s\((?:19|20)[0-9]{2}.+', '', result)
-			year_ck = re.findall('(?:19|20)[0-9]{2}', result)[0]
-			year_ck = year_ck.encode('utf-8')
+			result = client.request('https://v2.sg.media-imdb.com/suggestion/t/{}.json'.format(imdb))
+			result = json.loads(result)['d'][0]
+			year_ck = result['y']
+			title_ck = result['l']
 			if not year_ck or not title_ck:
 				raise Exception()
 			if year != year_ck:
@@ -1805,14 +1804,18 @@ class Sources:
 			return year, title
 
 
-	def tmdbhelper_fix(self, imdb):
+	def tmdbhelper_fix(self, imdb, year):
 		try:
 			if not imdb or imdb == '0':
 				raise Exception()
-			result = client.request('https://www.imdb.com/title/%s/' % imdb)
-			result = client.parseDOM(result, 'meta', attrs={'name': 'title'}, ret='content')[0].encode('utf-8')
-			year_ck = re.findall('(?:19|20)[0-9]{2}', result)[0]
-			return year_ck
+			result = client.request('https://v2.sg.media-imdb.com/suggestion/t/{}.json'.format(imdb))
+			result = json.loads(result)['d'][0]
+			year_ck = result['y']
+			if not year_ck:
+				raise Exception()
+			if year != year_ck:
+				year = year_ck
+			return year
 		except:
 			log_utils.error()
 			return year

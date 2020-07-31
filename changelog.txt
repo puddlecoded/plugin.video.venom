@@ -1,3 +1,9 @@
+[B][COLOR red]Update - v4.0.2 - July 30, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Switched IMDb year check for titles to api request for
+    small 1/2-3/4 second savings to scrape startup.  Thanks
+    for the tip on that hidden api Mr.Anonymous!![/I]
+[COLOR yellow]--[/COLOR][I] Code cleanup of forgotten logging.[/I]
+
 [B][COLOR red]Update - v4.0.1 - July 30, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed pack file resolving when "Directory"
     source select mode is chosen.[/I]
