@@ -356,6 +356,7 @@ class Seasons:
 
 			seasons = [i for i in episodes if '<EpisodeNumber>1</EpisodeNumber>' in i]
 			counts = self.seasonCountParse(seasons = seasons, episodes = episodes)
+			# log_utils.log('counts = %s' % counts, __name__, log_utils.LOGDEBUG)
 			locals = [i for i in result2 if '<EpisodeNumber>' in i]
 
 			result = ''
@@ -726,7 +727,7 @@ class Seasons:
 										'premiered': premiered, 'status': status, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating,
 										'votes': votes, 'mpaa': mpaa, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': episodeplot,
 										'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'banner': banner, 'fanart': fanart, 'thumb': thumb,
-										'season_poster': season_poster, 'unaired': unaired, 'seasoncount': seasoncount,
+										'season_poster': season_poster, 'unaired': unaired, 'seasoncount': seasoncount, 'counts': counts,
 										'total_seasons': total_seasons, 'is_airing': is_airing, 'episodeIDS': episodeIDS})
 				self.list = sorted(self.list, key=lambda k: (int(k['season']), int(k['episode']))) # fix for TVDb new sort by ID
 				# meta = {}
@@ -1059,7 +1060,6 @@ class Seasons:
 					item.setProperty('TotalSeasons', str(meta.get('total_seasons')))
 
 				# log_utils.log('status = %s for tvshowtitle = %s' % (str(meta.get('status')), str(title)), __name__, log_utils.LOGDEBUG)
-
 
 
 				item.setArt(art)

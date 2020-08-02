@@ -764,7 +764,6 @@ def getBanners(tvdb):
 # def parseBanners(artwork):
 
 
-
 def getActors(tvdb):
 	url = info_link % (tvdb, 'actors')
 	try:
@@ -893,3 +892,61 @@ def get_is_airing(tvdb, season):
 		return is_airing
 	except:
 		log_utils.error()
+
+
+def get_counts(tvdb):
+	url = all_info_link % (tvdb, lang)
+	try:
+		result = requests.get(url).content
+		result = result.split('<Episode>')
+
+		episodes = [i for i in result if '<EpisodeNumber>' in i]
+		if control.setting('tv.specials') == 'true':
+			episodes = [i for i in episodes]
+		else:
+			episodes = [i for i in episodes if not '<SeasonNumber>0</SeasonNumber>' in i]
+			episodes = [i for i in episodes if not '<EpisodeNumber>0</EpisodeNumber>' in i]
+
+		seasons = [i for i in episodes if '<EpisodeNumber>1</EpisodeNumber>' in i]
+		counts = seasonCountParse(seasons = seasons, episodes = episodes)
+		# log_utils.log('counts = %s' % str(counts), __name__, log_utils.LOGDEBUG)
+		return counts
+	except:
+		log_utils.error()
+
+
+def seasonCountParse(season = None, items = None, seasons = None, episodes = None):
+	# Determine the number of episodes per season to estimate season pack episode sizes.
+	index = season
+	counts = {} # Do not use a list, since not all seasons are labeled by number. Eg: MythBusters
+	if episodes is None:
+		episodes = [i for i in items if '<EpisodeNumber>' in i]
+		if control.setting('tv.specials') == 'true':
+			episodes = [i for i in episodes]
+		else:
+			episodes = [i for i in episodes if not '<SeasonNumber>0</SeasonNumber>' in i]
+			episodes = [i for i in episodes if not '<EpisodeNumber>0</EpisodeNumber>' in i]
+
+		seasons = [i for i in episodes if '<EpisodeNumber>1</EpisodeNumber>' in i]
+
+	for s in seasons:
+		season = client.parseDOM(s, 'SeasonNumber')[0]
+		season = '%01d' % int(season)
+		season = season.encode('utf-8')
+		counts[season] = 0
+
+	for e in episodes:
+		try:
+			season = client.parseDOM(e, 'SeasonNumber')[0]
+			season = '%01d' % int(season)
+			season = season.encode('utf-8')
+			counts[season] += 1
+		except:
+			pass
+	try:
+		if index is None:
+			return counts
+		else:
+			return counts[index]
+	except:
+		return None

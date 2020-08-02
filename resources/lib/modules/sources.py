@@ -98,7 +98,7 @@ class Sources:
 			control.window.clearProperty(self.metaProperty)
 			control.window.setProperty(self.metaProperty, meta)
 			url = None
-			self.title = title
+
 			external_caller = 'plugin.video.venom' not in control.infoLabel('Container.PluginName')
 			isSTRM = control.infoLabel('ListItem.FileExtension') == 'strm'
 
@@ -728,9 +728,8 @@ class Sources:
 
 		if len(self.sources) > 0:
 			self.sourcesFilter()
-
-
 		return self.sources
+
 
 	# @timeIt
 	def prepareSources(self):
@@ -1050,6 +1049,9 @@ class Sources:
 		# random.shuffle(self.sources) # why?
 		if control.setting('hosts.sort.provider') == 'true':
 			self.sources = sorted(self.sources, key=lambda k: k['provider'])
+
+		# calculate episode size of pack files
+		self.sources = self.calc_pack_size()
 
 		if control.setting('torrent.size.sort') == 'true':
 			filter = []
@@ -1708,6 +1710,88 @@ class Sources:
 		return self.sources
 
 
+	def calc_pack_size(self):
+		meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
+		# meta = json.loads(control.window.getProperty(self.metaProperty))
+		imdb = meta.get('imdb')
+		tvdb = meta.get('tvdb')
+		seasoncount = meta.get('seasoncount', None)
+		counts = meta.get('counts', None)
+
+		# check metacache, 2nd fallback
+		if not seasoncount or not counts:
+			try:
+				imdb_user = control.setting('imdb.user').replace('ur', '')
+				tvdb_key_list = [
+					'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
+					'MUQ2MkYyRjkwMDMwQzQ0NA==',
+					'N1I4U1paWDkwVUE5WU1CVQ==']
+				tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
+				user = str(imdb_user) + str(tvdb_key)
+				meta_lang = control.apiLanguage()['tvdb']
+				ids = [{'imdb': imdb, 'tvdb': tvdb}]
+				meta2 = metacache.fetch(ids, meta_lang, user)[0]
+				if not seasoncount:
+					seasoncount = meta2.get('seasoncount', None)
+				if not counts:
+					counts = meta2.get('counts', None)
+			except:
+				log_utils.error()
+				pass
+
+		# make request, 3rd fallback
+		if not seasoncount or not counts:
+			try:
+				season = meta.get('season')
+				from resources.lib.indexers import tvdb_v1
+				counts = tvdb_v1.get_counts(tvdb)
+				seasoncount = counts[season]
+			except:
+				log_utils.error()
+				return self.sources
+
+		for i in self.sources:
+			try:
+				if 'package' in i:
+					dsize = i.get('size')
+					if not dsize:
+						continue
+					if i['package'] == 'season':
+						divider = int(seasoncount)
+						if not divider:
+							continue
+					else:
+						if not counts:
+							continue
+						season_count = 1
+						divider = 0
+						while season_count <= int(i['last_season']):
+							divider += int(counts[str(season_count)])
+							season_count += 1
+					float_size = float(dsize) / divider
+					if round(float_size, 2) == 0:
+						continue
+					str_size = '%.2f GB' % float_size
+
+					info = i['info']
+					try:
+						info = [i['info'].split(' | ', 1)[1]]
+					except:
+						info = []
+
+					info.insert(0, str_size)
+					info = ' | '.join(info)
+					i.update({'size': float_size, 'info': info})
+				else:
+					continue
+
+			except:
+				log_utils.error()
+				continue
+
+		return self.sources
+
+
 	# @timeIt
 	def pm_cache_chk_list(self, torrent_List, d):
 		if len(torrent_List) == 0:
@@ -1822,17 +1906,14 @@ class Sources:
 
 
 	def get_season_info(self, imdb, tvdb, meta, season):
-		try:
-			if not isinstance(meta, dict):
-				# meta_data = json.loads(meta)
-				meta_data = json.loads(unquote(meta.replace('%22', '\\"')))
-			else:
-				meta_data = meta
+		meta = json.loads(unquote(meta.replace('%22', '\\"')))
+		# meta = json.loads(meta)
+		total_seasons = meta.get('total_seasons', None)
+		is_airing = meta.get('is_airing', None)
 
-			total_seasons = meta_data.get('total_seasons')
-			is_airing = meta_data.get('is_airing')
-
-			if not total_seasons or is_airing is None:
+		# check metacache, 2nd fallback
+		if not total_seasons or not is_airing:
+			try:
 				imdb_user = control.setting('imdb.user').replace('ur', '')
 				tvdb_key_list = [
 					'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
@@ -1845,22 +1926,33 @@ class Sources:
 				meta2 = metacache.fetch(ids, meta_lang, user)[0]
 				if not total_seasons:
 					total_seasons = meta2.get('total_seasons', None)
-				if is_airing is None:
+				if not is_airing:
 					is_airing = meta2.get('is_airing', None)
+			except:
+				log_utils.error()
+				pass
 
-				if not total_seasons:
-					total_seasons = trakt.getSeasons(imdb, full=False)
-					if total_seasons:
-						total_seasons = [i['number'] for i in total_seasons]
-						season_special = True if 0 in total_seasons else False
-						total_seasons = len(total_seasons)
-						if season_special:
-							total_seasons = total_seasons - 1
+		# make request, 3rd fallback
+		if not total_seasons:
+			try:
+				total_seasons = trakt.getSeasons(imdb, full=False)
+				# log_utils.log('total_seasons = %s' % str(total_seasons), log_utils.LOGDEBUG)
+				if total_seasons:
+					total_seasons = [i['number'] for i in total_seasons]
+					season_special = True if 0 in total_seasons else False
+					total_seasons = len(total_seasons)
+					if season_special:
+						total_seasons = total_seasons - 1
+			except:
+				log_utils.error()
+				pass
 
-				if is_airing is None:
-					from resources.lib.indexers import tvdb_v1
-					is_airing = tvdb_v1.get_is_airing(tvdb, season)
-			return total_seasons, is_airing
-		except:
-			log_utils.error()
-			return None, None
+		if not is_airing:
+			try:
+				from resources.lib.indexers import tvdb_v1
+				is_airing = tvdb_v1.get_is_airing(tvdb, season)
+			except:
+				log_utils.error()
+				pass
+
+		return total_seasons, is_airing

@@ -1,3 +1,11 @@
+[B][COLOR red]Update - v4.0.3 - Aug. 02, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Added new Pack file size calc. function.  This will
+    take the current pack file and calculate the approx. size
+    of each episode inside the pack.  This will also vary
+    based on show Packs that are ranges ex. 1-7 when
+    there are 9 total season.  Only season 1-7 will be
+    accounted for in that case.[/I]
+
 [B][COLOR red]Update - v4.0.2 - July 30, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Switched IMDb year check for titles to api request for
     small 1/2-3/4 second savings to scrape startup.  Thanks

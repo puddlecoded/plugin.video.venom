@@ -40,17 +40,18 @@ ADDS = ['1xbet', 'betwin']
 
 def seas_ep_filter(season, episode, release_title, split=False):
 	string1 = '(s<<S>>e<<E>>)|' \
-			  '(s<<S>>\.e<<E>>)|' \
-			  '(s<<S>>ep<<E>>)|' \
-			  '(s<<S>>\.ep<<E>>)'
+			'(s<<S>>\.e<<E>>)|' \
+			'(s<<S>>ep<<E>>)|' \
+			'(s<<S>>\.ep<<E>>)'
 
 	string2 = '(season\.<<S>>\.episode\.<<E>>)|' \
-			  '(season<<S>>\.episode<<E>>)|' \
-			  '(season<<S>>episode<<E>>)|' \
-			  '(<<S>>x<<E>>)|' \
-			  '(<<S>>\.<<E>>\.)|' \
-			  '(s<<S>>e\(<<E>>\))|' \
-			  '(s<<S>>\.e\(<<E>>\))'
+			'(season<<S>>\.episode<<E>>)|' \
+			'(season<<S>>episode<<E>>)|' \
+			'(<<S>>x<<E>>\.)|' \
+			'(<<S>><<E>>\.)|' \
+			'(<<S>>\.<<E>>\.)|' \
+			'(s<<S>>e\(<<E>>\))|' \
+			'(s<<S>>\.e\(<<E>>\))'
 
 	string_list = []
 	string_list.append(string1.replace('<<S>>', str(season).zfill(2)).replace('<<E>>', str(episode).zfill(2)))
