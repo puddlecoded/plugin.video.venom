@@ -1,3 +1,9 @@
+[B][COLOR red]Update - v4.0.4 - Aug. 02, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Sorry folks completely forgot about .strm library file
+    playback with the new pack file work, they were badly
+    broken.  This is now fixed including resolving of pack
+    files from library as well.[/I]
+
 [B][COLOR red]Update - v4.0.3 - Aug. 02, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Added new Pack file size calc. function.  This will
     take the current pack file and calculate the approx. size

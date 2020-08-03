@@ -97,7 +97,19 @@ class Sources:
 		try:
 			control.window.clearProperty(self.metaProperty)
 			control.window.setProperty(self.metaProperty, meta)
+			control.window.clearProperty(self.seasonProperty)
+			control.window.setProperty(self.seasonProperty, season)
+			control.window.clearProperty(self.episodeProperty)
+			control.window.setProperty(self.episodeProperty, episode)
+			control.window.clearProperty(self.titleProperty)
+			control.window.setProperty(self.titleProperty, title)
+			control.window.clearProperty(self.imdbProperty)
+			control.window.setProperty(self.imdbProperty, imdb)
+			control.window.clearProperty(self.tvdbProperty)
+			control.window.setProperty(self.tvdbProperty, tvdb)
+
 			url = None
+			self.mediatype = 'movie'
 
 			external_caller = 'plugin.video.venom' not in control.infoLabel('Container.PluginName')
 			isSTRM = control.infoLabel('ListItem.FileExtension') == 'strm'
@@ -114,6 +126,7 @@ class Sources:
 			# get "total_season" to satisfy showPack scrapers. 1st=passed meta, 2nd=matacache check, 3rd=trakt.getSeasons() request
 			# also get "is_airing" status of season for showPack scrapers. 1st=passed meta, 2nd=matacache check, 3rd=tvdb v1 xml request
 			if tvshowtitle is not None:
+				self.mediatype = 'episode'
 				self.total_seasons, self.is_airing = self.get_season_info(imdb, tvdb, meta, season)
 
 			if rescrape :
@@ -1051,7 +1064,8 @@ class Sources:
 			self.sources = sorted(self.sources, key=lambda k: k['provider'])
 
 		# calculate episode size of pack files
-		self.sources = self.calc_pack_size()
+		if self.mediatype == 'episode':
+			self.sources = self.calc_pack_size()
 
 		if control.setting('torrent.size.sort') == 'true':
 			filter = []
@@ -1255,13 +1269,26 @@ class Sources:
 	def sourcesResolve(self, item, info=False):
 		if 'package' in item:
 			try:
-				meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
+				try:
+					meta = control.window.getProperty(self.metaProperty)
+					if meta:
+						meta = json.loads(unquote(meta.replace('%22', '\\"')))
+						season = meta.get('season')
+						episode = meta.get('episode')
+						title = meta.get('title')
+					else:
+						season = control.window.getProperty(self.seasonProperty)
+						episode = control.window.getProperty(self.episodeProperty)
+						title = control.window.getProperty(self.titleProperty)
+				except:
+					log_utils.error()
+					return
 				if item['debrid'] == 'Real-Debrid':
 					from resources.lib.modules.realdebrid import RealDebrid
-					url = RealDebrid().resolve_magnet_pack(item['url'], item['hash'], meta['season'], meta['episode'], meta['title'])
+					url = RealDebrid().resolve_magnet_pack(item['url'], item['hash'], season, episode, title)
 				elif item['debrid'] == 'Premiumize.me':
 					from resources.lib.modules.premiumize import Premiumize
-					url = Premiumize().resolve_magnet_pack(item['url'], meta['season'], meta['episode'], meta['title'])
+					url = Premiumize().resolve_magnet_pack(item['url'], season, episode, title)
 				self.url = url
 				return url
 			except:
@@ -1549,6 +1576,9 @@ class Sources:
 			from resources.lib.modules import player
 			from resources.lib.modules.source_utils import seas_ep_filter
 
+
+
+
 			meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
 			title = meta['tvshowtitle']
 			year = meta['year'] if 'year' in meta else None
@@ -1643,6 +1673,11 @@ class Sources:
 	def getConstants(self):
 		self.itemProperty = 'plugin.video.venom.container.items'
 		self.metaProperty = 'plugin.video.venom.container.meta'
+		self.seasonProperty = 'plugin.video.venom.container.season'
+		self.episodeProperty = 'plugin.video.venom.container.episode'
+		self.titleProperty = 'plugin.video.venom.container.title'
+		self.imdbProperty = 'plugin.video.venom.container.imdb'
+		self.tvdbProperty = 'plugin.video.venom.container.tvdb'
 
 		from openscrapers import sources
 		self.sourceDict = sources()
@@ -1711,12 +1746,17 @@ class Sources:
 
 
 	def calc_pack_size(self):
-		meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
-		# meta = json.loads(control.window.getProperty(self.metaProperty))
-		imdb = meta.get('imdb')
-		tvdb = meta.get('tvdb')
-		seasoncount = meta.get('seasoncount', None)
-		counts = meta.get('counts', None)
+		seasoncount = None
+		counts = None
+		try:
+			meta = control.window.getProperty(self.metaProperty)
+			if meta:
+				meta = json.loads(unquote(meta.replace('%22', '\\"')))
+				seasoncount = meta.get('seasoncount', None)
+				counts = meta.get('counts', None)
+		except:
+			log_utils.error()
+			pass
 
 		# check metacache, 2nd fallback
 		if not seasoncount or not counts:
@@ -1729,6 +1769,12 @@ class Sources:
 				tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
 				user = str(imdb_user) + str(tvdb_key)
 				meta_lang = control.apiLanguage()['tvdb']
+				if meta:
+					imdb = meta.get('imdb')
+					tvdb = meta.get('tvdb')
+				else:
+					imdb = control.window.getProperty(self.imdbProperty)
+					tvdb = control.window.getProperty(self.tvdbProperty)
 				ids = [{'imdb': imdb, 'tvdb': tvdb}]
 				meta2 = metacache.fetch(ids, meta_lang, user)[0]
 				if not seasoncount:
@@ -1742,7 +1788,10 @@ class Sources:
 		# make request, 3rd fallback
 		if not seasoncount or not counts:
 			try:
-				season = meta.get('season')
+				if meta:
+					season = meta.get('season')
+				else:
+					season = control.window.getProperty(self.seasonProperty)
 				from resources.lib.indexers import tvdb_v1
 				counts = tvdb_v1.get_counts(tvdb)
 				seasoncount = counts[season]
@@ -1788,7 +1837,6 @@ class Sources:
 			except:
 				log_utils.error()
 				continue
-
 		return self.sources
 
 
@@ -1906,10 +1954,14 @@ class Sources:
 
 
 	def get_season_info(self, imdb, tvdb, meta, season):
-		meta = json.loads(unquote(meta.replace('%22', '\\"')))
-		# meta = json.loads(meta)
-		total_seasons = meta.get('total_seasons', None)
-		is_airing = meta.get('is_airing', None)
+		total_seasons = None
+		is_airing = None
+		try:
+			meta = json.loads(unquote(meta.replace('%22', '\\"')))
+			total_seasons = meta.get('total_seasons', None)
+			is_airing = meta.get('is_airing', None)
+		except:
+			pass
 
 		# check metacache, 2nd fallback
 		if not total_seasons or not is_airing:
