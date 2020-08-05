@@ -46,7 +46,9 @@ except:
 class Sources:
 	def __init__(self):
 		self.time = datetime.now()
-		self.expiry = timedelta(minutes=240)
+		self.single_expiry = timedelta(hours=6)
+		self.season_expiry = timedelta(hours=48)
+		self.show_expiry = timedelta(hours=48)
 		self.notificationSound = control.setting('notification.sound') == 'true'
 		self.getConstants()
 		self.sources = []
@@ -788,12 +790,12 @@ class Sources:
 			dbcur.execute(
 				"SELECT * FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
 				source, imdb, '', ''))
-			match = dbcur.fetchone()
-			if match:
-				timestamp = control.datetime_workaround(str(match[5]), '%Y-%m-%d %H:%M:%S.%f', False)
-				update = abs(self.time - timestamp) > self.expiry
-				if update is False:
-					sources = eval(match[4].encode('utf-8'))
+			db_movie = dbcur.fetchone()
+			if db_movie:
+				timestamp = control.datetime_workaround(str(db_movie[5]), '%Y-%m-%d %H:%M:%S.%f', False)
+				db_movie_valid = abs(self.time - timestamp) < self.single_expiry
+				if db_movie_valid:
+					sources = eval(db_movie[4].encode('utf-8'))
 					return self.sources.extend(sources)
 		except:
 			log_utils.error()
@@ -847,7 +849,7 @@ class Sources:
 
 		try:
 			# singleEpisodes db check
-			db_singleEpisodes = None
+			db_singleEpisodes_valid = False
 			if self.dev_mode and self.dev_disable_single:
 				raise Exception()
 			sources = []
@@ -857,8 +859,8 @@ class Sources:
 			db_singleEpisodes = dbcur.fetchone()
 			if db_singleEpisodes:
 				timestamp = control.datetime_workaround(str(db_singleEpisodes[5]), '%Y-%m-%d %H:%M:%S.%f', False)
-				update = abs(self.time - timestamp) > self.expiry
-				if update is False:
+				db_singleEpisodes_valid = abs(self.time - timestamp) < self.single_expiry
+				if db_singleEpisodes_valid:
 					sources = eval(db_singleEpisodes[4].encode('utf-8'))
 					self.sources.extend(sources)
 					if not self.enablePacks:
@@ -869,7 +871,7 @@ class Sources:
 
 		try:
 			# seasonPacks db check
-			db_seasonPacks = None
+			db_seasonPacks_valid = False
 			if not self.enablePacks:
 				raise Exception()
 			if self.is_airing:
@@ -883,8 +885,8 @@ class Sources:
 			db_seasonPacks = dbcur.fetchone()
 			if db_seasonPacks:
 				timestamp = control.datetime_workaround(str(db_seasonPacks[5]), '%Y-%m-%d %H:%M:%S.%f', False)
-				update = abs(self.time - timestamp) > self.expiry
-				if update is False:
+				db_seasonPacks_valid = abs(self.time - timestamp) < self.season_expiry
+				if db_seasonPacks_valid:
 					sources = eval(db_seasonPacks[4].encode('utf-8'))
 					self.sources.extend(sources)
 		except:
@@ -893,6 +895,7 @@ class Sources:
 
 		try:
 			# # showPacks db check
+			db_showPacks_valid = False
 			if not self.enablePacks:
 				raise Exception()
 			if self.dev_mode and self.dev_disable_show_packs:
@@ -904,12 +907,12 @@ class Sources:
 			db_showPacks = dbcur.fetchone()
 			if db_showPacks:
 				timestamp = control.datetime_workaround(str(db_showPacks[5]), '%Y-%m-%d %H:%M:%S.%f', False)
-				update = abs(self.time - timestamp) > self.expiry
-				if update is False:
+				db_showPacks_valid = abs(self.time - timestamp) < self.show_expiry
+				if db_showPacks_valid:
 					sources = eval(db_showPacks[4].encode('utf-8'))
 					sources = [i for i in sources if i.get('last_season') >= int(season)] # filter out range items that do not apply to current season
 					self.sources.extend(sources)
-					if db_singleEpisodes and db_seasonPacks:
+					if db_singleEpisodes_valid and db_seasonPacks_valid:
 						return self.sources
 		except:
 			log_utils.error()
@@ -963,7 +966,7 @@ class Sources:
 			# singleEpisodes scraper call
 			if self.dev_mode and self.dev_disable_single:
 				raise Exception()
-			if db_singleEpisodes:
+			if db_singleEpisodes_valid:
 				raise Exception()
 			sources = []
 			sources = call.sources(ep_url, self.hostDict, self.hostprDict)
@@ -985,7 +988,7 @@ class Sources:
 			if self.is_airing:
 				raise Exception()
 			if self.enablePacks and source in self.packDict:
-				if db_seasonPacks:
+				if db_seasonPacks_valid:
 					raise Exception()
 				sources = []
 				sources = call.sources_packs(ep_url, self.hostDict, self.hostprDict, bypass_filter=self.dev_disable_season_filter)
@@ -1005,7 +1008,7 @@ class Sources:
 			if self.dev_mode and self.dev_disable_show_packs:
 				raise Exception()
 			if self.enablePacks and source in self.packDict:
-				if db_showPacks:
+				if db_showPacks_valid:
 					raise Exception()
 				sources = []
 				sources = call.sources_packs(ep_url, self.hostDict, self.hostprDict, search_series=True, total_seasons=self.total_seasons, bypass_filter=self.dev_disable_show_filter)
@@ -1575,10 +1578,6 @@ class Sources:
 
 			from resources.lib.modules import player
 			from resources.lib.modules.source_utils import seas_ep_filter
-
-
-
-
 			meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
 			title = meta['tvshowtitle']
 			year = meta['year'] if 'year' in meta else None
@@ -1640,6 +1639,23 @@ class Sources:
 			from resources.lib.modules import tvmaze
 			t = tvmaze.tvMaze().getTVShowTranslation(tvdb, lang)
 		return t or title
+
+# old code
+	# def getAliasTitles(self, imdb, localtitle, content):
+		# lang = self._getPrimaryLang()
+		# try:
+			# t = trakt.getMovieAliases(imdb) if content == 'movie' else trakt.getTVShowAliases(imdb)
+			# if not t:
+				# return []
+			# t = [i for i in t if i.get('country', '').lower() in [lang, '', 'us'] and i.get('title', '').lower() != localtitle.lower()]
+
+			# log_utils.log('t = %s' % str(t), __name__, log_utils.LOGDEBUG)
+			# log_utils.log('t type = %s' % type(t), __name__, log_utils.LOGDEBUG)
+
+			# return t
+		# except:
+			# log_utils.error()
+			# return []
 
 
 	def getAliasTitles(self, imdb, localtitle, content):
