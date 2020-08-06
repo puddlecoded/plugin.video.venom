@@ -1,3 +1,18 @@
+[B][COLOR red]Update - v4.0.6 - Aug. 05, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed issue with "Watched Count" setting dropping
+    show-seasons that do not contain a valid imdb_id.[/I]
+[COLOR yellow]--[/COLOR][I] Fixed db issue for shows mentioned above.  This also
+    caused issues in rare cases that the very next
+    episode scraped also did not contain a valid 
+    imdb_id the returned sources would include
+    previous scrape.  This is now fixed and invalid
+    imdb_id entries are wiped from the db.[/I]
+[COLOR yellow]--[/COLOR][I] Changed Pack scraping option to ON by default
+    and changed OpenScrapers dependency to required
+    version to comply. Previous installs will not change.[/I]
+[COLOR yellow]--[/COLOR][I] Added "sample" to filter string for packs files to ignore
+    in resolving.[/I]
+
 [B][COLOR red]Update - v4.0.5 - Aug. 05, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Added 2 new string format checks for resolving
     pack files due to some rare and rather odd internal

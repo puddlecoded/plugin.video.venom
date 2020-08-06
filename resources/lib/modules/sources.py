@@ -847,6 +847,31 @@ class Sources:
 		except:
 			pass
 
+# consider adding tvdb_id table column for better matching of cases where imdb_id not available. Wheeler Dealer BS shows..lol
+		''' Fix to stop items passed with a 0 IMDB id pulling old unrelated sources from the database. '''
+		if imdb == '0':
+			try:
+				dbcur.execute(
+					"DELETE FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+					source, imdb, season, episode))
+				dbcur.execute(
+					"DELETE FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+					source, imdb, season, ''))
+				dbcur.execute(
+					"DELETE FROM rel_src WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+					source, imdb, '', ''))
+				dbcur.execute(
+					"DELETE FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+					source, imdb, season, episode))
+				dbcur.execute(
+					"DELETE FROM rel_url WHERE source = '%s' AND imdb_id = '%s' AND season = '%s' AND episode = '%s'" % (
+					source, imdb, '', ''))
+				dbcur.connection.commit()
+			except:
+				log_utils.error()
+				pass
+		''' END '''
+
 		try:
 			# singleEpisodes db check
 			db_singleEpisodes_valid = False
@@ -1016,10 +1041,10 @@ class Sources:
 					sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
 					for i in sources:
 						i.update({'provider': source})
-					dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, '', '', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
-					dbcur.connection.commit()
 					sources = [i for i in sources if i.get('last_season') >= int(season)] # filter out range items that do not apply to current season
 					self.sources.extend(sources)
+					dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, '', '', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
+					dbcur.connection.commit()
 		except:
 			log_utils.error()
 			pass
@@ -2004,7 +2029,6 @@ class Sources:
 		if not total_seasons:
 			try:
 				total_seasons = trakt.getSeasons(imdb, full=False)
-				# log_utils.log('total_seasons = %s' % str(total_seasons), log_utils.LOGDEBUG)
 				if total_seasons:
 					total_seasons = [i['number'] for i in total_seasons]
 					season_special = True if 0 in total_seasons else False

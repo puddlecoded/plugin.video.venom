@@ -348,7 +348,6 @@ class Seasons:
 			# season still airing check for pack scraping
 			premiered_eps = [i for i in episodes if not '<FirstAired></FirstAired>' in i]
 			unaired_eps = [i for i in premiered_eps if int(re.sub('[^0-9]', '', str(client.parseDOM(i, 'FirstAired')))) > int(re.sub('[^0-9]', '', str(self.today_date)))]
-			# log_utils.log('unaired_eps = %s' % unaired_eps, __name__, log_utils.LOGDEBUG)
 			if unaired_eps:
 				still_airing = client.parseDOM(unaired_eps, 'SeasonNumber')[0]
 			else:
@@ -1058,9 +1057,6 @@ class Seasons:
 
 				if 'total_seasons' in meta:
 					item.setProperty('TotalSeasons', str(meta.get('total_seasons')))
-
-				# log_utils.log('status = %s for tvshowtitle = %s' % (str(meta.get('status')), str(title)), __name__, log_utils.LOGDEBUG)
-
 
 				item.setArt(art)
 				item.setProperty('IsPlayable', 'false')

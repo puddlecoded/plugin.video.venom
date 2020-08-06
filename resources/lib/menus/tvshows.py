@@ -1112,11 +1112,11 @@ class TVshows:
 
 			# url = self.tvdb_info_link % (tvdb, self.lang)
 			url = self.tvdb_all_info_link % (tvdb, self.lang)
-
 			item = requests.get(url).content
+
 			if imdb == '0':
 				try:
-					imdb = client.parseDOM(item, 'IMDB_ID')[0]
+					imdb = client.parseDOM(item, 'IMDB_ID')[0] or '0'
 				except:
 					pass
 
