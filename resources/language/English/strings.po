@@ -810,7 +810,7 @@ msgid "Playback outside Venom is not allowed"
 msgstr ""
 
 msgctxt "#32403"
-msgid "Download"
+msgid "[B]Download[/B]"
 msgstr ""
 
 msgctxt "#32404"
@@ -1250,7 +1250,7 @@ msgid "Do you want to reset?"
 msgstr ""
 
 msgctxt "#32513"
-msgid "1) Visit : [COLOR skyblue]%s[/COLOR]"
+msgid "1) Open this link in a browser : [COLOR skyblue]%s[/COLOR]"
 msgstr ""
 
 msgctxt "#32514"
@@ -2533,7 +2533,7 @@ msgid "Air Label Day"
 msgstr ""
 
 msgctxt "#35032"
-msgid "Airs"
+msgid "[B]Airs[/B]:"
 msgstr ""
 
 msgctxt "#35033"
@@ -2886,15 +2886,15 @@ msgid "Notify Me About Available Updates"
 msgstr ""
 
 msgctxt "#35525"
-msgid ""
+msgid "Disable clearart, clearlogo, and discart in player"
 msgstr ""
 
 msgctxt "#35526"
-msgid ""
+msgid "Movie theatrical unreleased color"
 msgstr ""
 
 msgctxt "#35527"
-msgid ""
+msgid "Enable Notification Sound"
 msgstr ""
 
 msgctxt "#35528"
@@ -3079,55 +3079,55 @@ msgid ""
 msgstr ""
 
 msgctxt "#40040"
-msgid ""
+msgid "[B]Customer ID:[/B] %s"
 msgstr ""
 
 msgctxt "#40041"
-msgid ""
+msgid "[B]Expires:[/B] %s"
 msgstr ""
 
 msgctxt "#40042"
-msgid ""
+msgid "[B]Days Remaining:[/B] %s"
 msgstr ""
 
 msgctxt "#40043"
-msgid ""
+msgid "[B]Points Used:[/B] %.f"
 msgstr ""
 
 msgctxt "#40044"
-msgid ""
+msgid "[B]Space Used:[/B] %.2f"
 msgstr ""
 
 msgctxt "#40045"
-msgid ""
+msgid "[B]Fair Use (Percentage Used):[/B] %s"
 msgstr ""
 
 msgctxt "#40046"
-msgid ""
+msgid "folder"
 msgstr ""
 
 msgctxt "#40047"
-msgid ""
+msgid "file"
 msgstr ""
 
 msgctxt "#40048"
-msgid ""
+msgid "[B]Download File[/B]"
 msgstr ""
 
 msgctxt "#40049"
-msgid ""
+msgid "[B]Rename %s[/B]"
 msgstr ""
 
 msgctxt "#40050"
-msgid ""
+msgid "[B]Delete %s[/B]"
 msgstr ""
 
 msgctxt "#40051"
-msgid ""
+msgid "[B]Clear Finished Transfers[/B]"
 msgstr ""
 
 msgctxt "#40052"
-msgid ""
+msgid "Preminumiize.me succesfuly authorized"
 msgstr ""
 
 msgctxt "#40053"
@@ -3147,19 +3147,19 @@ msgid ""
 msgstr ""
 
 msgctxt "#40057"
-msgid ""
+msgid "Premiumize.me"
 msgstr ""
 
 msgctxt "#40058"
-msgid ""
+msgid "Real-Debrid"
 msgstr ""
 
 msgctxt "#40059"
-msgid ""
+msgid "All-Debrid"
 msgstr ""
 
 msgctxt "#40060"
-msgid ""
+msgid "Enable Premium Services Menu"
 msgstr ""
 
 msgctxt "#40061"

@@ -305,7 +305,7 @@ class Episodes:
 
 
 	def calendars(self, idx=True):
-		m = control.lang(32060).encode('utf-8').split('|')
+		m = control.lang(32060).split('|')
 		try:
 			months = [(m[0], 'January'), (m[1], 'February'), (m[2], 'March'), (m[3], 'April'), (m[4], 'May'),
 					(m[5], 'June'), (m[6], 'July'), (m[7], 'August'), (m[8], 'September'), (m[9], 'October'),
@@ -313,7 +313,7 @@ class Episodes:
 		except:
 			months = []
 
-		d = control.lang(32061).encode('utf-8').split('|')
+		d = control.lang(32061).split('|')
 		try:
 			days = [(d[0], 'Monday'), (d[1], 'Tuesday'), (d[2], 'Wednesday'), (d[3], 'Thursday'), (d[4], 'Friday'),
 					(d[5], 'Saturday'), (d[6], 'Sunday')]
@@ -393,7 +393,7 @@ class Episodes:
 
 		# Trakt Watchlist
 		if self.traktCredentials:
-			self.list.insert(0, {'name': control.lang(32033).encode('utf-8'), 'url': self.traktwatchlist_link, 'image': 'trakt.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
+			self.list.insert(0, {'name': control.lang(32033), 'url': self.traktwatchlist_link, 'image': 'trakt.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
 
 		self.addDirectory(self.list, queue=True)
 		return self.list
@@ -1470,9 +1470,9 @@ class Episodes:
 
 		traktProgress = False if 'traktProgress' not in items[0] else True
 		if traktProgress and control.setting('tvshows.direct') == 'false':
-			progressMenu = control.lang(32015).encode('utf-8')
+			progressMenu = control.lang(32015)
 		else:
-			progressMenu = control.lang(32016).encode('utf-8')
+			progressMenu = control.lang(32016)
 
 		if traktProgress:
 			multi = True
@@ -1512,27 +1512,27 @@ class Episodes:
 			airFormatDay = control.setting('tvshows.air.day')
 			airFormatTime = control.setting('tvshows.air.time')
 			airBold = control.setting('tvshows.air.bold')
-			airLabel = '[B]' + control.lang(35032).encode('utf-8') + '[/B]' + ': '
+			airLabel = control.lang(35032)
 
 		if control.setting('hosts.mode') == '2' or control.setting('enable.upnext') == 'true':
-			playbackMenu = control.lang(32063).encode('utf-8')
+			playbackMenu = control.lang(32063)
 		else:
-			playbackMenu = control.lang(32064).encode('utf-8')
+			playbackMenu = control.lang(32064)
 
 		if trakt.getTraktIndicatorsInfo():
-			watchedMenu = control.lang(32068).encode('utf-8')
-			unwatchedMenu = control.lang(32069).encode('utf-8')
+			watchedMenu = control.lang(32068)
+			unwatchedMenu = control.lang(32069)
 		else:
-			watchedMenu = control.lang(32066).encode('utf-8')
-			unwatchedMenu = control.lang(32067).encode('utf-8')
+			watchedMenu = control.lang(32066)
+			unwatchedMenu = control.lang(32067)
 
-		traktManagerMenu = control.lang(32070).encode('utf-8')
+		traktManagerMenu = control.lang(32070)
 
-		playlistManagerMenu = control.lang(35522).encode('utf-8')
-		queueMenu = control.lang(32065).encode('utf-8')
+		playlistManagerMenu = control.lang(35522)
+		queueMenu = control.lang(32065)
 
-		tvshowBrowserMenu = control.lang(32071).encode('utf-8')
-		addToLibrary = control.lang(32551).encode('utf-8')
+		tvshowBrowserMenu = control.lang(32071)
+		addToLibrary = control.lang(32551)
 
 		for i in items:
 			try:
@@ -1758,7 +1758,7 @@ class Episodes:
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (
 											sysaddon, systvshowtitle, year, imdb, tmdb, tvdb)))
-				cm.append((control.lang(32611).encode('utf-8'), 'RunPlugin(%s?action=clearSources&opensettings=false)' % sysaddon))
+				cm.append((control.lang(32611), 'RunPlugin(%s?action=clearSources&opensettings=false)' % sysaddon))
 				# cm.append(('PlayAll', 'RunPlugin(%s?action=playAll)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 ####################################
@@ -1821,7 +1821,7 @@ class Episodes:
 				if url == '':
 					raise Exception()
 
-				nextMenu = control.lang(32053).encode('utf-8')
+				nextMenu = control.lang(32053)
 				url_params = dict(parse_qsl(url))
 
 				if 'imdb.com' in url:
@@ -1863,7 +1863,7 @@ class Episodes:
 		addonThumb = control.addonThumb()
 		artPath = control.artPath()
 
-		queueMenu = control.lang(32065).encode('utf-8')
+		queueMenu = control.lang(32065)
 
 		for i in items:
 			try:

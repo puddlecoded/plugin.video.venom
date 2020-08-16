@@ -191,7 +191,7 @@ class Seasons:
 
 		# Watchlist
 		if self.traktCredentials:
-			self.list.insert(0, {'name': control.lang(32033).encode('utf-8'), 'url': self.traktwatchlist_link, 'image': 'traktwatch.png', 'action': 'seasons'})
+			self.list.insert(0, {'name': control.lang(32033), 'url': self.traktwatchlist_link, 'image': 'traktwatch.png', 'action': 'seasons'})
 
 		episodes.addDirectory(self.list, queue = True)
 		return self.list
@@ -891,20 +891,20 @@ class Seasons:
 		unwatchedEnabled = control.setting('tvshows.unwatched.enabled') == 'true'
 
 		if trakt.getTraktIndicatorsInfo():
-			watchedMenu = control.lang(32068).encode('utf-8')
-			unwatchedMenu = control.lang(32069).encode('utf-8')
+			watchedMenu = control.lang(32068)
+			unwatchedMenu = control.lang(32069)
 		else:
-			watchedMenu = control.lang(32066).encode('utf-8')
-			unwatchedMenu = control.lang(32067).encode('utf-8')
+			watchedMenu = control.lang(32066)
+			unwatchedMenu = control.lang(32067)
 
-		traktManagerMenu = control.lang(32070).encode('utf-8')
-		# playlistManagerMenu = control.lang(35522).encode('utf-8')
-		queueMenu = control.lang(32065).encode('utf-8')
-		showPlaylistMenu = control.lang(35517).encode('utf-8')
-		clearPlaylistMenu = control.lang(35516).encode('utf-8')
-		labelMenu = control.lang(32055).encode('utf-8')
-		playRandom = control.lang(32535).encode('utf-8')
-		addToLibrary = control.lang(32551).encode('utf-8')
+		traktManagerMenu = control.lang(32070)
+		# playlistManagerMenu = control.lang(35522)
+		queueMenu = control.lang(32065)
+		showPlaylistMenu = control.lang(35517)
+		clearPlaylistMenu = control.lang(35516)
+		labelMenu = control.lang(32055)
+		playRandom = control.lang(32535)
+		addToLibrary = control.lang(32551)
 
 		try:
 			multi = [i['tvshowtitle'] for i in items]
@@ -1034,7 +1034,7 @@ class Seasons:
 
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (sysaddon, systitle, year, imdb, tmdb, tvdb)))
-				# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
+				# cm.append((control.lang(32610), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 ####################################
 

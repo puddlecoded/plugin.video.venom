@@ -102,7 +102,7 @@ class Furk:
 	def search_new(self):
 			control.hide()
 
-			t = control.lang(32010).encode('utf-8')
+			t = control.lang(32010)
 			k = control.keyboard('', t) ; k.doModal()
 			q = k.getText() if k.isConfirmed() else None
 
@@ -169,7 +169,7 @@ class Furk:
 			if type(name) is str or type(name) is unicode:
 				name = str(name)
 			if type(name) is int:
-				name = control.lang(name).encode('utf-8')
+				name = control.lang(name)
 		except:
 			log_utils.error()
 

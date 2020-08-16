@@ -222,7 +222,7 @@ def _cacheClear():
 def authTrakt():
 	try:
 		if getTraktCredentialsInfo():
-			if control.yesnoDialog(control.lang(32511).encode('utf-8'), control.lang(32512).encode('utf-8'), '', 'Trakt'):
+			if control.yesnoDialog(control.lang(32511), control.lang(32512), '', 'Trakt'):
 				control.setSetting(id='trakt.user', value='')
 				control.setSetting(id='trakt.userHidden', value='')
 				control.setSetting(id='trakt.token', value='')
@@ -435,8 +435,8 @@ def _rating(action, imdb=None, tvdb=None, season=None, episode=None):
 
 def hideItem(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
 	sections = ['progress_watched', 'calendar']
-	sections_display = [control.lang(40072).encode('utf-8'), control.lang(40073).encode('utf-8')]
-	selection = control.selectDialog([i for i in sections_display], heading = control.addonInfo('name') + ' - ' + control.lang(40074).encode('utf-8'))
+	sections_display = [control.lang(40072), control.lang(40073)]
+	selection = control.selectDialog([i for i in sections_display], heading = control.addonInfo('name') + ' - ' + control.lang(40074))
 
 	if selection == -1:
 		return
@@ -469,19 +469,19 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 		else:
 			media_type = 'Movie'
 
-		items = [(control.lang(33651).encode('utf-8'), 'watch')]
-		items += [(control.lang(33652).encode('utf-8'), 'unwatch')]
-		items += [(control.lang(33653).encode('utf-8'), 'rate')]
-		items += [(control.lang(33654).encode('utf-8'), 'unrate')]
-		items += [(control.lang(40075).encode('utf-8') % media_type, 'hideItem')]
-		items += [(control.lang(33575).encode('utf-8'), '/sync/collection')]
-		items += [(control.lang(33576).encode('utf-8'), '/sync/collection/remove')]
+		items = [(control.lang(33651), 'watch')]
+		items += [(control.lang(33652), 'unwatch')]
+		items += [(control.lang(33653), 'rate')]
+		items += [(control.lang(33654), 'unrate')]
+		items += [(control.lang(40075) % media_type, 'hideItem')]
+		items += [(control.lang(33575), '/sync/collection')]
+		items += [(control.lang(33576), '/sync/collection/remove')]
 		if season or episode is not None:
-			items += [(control.lang(33573).encode('utf-8'), '/sync/watchlist')]
-			items += [(control.lang(33574).encode('utf-8'), '/sync/watchlist/remove')]
-		items += [(control.lang(33577).encode('utf-8'), '/sync/watchlist')]
-		items += [(control.lang(33578).encode('utf-8'), '/sync/watchlist/remove')]
-		items += [(control.lang(33579).encode('utf-8'), '/users/me/lists/%s/items')]
+			items += [(control.lang(33573), '/sync/watchlist')]
+			items += [(control.lang(33574), '/sync/watchlist/remove')]
+		items += [(control.lang(33577), '/sync/watchlist')]
+		items += [(control.lang(33578), '/sync/watchlist/remove')]
+		items += [(control.lang(33579), '/users/me/lists/%s/items')]
 
 		result = getTraktAsJson('/users/me/lists')
 		lists = [(i['name'], i['ids']['slug']) for i in result]
@@ -495,33 +495,33 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 		items += lists
 
 		control.hide()
-		select = control.selectDialog([i[0] for i in items], heading = control.addonInfo('name') + ' - ' + control.lang(32515).encode('utf-8'))
+		select = control.selectDialog([i[0] for i in items], heading = control.addonInfo('name') + ' - ' + control.lang(32515))
 
 		if select == -1:
 			return
 		if select >= 0:
 			# if select == 0:
-			if items[select][0] == control.lang(33651).encode('utf-8'):
+			if items[select][0] == control.lang(33651):
 				control.busy()
 				watch(name, imdb = imdb, tvdb = tvdb, season = season, episode = episode, refresh = refresh)
 				control.hide()
 			# elif select == 1:
-			elif items[select][0] == control.lang(33652).encode('utf-8'):
+			elif items[select][0] == control.lang(33652):
 				control.busy()
 				unwatch(name, imdb = imdb, tvdb = tvdb, season = season, episode = episode, refresh = refresh)
 				control.hide()
 			# elif select == 2:
-			elif items[select][0] == control.lang(33653).encode('utf-8'):
+			elif items[select][0] == control.lang(33653):
 				control.busy()
 				rate(imdb = imdb, tvdb = tvdb, season = season, episode = episode)
 				control.hide()
 			# elif select == 3:
-			elif items[select][0] == control.lang(33654).encode('utf-8'):
+			elif items[select][0] == control.lang(33654):
 				control.busy()
 				unrate(imdb = imdb, tvdb = tvdb, season = season, episode = episode)
 				control.hide()
 			# elif select == 4:
-			elif items[select][0] == control.lang(40075).encode('utf-8') % media_type:
+			elif items[select][0] == control.lang(40075) % media_type:
 				control.busy()
 				hideItem(name = name, imdb = imdb, tvdb = tvdb, season = season, episode = episode)
 				control.hide()
@@ -531,13 +531,13 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 					post = {"movies": [{"ids": {"imdb": imdb}}]}
 				else:
 					if episode is not None:
-						if items[select][0] == control.lang(33573).encode('utf-8') or items[select][0] == control.lang(33574).encode('utf-8') :
+						if items[select][0] == control.lang(33573) or items[select][0] == control.lang(33574):
 							post = {"shows": [{"ids": {"tvdb": tvdb}}]}
 						else:
 							post = {"shows": [{"ids": {"tvdb": tvdb}, "seasons": [{"number": season, "episodes": [{"number": episode}]}]}]}
 							name = name + ' - ' + '%sx%02d' % (season, episode)
 					elif season is not None:
-						if items[select][0] == control.lang(33573).encode('utf-8') or items[select][0] == control.lang(33574).encode('utf-8') :
+						if items[select][0] == control.lang(33573) or items[select][0] == control.lang(33574):
 							post = {"shows": [{"ids": {"tvdb": tvdb}}]}
 						else:
 							post = {"shows": [{"ids": {"tvdb": tvdb}, "seasons": [{"number": season}]}]}
@@ -546,7 +546,7 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 						post = {"shows": [{"ids": {"tvdb": tvdb}}]}
 
 				# if select == 8:
-				if items[select][0] == control.lang(33579).encode('utf-8'):
+				if items[select][0] == control.lang(33579):
 					slug = listAdd(successNotification = True)
 					if slug is not None:
 						getTrakt(items[select][1] % slug, post = post)[0]
@@ -568,7 +568,7 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 
 
 def listAdd(successNotification=True):
-	t = control.lang(32520).encode('utf-8')
+	t = control.lang(32520)
 	k = control.keyboard('', t) ; k.doModal()
 	new = k.getText() if k.isConfirmed() else None
 

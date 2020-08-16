@@ -459,7 +459,7 @@ class libmovies:
 
 	def range(self, url, list_name):
 		control.hide()
-		if not control.yesnoDialog(control.lang(32555).encode('utf-8'), '', ''):
+		if not control.yesnoDialog(control.lang(32555), '', ''):
 			return
 
 		try:
@@ -811,7 +811,7 @@ class libtvshows:
 
 	def range(self, url, list_name):
 		control.hide()
-		if not control.yesnoDialog(control.lang(32555).encode('utf-8'), '', ''):
+		if not control.yesnoDialog(control.lang(32555), '', ''):
 			return
 		try:
 			if 'traktcollection' in url:

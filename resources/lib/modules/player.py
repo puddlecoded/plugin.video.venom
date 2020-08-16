@@ -716,10 +716,10 @@ class Bookmarks:
 		hours, minutes = divmod(minutes, 60)
 
 		label = '%02d:%02d:%02d' % (hours, minutes, seconds)
-		label = (control.lang(32502) % label).encode('utf-8')
+		label = control.lang(32502) % label
 
 		if control.setting('bookmarks.auto') == 'false':
-			yes = control.yesnoDialog(label, '', '', str(name), control.lang(32503).encode('utf-8'), control.lang(32501).encode('utf-8'))
+			yes = control.yesnoDialog(label, '', '', str(name), control.lang(32503), control.lang(32501))
 			if yes:
 				self.offset = '0'
 		return self.offset
@@ -762,7 +762,7 @@ class Bookmarks:
 			hours, minutes = divmod(minutes, 60)
 
 			label = ('%02d:%02d:%02d' % (hours, minutes, seconds)).encode('utf-8')
-			message = control.lang(32660).encode('utf-8')
+			message = control.lang(32660)
 
 			control.notification(title=name, message=message + '(' + label + ')', icon='default', sound=notificationSound)
 		dbcur.connection.commit()

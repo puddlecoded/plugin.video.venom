@@ -19,13 +19,13 @@ notificationSound = control.setting('notification.sound') == 'true'
 def playlistManager(name = None, url = None, meta = None, art = None):
 	try:
 		items = []
-		items += [(control.lang(32065).encode('utf-8'), 'playlistAdd')]
-		items += [(control.lang(35518).encode('utf-8'), 'playlistRemove')]
-		items += [(control.lang(35517).encode('utf-8'), 'playlistShow')]
-		items += [(control.lang(35516).encode('utf-8'), 'playlistClear')]
+		items += [(control.lang(32065), 'playlistAdd')]
+		items += [(control.lang(35518), 'playlistRemove')]
+		items += [(control.lang(35517), 'playlistShow')]
+		items += [(control.lang(35516), 'playlistClear')]
 
 		control.hide()
-		select = control.selectDialog([i[0] for i in items], heading = control.addonInfo('name') + ' - ' + control.lang(35522).encode('utf-8'))
+		select = control.selectDialog([i[0] for i in items], heading = control.addonInfo('name') + ' - ' + control.lang(35522))
 
 		if select == -1:
 			return

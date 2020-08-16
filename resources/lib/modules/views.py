@@ -18,7 +18,7 @@ def clearViews():
 	try:
 		skin = control.skin
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32056), '', '')
 		if not yes:
 			return
 		control.makeFile(control.dataPath)

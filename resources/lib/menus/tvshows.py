@@ -373,7 +373,7 @@ class TVshows:
 
 	def search_new(self):
 # need fix for when context menu returns here brings keyboard input back up
-		t = control.lang(32010).encode('utf-8')
+		t = control.lang(32010)
 		k = control.keyboard('', t)
 		k.doModal()
 		q = k.getText() if k.isConfirmed() else None
@@ -392,7 +392,7 @@ class TVshows:
 		dbcur.connection.commit()
 		dbcon.close()
 		url = self.search_link + quote_plus(q)
-		if int(control.getKodiVersion()) >= 18:
+		if control.getKodiVersion() >= 18:
 			self.get(url)
 		else:
 			url = '%s?action=tvshowPage&url=%s' % (sys.argv[0], quote_plus(url))
@@ -405,7 +405,7 @@ class TVshows:
 
 
 	def person(self):
-		t = control.lang(32010).encode('utf-8')
+		t = control.lang(32010)
 		k = control.keyboard('', t)
 		k.doModal()
 		q = k.getText().strip() if k.isConfirmed() else None
@@ -529,7 +529,7 @@ class TVshows:
 			message = 32663
 			if 'themoviedb' in url: message = 32681
 
-			select = control.selectDialog([i[0] for i in items], control.lang(message).encode('utf-8'))
+			select = control.selectDialog([i[0] for i in items], control.lang(message))
 			list_name = items[select][0]
 
 			if select == -1:
@@ -626,25 +626,25 @@ class TVshows:
 
 		# TMDb Favorites
 		if self.tmdb_session_id != '':
-			self.list.insert(0, {'name': control.lang(32026).encode('utf-8'), 'url': self.tmdb_favorites_link, 'image': 'tmdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tmdbTvshows'})
+			self.list.insert(0, {'name': control.lang(32026), 'url': self.tmdb_favorites_link, 'image': 'tmdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tmdbTvshows'})
 
 		# TMDb Watchlist
 		if self.tmdb_session_id != '':
-			self.list.insert(0, {'name': control.lang(32033).encode('utf-8'), 'url': self.tmdb_watchlist_link, 'image': 'tmdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tmdbTvshows'})
+			self.list.insert(0, {'name': control.lang(32033), 'url': self.tmdb_watchlist_link, 'image': 'tmdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tmdbTvshows'})
 
 		# imdb Watchlist
 		if self.imdb_user != '':
-			self.list.insert(0, {'name': control.lang(32033).encode('utf-8'), 'url': self.imdbwatchlist_link, 'image': 'imdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
+			self.list.insert(0, {'name': control.lang(32033), 'url': self.imdbwatchlist_link, 'image': 'imdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
 
 		# imdb My Ratings
 		if self.imdb_user != '':
-			self.list.insert(0, {'name': control.lang(32025).encode('utf-8'), 'url': self.imdbratings_link, 'image': 'imdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
+			self.list.insert(0, {'name': control.lang(32025), 'url': self.imdbratings_link, 'image': 'imdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
 
 		# Trakt Watchlist
 		if self.traktCredentials:
 			# trakt_watchlist = self.traktwatchlist_link + 'shows'
 			trakt_watchlist = self.traktwatchlist_link
-			self.list.insert(0, {'name': control.lang(32033).encode('utf-8'), 'url': trakt_watchlist, 'image': 'trakt.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
+			self.list.insert(0, {'name': control.lang(32033), 'url': trakt_watchlist, 'image': 'trakt.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
 
 		self.addDirectory(self.list)
 		return self.list
@@ -1305,19 +1305,19 @@ class TVshows:
 		flatten = control.setting('flatten.tvshows') == 'true'
 
 		if trakt.getTraktIndicatorsInfo():
-			watchedMenu = control.lang(32068).encode('utf-8')
-			unwatchedMenu = control.lang(32069).encode('utf-8')
+			watchedMenu = control.lang(32068)
+			unwatchedMenu = control.lang(32069)
 		else:
-			watchedMenu = control.lang(32066).encode('utf-8')
-			unwatchedMenu = control.lang(32067).encode('utf-8')
+			watchedMenu = control.lang(32066)
+			unwatchedMenu = control.lang(32067)
 
-		traktManagerMenu = control.lang(32070).encode('utf-8')
-		# playlistManagerMenu = control.lang(35522).encode('utf-8')
-		queueMenu = control.lang(32065).encode('utf-8')
-		showPlaylistMenu = control.lang(35517).encode('utf-8')
-		clearPlaylistMenu = control.lang(35516).encode('utf-8')
-		playRandom = control.lang(32535).encode('utf-8')
-		addToLibrary = control.lang(32551).encode('utf-8')
+		traktManagerMenu = control.lang(32070)
+		# playlistManagerMenu = control.lang(35522)
+		queueMenu = control.lang(32065)
+		showPlaylistMenu = control.lang(35517)
+		clearPlaylistMenu = control.lang(35516)
+		playRandom = control.lang(32535)
+		addToLibrary = control.lang(32551)
 
 		for i in items:
 			try:
@@ -1453,7 +1453,7 @@ class TVshows:
 				if url == '':
 					raise Exception()
 
-				nextMenu = control.lang(32053).encode('utf-8')
+				nextMenu = control.lang(32053)
 				url_params = dict(parse_qsl(url))
 
 				if 'imdb.com' in url:
@@ -1495,9 +1495,9 @@ class TVshows:
 		addonThumb = control.addonThumb()
 		artPath = control.artPath()
 
-		queueMenu = control.lang(32065).encode('utf-8')
-		playRandom = control.lang(32535).encode('utf-8')
-		addToLibrary = control.lang(32551).encode('utf-8')
+		queueMenu = control.lang(32065)
+		playRandom = control.lang(32535)
+		addToLibrary = control.lang(32551)
 
 		for i in items:
 			try:
@@ -1530,7 +1530,7 @@ class TVshows:
 					if control.setting('library.service.update') == 'true':
 						cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowsToLibrary&url=%s&list_name=%s)' % (sysaddon, quote_plus(i['context']), name)))
 				except: pass
-				# cm.append((control.lang(32610).encode('utf-8'), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
+				# cm.append((control.lang(32610), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 
 				item = control.item(label=name)

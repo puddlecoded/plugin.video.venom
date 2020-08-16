@@ -68,6 +68,10 @@ class Navigator:
 		downloads = True if control.setting('downloads') == 'true' and (len(control.listDir(control.setting('movie.download.path'))[0]) > 0 or len(control.listDir(control.setting('tv.download.path'))[0]) > 0) else False
 		if downloads:
 			self.addDirectoryItem(32009, 'downloadNavigator', 'downloads.png', 'DefaultFolder.png')
+
+		if control.getMenuEnabled('navi.prem.services'):
+			self.addDirectoryItem('Premium Services', 'premiumNavigator', 'premium.png', 'DefaultFolder.png')
+
 		if control.getMenuEnabled('navi.news'):
 			self.addDirectoryItem(32013, 'ShowNews', 'icon.png', 'DefaultAddonHelper.png', isFolder=False)
 		if control.getMenuEnabled('navi.changelog'):
@@ -352,6 +356,43 @@ class Navigator:
 		self.endDirectory()
 
 
+	def premium_services(self):
+		self.addDirectoryItem(40057, 'premiumizeService', 'premiumize.png', 'DefaultAddonService.png')
+		self.addDirectoryItem(40058, 'realdebridService', 'realdebrid.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(40059, 'alldebridService', 'alldebrid.png', 'DefaultAddonService.png', isFolder=False)
+		self.endDirectory()
+
+
+	def premiumize_service(self):
+		pm_token = control.addon('script.module.resolveurl').getSetting('PremiumizeMeResolver_token')
+		if pm_token:
+			self.addDirectoryItem('Premiumize: Cloud Storage', 'pmCloudStorage', 'premiumize.png', 'DefaultAddonService.png')
+			self.addDirectoryItem('Premiumize: Transfers', 'pmTransfers', 'premiumize.png', 'DefaultAddonService.png')
+			self.addDirectoryItem('Premiumize: Account Info', 'pmAccountInfo', 'premiumize.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem('Premiumize: (Re)Authorize', 'pmAuthorize&opensettings=false', 'premiumize.png', 'DefaultAddonService.png', isFolder=False)
+		self.endDirectory()
+
+
+	def realdebrid_service(self):
+		rd_token = control.addon('script.module.resolveurl').getSetting('RealDebridResolver_token')
+		if rd_token:
+			self.addDirectoryItem('Real-Debrid: Cloud Storage', 'rdCloudStorage', 'realdebrid.png', 'DefaultAddonService.png')
+			self.addDirectoryItem('Real-Debrid: Transfers', 'rdTransfers', 'realdebrid.png', 'DefaultAddonService.png')
+			self.addDirectoryItem('Real-Debrid: Account Info', 'rdAccountInfo', 'realdebrid.png', 'DefaultAddonService.png',isFolder=False )
+		self.addDirectoryItem('Real-Debrid: (Re)Authorize', 'rdAuthorize', 'realdebrid.png', 'DefaultAddonService.png',isFolder=False )
+		self.endDirectory()
+
+
+	def alldebrid_service(self):
+		ad_token = control.addon('script.module.resolveurl').getSetting('AllDebridResolver_token')
+		if ad_token:
+			self.addDirectoryItem('All-Debrid: Cloud Storage', 'adCloudStorage', 'alldebrid.png', 'DefaultAddonService.png')
+			self.addDirectoryItem('All-Debrid: Transfers', 'adTransfers', 'alldebrid.png', 'DefaultAddonService.png')
+			self.addDirectoryItem('All-Debrid: Account Info', 'adAccountInfo', 'alldebrid.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem('All-Debrid: (Re)Authorize', 'adAuthorize', 'alldebrid.png', 'DefaultAddonService.png', isFolder=False)
+		self.endDirectory()
+
+
 	def search(self):
 		self.addDirectoryItem(32001, 'movieSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
 		self.addDirectoryItem(32002, 'tvSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
@@ -363,13 +404,13 @@ class Navigator:
 	def views(self):
 		try:
 			control.hide()
-			items = [ (control.lang(32001).encode('utf-8'), 'movies'), (control.lang(32002).encode('utf-8'), 'tvshows'),
-							(control.lang(32054).encode('utf-8'), 'seasons'), (control.lang(32038).encode('utf-8'), 'episodes') ]
-			select = control.selectDialog([i[0] for i in items], control.lang(32049).encode('utf-8'))
+			items = [ (control.lang(32001), 'movies'), (control.lang(32002), 'tvshows'),
+							(control.lang(32054), 'seasons'), (control.lang(32038), 'episodes') ]
+			select = control.selectDialog([i[0] for i in items], control.lang(32049))
 			if select == -1:
 				return
 			content = items[select][1]
-			title = control.lang(32059).encode('utf-8')
+			title = control.lang(32059)
 			url = '%s?action=addView&content=%s' % (sys.argv[0], content)
 			poster, banner, fanart = control.addonPoster(), control.addonBanner(), control.addonFanart()
 			item = control.item(label=title)
@@ -403,7 +444,7 @@ class Navigator:
 
 	def clearCacheAll(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32077).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32077), '', '')
 		if not yes:
 			return
 		try:
@@ -417,7 +458,7 @@ class Navigator:
 
 	def clearCacheProviders(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32056), '', '')
 		if not yes:
 			return
 		try:
@@ -431,7 +472,7 @@ class Navigator:
 
 	def clearCacheMeta(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32076).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32076), '', '')
 		if not yes:
 			return
 		try:
@@ -445,7 +486,7 @@ class Navigator:
 
 	def clearCache(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32056), '', '')
 		if not yes:
 			return
 		try:
@@ -459,7 +500,7 @@ class Navigator:
 
 	def clearCacheSearch(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32056), '', '')
 		if not yes:
 			return
 		try:
@@ -473,7 +514,7 @@ class Navigator:
 
 	def clearCacheSearchPhrase(self, table, name):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32056), '', '')
 		if not yes:
 			return
 		try:
@@ -487,7 +528,7 @@ class Navigator:
 
 	def clearBookmarks(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32056), '', '')
 		if not yes:
 			return
 		try:
@@ -501,7 +542,7 @@ class Navigator:
 
 	def clearBookmark(self, name, year):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056).encode('utf-8'), '', '')
+		yes = control.yesnoDialog(control.lang(32056), '', '')
 		if not yes:
 			return
 		try:
@@ -518,7 +559,7 @@ class Navigator:
 			if type(name) is str or type(name) is unicode:
 				name = str(name)
 			if type(name) is int:
-				name = control.lang(name).encode('utf-8')
+				name = control.lang(name)
 		except:
 			log_utils.error()
 		url = '%s?action=%s' % (sysaddon, query) if isAction else query
@@ -526,11 +567,11 @@ class Navigator:
 		if not icon.startswith('Default'):
 			icon = control.joinPath(artPath, icon)
 		cm = []
-		queueMenu = control.lang(32065).encode('utf-8')
+		queueMenu = control.lang(32065)
 		if queue:
 			cm.append((queueMenu, 'RunPlugin(%s?action=queueItem)' % sysaddon))
 		if context:
-			cm.append((control.lang(context[0]).encode('utf-8'), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
+			cm.append((control.lang(context[0]), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
 		if isSearch:
 			try:
 				from urllib import quote_plus

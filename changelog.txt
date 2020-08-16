@@ -1,3 +1,21 @@
+[B][COLOR red]Update - v4.0.7 - Aug. 15, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed issue with free hosters not showing in source
+    select.[/I]
+[COLOR yellow]--[/COLOR][I] Added new "Premium Services" menu.  At this time
+    only Premiumize.me is fully functional.  I had no
+    intention of releasing this till PM, RD, and AD was
+    complete but the item list above bit me in the ass.
+    You can view, play, and manage your cloud account
+    from here.[/I]
+[COLOR yellow]--[/COLOR][I] Added Context Menu option "Cache to cloud" for
+    selected uncached torrent provided seeder count
+    is not 0 for the selected item.  If you have uncached
+    torrents removed this option is not available at this
+    time.  I'm considering adding a yes-no dialog to load
+    uncached torrents if no sources found and user has
+    removed uncached torrents.  This would give you an
+    opportunity to cache an item to your cloud.[/I]
+
 [B][COLOR red]Update - v4.0.6 - Aug. 05, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed issue with "Watched Count" setting dropping
     show-seasons that do not contain a valid imdb_id.[/I]

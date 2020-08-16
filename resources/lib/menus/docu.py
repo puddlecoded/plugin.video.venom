@@ -75,7 +75,7 @@ class documentary:
 				tmp_list = []
 				link = links[(len(links)-1)]
 				docu_action = 'docuHeaven&docuCat=%s' % link
-				self.list.append({'name': control.lang(32053).encode('utf-8'), 'url': link, 'image': control.addonNext(), 'action': docu_action})
+				self.list.append({'name': control.lang(32053), 'url': link, 'image': control.addonNext(), 'action': docu_action})
 			except:
 				pass
 		except Exception as e:
@@ -178,7 +178,7 @@ class documentary:
 
 
 	def addDirectoryItem(self, name, query, thumb, icon, context=None, queue=False, isAction=True, isFolder=True):
-		try: name = control.lang(name).encode('utf-8')
+		try: name = control.lang(name)
 		except: pass
 		url = '%s?action=%s' % (sysaddon, query) if isAction is True else query
 		thumb = control.joinPath(artPath, thumb) if artPath is not None else icon
@@ -188,7 +188,7 @@ class documentary:
 			cm.append((queueMenu, 'RunPlugin(%s?action=queueItem)' % sysaddon))
 
 		if context:
-			cm.append((control.lang(context[0]).encode('utf-8'), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
+			cm.append((control.lang(context[0]), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
 
 		item = control.item(label=name)
 		item.addContextMenuItems(cm)
@@ -213,9 +213,9 @@ class documentary:
 		addonThumb = control.addonThumb()
 		artPath = control.artPath()
 
-		queueMenu = control.lang(32065).encode('utf-8')
-		playRandom = control.lang(32535).encode('utf-8')
-		addToLibrary = control.lang(32551).encode('utf-8')
+		queueMenu = control.lang(32065)
+		playRandom = control.lang(32535)
+		addToLibrary = control.lang(32551)
 
 		for i in items:
 			try:

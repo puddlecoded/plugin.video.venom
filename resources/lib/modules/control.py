@@ -30,9 +30,7 @@ addonInfo = xbmcaddon.Addon().getAddonInfo
 addonName = addonInfo('name')
 addonVersion = addonInfo('version')
 
-lang = xbmcaddon.Addon().getLocalizedString
-lang2 = xbmc.getLocalizedString
-
+getLangString = xbmcaddon.Addon().getLocalizedString
 setting = xbmcaddon.Addon().getSetting
 setSetting = xbmcaddon.Addon().setSetting
 
@@ -112,25 +110,36 @@ key = "RgUkXp2s5v8x/A?D(G+KbPeShVmYq3t6"
 iv = "p2s5v8y/B?E(H+Mb"
 trailer = 'plugin://plugin.video.youtube/play/?video_id=%s'
 
-# def lang(language_id):
-	# text = getLangString(language_id)
-	# text = text.encode('utf-8', 'replace')
-	# text = display_string(text)
-	# return text
 
-# def display_string(object):
-	# if type(object) is str or type(object) is unicode:
-		# return deaccentString(object)
-	# if type(object) is int:
-		# return '%s' % object
-	# if type(object) is bytes:
-		# object = ''.join(chr(x) for x in object)
-		# return object
+def lang(language_id):
+	text = getLangString(language_id)
+	if getKodiVersion() < 19:
+		text = text.encode('utf-8', 'replace')
+	return text
 
-# def deaccentString(text):
-	# text = u'%s' % text
-	# text = ''.join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
-	# return text
+
+def display_string(object):
+	try:
+		if type(object) is str or type(object) is unicode:
+			return deaccentString(object)
+	except NameError:
+		if type(object) is str:
+			return deaccentString(object)
+	if type(object) is int:
+		return '%s' % object
+	if type(object) is bytes:
+		object = ''.join(chr(x) for x in object)
+		return object
+
+
+def deaccentString(text):
+	try:
+		if isinstance(text, bytes):
+			text = text.decode('utf-8')
+	except UnicodeDecodeError:
+		text = u'%s' % text
+	text = ''.join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
+	return text
 
 
 def sleep(time):  # Modified `sleep`(in milli secs) command that honors a user exit request
@@ -150,7 +159,7 @@ def getCurrentViewId():
 
 
 def getKodiVersion():
-	return xbmc.getInfoLabel("System.BuildVersion").split(".")[0]
+	return int(xbmc.getInfoLabel("System.BuildVersion")[:2])
 
 
 def check_version_numbers(current, new):
@@ -202,7 +211,6 @@ def addonPath(addon):
 		addonID = xbmcaddon.Addon(addon)
 	except:
 		addonID = None
-
 	if addonID is None:
 		return ''
 	else:
@@ -299,11 +307,11 @@ def notification(title=None, message=None, icon=None, time=3000, sound=False):
 	if title == 'default' or title is None:
 		title = addonName()
 	if isinstance(title, (int, long)):
-		heading = lang(title).encode('utf-8')
+		heading = lang(title)
 	else:
 		heading = str(title)
 	if isinstance(message, (int, long)):
-		body = lang(message).encode('utf-8')
+		body = lang(message)
 	else:
 		body = str(message)
 	if icon is None or icon == '' or icon == 'default':
@@ -329,11 +337,11 @@ def okDialog(title=None, message=None):
 	if title == 'default' or title is None:
 		title = addonName()
 	if isinstance(title, (int, long)):
-		heading = lang(title).encode('utf-8')
+		heading = lang(title)
 	else:
 		heading = str(title)
 	if isinstance(message, (int, long)):
-		body = lang(message).encode('utf-8')
+		body = lang(message)
 	else:
 		body = str(message)
 	return dialog.ok(heading, body)
@@ -352,14 +360,14 @@ def context(items=None, labels=None):
 
 
 def busy():
-	if int(getKodiVersion()) >= 18:
+	if getKodiVersion() >= 18:
 		return execute('ActivateWindow(busydialognocancel)')
 	else:
 		return execute('ActivateWindow(busydialog)')
 
 
 def hide():
-	if int(getKodiVersion()) >= 18 and condVisibility('Window.IsActive(busydialognocancel)'):
+	if getKodiVersion() >= 18 and condVisibility('Window.IsActive(busydialognocancel)'):
 		return execute('Dialog.Close(busydialognocancel)')
 	else:
 		return execute('Dialog.Close(busydialog)')
@@ -381,7 +389,7 @@ def cancelPlayback():
 
 
 def visible():
-	if int(getKodiVersion()) >= 18 and xbmc.getCondVisibility('Window.IsActive(busydialognocancel)') == 1:
+	if getKodiVersion() >= 18 and xbmc.getCondVisibility('Window.IsActive(busydialognocancel)') == 1:
 		return True
 	return xbmc.getCondVisibility('Window.IsActive(busydialog)') == 1
 ########################
@@ -402,7 +410,7 @@ def openSettings(query=None, id=addonInfo('id')):
 		if not query:
 			return
 		c, f = query.split('.')
-		if int(getKodiVersion()) >= 18:
+		if getKodiVersion() >= 18:
 			execute('SetFocus(%i)' % (int(c) - 100))
 			execute('SetFocus(%i)' % (int(f) - 80))
 		else:
@@ -520,9 +528,9 @@ def trigger_widget_refresh():
 
 def get_video_database_path():
 	database_path = os.path.abspath(os.path.join(dataPath, '..', '..', 'Database', ))
-	if int(getKodiVersion()) == 17:
+	if getKodiVersion() == 17:
 		database_path = os.path.join(database_path, 'MyVideos107.db')
-	elif int(getKodiVersion()) == 18:
+	elif getKodiVersion() == 18:
 		database_path = os.path.join(database_path, 'MyVideos116.db')
 	return database_path
 
@@ -717,7 +725,7 @@ def clean_settings():
 		content += '\n</settings>'
 		return content
 
-	kodi_version = int(getKodiVersion()) 
+	kodi_version = getKodiVersion()
 	for addon_id in ('plugin.video.venom', 'script.module.openscrapers'):
 		try:
 			removed_settings = []
@@ -739,18 +747,21 @@ def clean_settings():
 				dict_item = {}
 				setting_id = item.get('id')
 				setting_default = item.get('default')
-				if kodi_version >= 18: setting_value = item.text
+				if kodi_version >= 18:
+					setting_value = item.text
 				else: setting_value = item.get('value')
 				dict_item['id'] = setting_id
-				if setting_value: dict_item['value'] = setting_value
-				if setting_default: dict_item['default'] = setting_default
+				if setting_value:
+					dict_item['value'] = setting_value
+				if setting_default:
+					dict_item['default'] = setting_default
 				current_user_settings.append(dict_item)
 			new_content = _make_content(current_user_settings)
 			nfo_file = xbmcvfs.File(settings_xml, 'w')
 			nfo_file.write(new_content)
 			nfo_file.close()
 			sleep(200)
-			notification(title=addon_name, message=lang(32084).encode('utf-8').format(str(len(removed_settings))), icon='default', sound=False)
+			notification(title=addon_name, message=lang(32084).format(str(len(removed_settings))), icon='default', sound=False)
 		except:
 			import traceback
 			traceback.print_exc()

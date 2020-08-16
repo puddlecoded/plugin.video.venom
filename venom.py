@@ -4,8 +4,9 @@
 	Venom Add-on
 '''
 
-import xbmcaddon, xbmcgui
 from sys import argv
+import xbmcaddon
+import xbmcgui
 
 try:
 	from urlparse import parse_qsl
@@ -43,6 +44,12 @@ list_name = params.get('list_name')
 provider = params.get('provider')
 magnet_url = params.get('magnet_url')
 info_hash = params.get('info_hash')
+
+folder_id = params.get('folder_id')
+folder_name = params.get('folder_name')
+
+url_link = params.get('url_link')
+caller = params.get('caller')
 
 windowedtrailer = params.get('windowedtrailer')
 windowedtrailer = int(windowedtrailer) if windowedtrailer in ("0","1") else 0
@@ -404,6 +411,64 @@ elif action == 'episodesUserlists':
 
 
 ####################################################
+#---Premium Services
+####################################################
+elif action == 'premiumNavigator':
+	from resources.lib.menus import navigator
+	navigator.Navigator().premium_services()
+
+elif action == 'premiumizeService':
+	from resources.lib.menus import navigator
+	navigator.Navigator().premiumize_service()
+
+elif action == 'pmAccountInfo':
+	from resources.lib.modules import premiumize
+	premiumize.Premiumize().acount_info_to_dialog()
+
+elif action == 'pmCloudStorage':
+	from resources.lib.modules import premiumize
+	premiumize.Premiumize().user_cloud_to_listItem(folder_id, folder_name)
+
+elif action == 'pmTransfers':
+	from resources.lib.modules import premiumize
+	premiumize.Premiumize().user_transfers_to_listItem()
+
+elif action == 'pmAuthorize':
+	from resources.lib.modules import premiumize
+	premiumize.Premiumize().auth()
+
+elif action == 'pmRename':
+	from resources.lib.modules import premiumize
+	premiumize.Premiumize().rename(type, folder_id, folder_name)
+
+elif action == 'pmDelete':
+	from resources.lib.modules import premiumize
+	premiumize.Premiumize().delete(type, folder_id, folder_name)
+
+elif action == 'pmDeleteTransfer':
+	from resources.lib.modules import premiumize
+	premiumize.Premiumize().delete_transfer(folder_id, folder_name)
+
+elif action == 'pmClearFinishedTransfers':
+	from resources.lib.modules import premiumize
+	premiumize.Premiumize().clear_finished_transfers()
+
+
+
+
+
+elif action == 'realdebridService':
+	from resources.lib.menus import navigator
+	navigator.Navigator().realdebrid_service()
+
+elif action == 'alldebridService':
+	from resources.lib.menus import navigator
+	navigator.Navigator().alldebrid_service()
+
+
+
+
+####################################################
 #---Anime
 ####################################################
 elif action == 'animeNavigator':
@@ -442,13 +507,50 @@ elif action == 'youtube':
 #---Tools
 ####################################################
 elif action == 'download':
-	import json
-	from resources.lib.modules import sources
-	from resources.lib.modules import downloader
-	try:
-		downloader.download(name, image, sources.Sources().sourcesResolve(json.loads(source)[0], True))
-	except:
-		pass
+	if caller == 'sources':
+		control.busy()
+		try:
+			import json
+			from resources.lib.modules import sources
+			from resources.lib.modules import downloader
+			downloader.download(name, image, sources.Sources().sourcesResolve(json.loads(source)[0], True))
+		except:
+			import traceback
+			traceback.print_exc()
+			pass
+	if caller == 'premiumize':
+		control.busy()
+		try:
+			from resources.lib.modules import downloader
+			from resources.lib.modules import premiumize
+			downloader.download(name, image, premiumize.Premiumize().add_headers_to_url(url_link.replace(' ', '%20')))
+		except:
+			import traceback
+			traceback.print_exc()
+			pass
+
+	# if caller == 'realdebrid':
+		# control.busy()
+		# try:
+			# from resources.lib.modules import downloader
+			# from resources.lib.modules import realdebrid
+			# downloader.download(name, image, realdebrid.RealDebrid().add_headers_to_url(url_link.replace(' ', '%20')))
+		# except:
+			# import traceback
+			# traceback.print_exc()
+			# pass
+
+	# if caller == 'alldebrid':
+		# control.busy()
+		# try:
+			# from resources.lib.modules import downloader
+			# from resources.lib.modules import alldebrid
+			# downloader.download(name, image, alldebrid.AllDebrid().add_headers_to_url(url_link.replace(' ', '%20')))
+		# except:
+			# import traceback
+			# traceback.print_exc()
+			# pass
+
 
 elif action == 'downloadNavigator':
 	from resources.lib.menus import navigator
@@ -602,6 +704,9 @@ elif action == 'play':
 elif action == 'playAll':
 	control.player2().play(control.playlist)
 
+elif action == 'playURL':
+	control.player2().play(url_link.replace(' ', '%20'))
+
 elif action == 'playItem':
 	from resources.lib.modules import sources
 	sources.Sources().playItem(title, source)
@@ -621,6 +726,17 @@ elif action == 'trailer':
 elif action == 'showDebridPack':
 	from resources.lib.modules.sources import Sources
 	Sources().debridPackDialog(provider, name, magnet_url, info_hash) 
+
+
+
+elif action == 'cacheTorrent':
+	if provider == 'Real-Debrid':
+		from resources.lib.modules.realdebrid import RealDebrid as debrid_function
+	elif provider == 'Premiumize.me':
+		from resources.lib.modules.premiumize import Premiumize as debrid_function
+	debrid_function().create_transfer(magnet_url)
+
+
 
 elif action == 'random':
 	rtype = params.get('rtype')

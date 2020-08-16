@@ -420,14 +420,14 @@ class indexer:
 
 			if skip == 0:
 				if section == 1:
-					keyboard = control.keyboard('', control.lang(30702).encode('utf-8'))
+					keyboard = control.keyboard('', control.lang(30702))
 					keyboard.doModal()
 					if not (keyboard.isConfirmed()): return
 					url = keyboard.getText()
 					keep = url + '|SPLITER|' + matcher
 				else:
 					if (url is None or url == ''):
-						keyboard = control.keyboard('', control.lang(30702).encode('utf-8'))
+						keyboard = control.keyboard('', control.lang(30702))
 						keyboard.doModal()
 						if not (keyboard.isConfirmed()): return
 						url = keyboard.getText()
@@ -939,8 +939,10 @@ class indexer:
 
 		for i in items:
 			try: 
-				try: name = control.lang(int(i['name'])).encode('utf-8')
-				except: name = i['name']
+				try:
+					name = control.lang(int(i['name']))
+				except:
+					name = i['name']
 
 				if name == '':
 					name = i['name']
@@ -974,36 +976,36 @@ class indexer:
 
 				if content in ['movies', 'tvshows']:
 					meta.update({'trailer': '%s?action=trailer&name=%s' % (sysaddon, quote_plus(name))})
-					cm.append((control.lang(30707).encode('utf-8'), 'RunPlugin(%s?action=trailer&name=%s)' % (sysaddon, quote_plus(name))))
+					cm.append((control.lang(30707), 'RunPlugin(%s?action=trailer&name=%s)' % (sysaddon, quote_plus(name))))
 
 				if content in ['movies', 'tvshows', 'seasons', 'episodes']:
-					cm.append((control.lang(30708).encode('utf-8'), 'XBMC.Action(Info)'))
+					cm.append((control.lang(30708), 'XBMC.Action(Info)'))
 
 				if (folder is False and not '|regex=' in str(i.get('url'))) or (folder is True and content in ['tvshows', 'seasons']):
-					cm.append((control.lang(30723).encode('utf-8'), 'RunPlugin(%s?action=queueItem)' % sysaddon))
+					cm.append((control.lang(30723), 'RunPlugin(%s?action=queueItem)' % sysaddon))
 
 				if content == 'movies':
 					try: dfile = '%s (%s)' % (i['title'], i['year'])
 					except: dfile = name
-					try: cm.append((control.lang(30722).encode('utf-8'), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, quote_plus(dfile), quote_plus(i['url']), quote_plus(poster))))
+					try: cm.append((control.lang(30722), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, quote_plus(dfile), quote_plus(i['url']), quote_plus(poster))))
 					except: pass
 				elif content == 'episodes':
 					try: dfile = '%s S%02dE%02d' % (i['tvshowtitle'], int(i['season']), int(i['episode']))
 					except: dfile = name
-					try: cm.append((control.lang(30722).encode('utf-8'), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, quote_plus(dfile), quote_plus(i['url']), quote_plus(poster))))
+					try: cm.append((control.lang(30722), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, quote_plus(dfile), quote_plus(i['url']), quote_plus(poster))))
 					except: pass
 				elif content == 'songs':
-					try: cm.append((control.lang(30722).encode('utf-8'), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, quote_plus(name), quote_plus(i['url']), quote_plus(poster))))
+					try: cm.append((control.lang(30722), 'RunPlugin(%s?action=addDownload&name=%s&url=%s&image=%s)' % (sysaddon, quote_plus(name), quote_plus(i['url']), quote_plus(poster))))
 					except: pass
 
 				if mode == 'movies':
-					cm.append((control.lang(30711).encode('utf-8'), 'RunPlugin(%s?action=addView&content=movies)' % sysaddon))
+					cm.append((control.lang(30711), 'RunPlugin(%s?action=addView&content=movies)' % sysaddon))
 				elif mode == 'tvshows':
-					cm.append((control.lang(30712).encode('utf-8'), 'RunPlugin(%s?action=addView&content=tvshows)' % sysaddon))
+					cm.append((control.lang(30712), 'RunPlugin(%s?action=addView&content=tvshows)' % sysaddon))
 				elif mode == 'seasons':
-					cm.append((control.lang(30713).encode('utf-8'), 'RunPlugin(%s?action=addView&content=seasons)' % sysaddon))
+					cm.append((control.lang(30713), 'RunPlugin(%s?action=addView&content=seasons)' % sysaddon))
 				elif mode == 'episodes':
-					cm.append((control.lang(30714).encode('utf-8'), 'RunPlugin(%s?action=addView&content=episodes)' % sysaddon))
+					cm.append((control.lang(30714), 'RunPlugin(%s?action=addView&content=episodes)' % sysaddon))
 
 				if devmode is True:
 					try: cm.append(('Open in browser', 'RunPlugin(%s?action=browser&url=%s)' % (sysaddon, quote_plus(i['url']))))
@@ -1035,12 +1037,12 @@ class indexer:
 			if i['next'] == '':
 				raise Exception()
 
-				# nextMenu = control.lang(32053).encode('utf-8')
+				# nextMenu = control.lang(32053)
 				# page = '  [I](%s)[/I]' % str(url.split('&page=', 1)[1])
 				# nextMenu = '[COLOR skyblue]' + nextMenu + page + '[/COLOR]'
 
 			url = '%s?action=%s&url=%s' % (sysaddon, i['nextaction'], quote_plus(i['next']))
-			item = control.item(label=control.lang(30500).encode('utf-8'))
+			item = control.item(label=control.lang(30500))
 			item.setArt({'addonPoster': addonPoster, 'thumb': addonPoster, 'poster': addonPoster, 'fanart': addonFanart, 'tvshow.poster': addonPoster, 'season.poster': addonPoster, 'banner': addonPoster, 'tvshow.banner': addonPoster, 'season.banner': addonPoster})
 			control.addItem(handle=int(sys.argv[1]), url=url, listitem=item, isFolder=True)
 		except:
@@ -1356,10 +1358,12 @@ class bookmarks:
 
 			minutes, seconds = divmod(float(self.offset), 60) ; hours, minutes = divmod(minutes, 60)
 			label = '%02d:%02d:%02d' % (hours, minutes, seconds)
-			label = (control.lang(32502) % label).encode('utf-8')
+			label = (control.lang(32502) % label)
 
-			try: yes = control.dialog.contextmenu([label, control.lang(32501).encode('utf-8'), ])
-			except: yes = control.yesnoDialog(label, '', '', str(name), control.lang(32503).encode('utf-8'), control.lang(32501).encode('utf-8'))
+			try:
+				yes = control.dialog.contextmenu([label, control.lang(32501)])
+			except:
+				yes = control.yesnoDialog(label, '', '', str(name), control.lang(32503), control.lang(32501))
 
 			if yes: self.offset = '0'
 

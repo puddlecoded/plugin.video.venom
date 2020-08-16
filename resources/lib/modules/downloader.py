@@ -4,76 +4,79 @@
 	Venom Add-on
 """
 
-import json
-import inspect
 import os
 import re
-import sys
 
 try:
-	from urllib import quote_plus, unquote_plus
 	from urlparse import parse_qsl, urlparse
 except:
-	from urllib.parse import quote_plus, unquote_plus, parse_qsl, urlparse
-try:
-	from urllib.request import urlopen
-	from urllib.request import Request
-except:
-	from urllib2 import urlopen
-	from urllib2 import Request
+	from urllib.parse import parse_qsl, urlparse
 
-import xbmc, xbmcvfs, xbmcgui
+try:
+	from urllib.request import urlopen, Request
+except:
+	from urllib2 import urlopen, Request
+
+from resources.lib.modules import control
+from resources.lib.modules import log_utils
 
 
 def download(name, image, url):
-	if url is None:
-		return
-	from resources.lib.modules import control
+	# log_utils.log('name = %s' % str(name), log_utils.LOGDEBUG)
 	try:
-		headers = dict(parse_qsl(url.rsplit('|', 1)[1]))
+		if url is None:
+			control.hide()
+			return
+		try:
+			headers = dict(parse_qsl(url.rsplit('|', 1)[1]))
+		except:
+			headers = dict('')
+
+		url = url.split('|')[0]
+
+		content = re.compile('(.+?)(?:\.| - |-|\s)(?:S|s)(\d*)(?:E|e)\d*').findall(name.replace('\'', ''))
+		transname = name.translate(None, '\/:*?"<>|').strip('.')
+		ext_list = ['.mp4', '.mkv', '.flv', '.avi', '.mpg']
+		for i in ext_list:
+			transname = transname.rstrip(i)
+
+		levels =['../../../..', '../../..', '../..', '..']
+		if len(content) == 0:
+			dest = control.setting('movie.download.path')
+			dest = control.transPath(dest)
+			for level in levels:
+				try:
+					control.makeFile(os.path.abspath(os.path.join(dest, level)))
+				except:
+					pass
+			control.makeFile(dest)
+			dest = os.path.join(dest, transname)
+			control.makeFile(dest)
+		else:
+			dest = control.setting('tv.download.path')
+			dest = control.transPath(dest)
+			for level in levels:
+				try:
+					control.makeFile(os.path.abspath(os.path.join(dest, level)))
+				except:
+					pass
+			control.makeFile(dest)
+			transtvshowtitle = content[0][0].translate(None, '\/:*?"<>|').strip('.').replace('.', ' ')
+			if not transtvshowtitle[0].isupper():
+				transtvshowtitle = transtvshowtitle.capitalize()
+
+			dest = os.path.join(dest, transtvshowtitle)
+			control.makeFile(dest)
+			dest = os.path.join(dest, 'Season %01d' % int(content[0][1]))
+			control.makeFile(dest)
+		ext = os.path.splitext(urlparse(url).path)[1][1:]
+		if not ext in ['mp4', 'mkv', 'flv', 'avi', 'mpg']:
+			ext = 'mp4'
+		dest = os.path.join(dest, transname + '.' + ext)
+		doDownload(url, dest, name, image, headers)
 	except:
-		headers = dict('')
-	url = url.split('|')[0]
-	content = re.compile('(.+?)\sS(\d*)E\d*$').findall(name)
-	transname = name.translate(None, '\/:*?"<>|').strip('.')
-	levels =['../../../..', '../../..', '../..', '..']
-	if len(content) == 0:
-		dest = control.setting('movie.download.path')
-		dest = control.transPath(dest)
-		for level in levels:
-			try:
-				control.makeFile(os.path.abspath(os.path.join(dest, level)))
-			except:
-				pass
-		control.makeFile(dest)
-		dest = os.path.join(dest, transname)
-		control.makeFile(dest)
-	else:
-		dest = control.setting('tv.download.path')
-		dest = control.transPath(dest)
-		for level in levels:
-			try:
-				control.makeFile(os.path.abspath(os.path.join(dest, level)))
-			except:
-				pass
-		control.makeFile(dest)
-		transtvshowtitle = content[0][0].translate(None, '\/:*?"<>|').strip('.')
-		dest = os.path.join(dest, transtvshowtitle)
-		control.makeFile(dest)
-		dest = os.path.join(dest, 'Season %01d' % int(content[0][1]))
-		control.makeFile(dest)
-	ext = os.path.splitext(urlparse(url).path)[1][1:]
-	if not ext in ['mp4', 'mkv', 'flv', 'avi', 'mpg']:
-		ext = 'mp4'
-	dest = os.path.join(dest, transname + '.' + ext)
-	sysheaders = quote_plus(json.dumps(headers))
-	sysurl = quote_plus(url)
-	systitle = quote_plus(name)
-	sysimage = quote_plus(image)
-	sysdest = quote_plus(dest)
-	script = inspect.getfile(inspect.currentframe())
-	cmd = 'RunScript(%s, %s, %s, %s, %s, %s)' % (script, sysurl, sysdest, systitle, sysimage, sysheaders)
-	xbmc.executebuiltin(cmd)
+		log_utils.error()
+		pass
 
 
 def getResponse(url, headers, size):
@@ -85,34 +88,37 @@ def getResponse(url, headers, size):
 		resp = urlopen(req, timeout=30)
 		return resp
 	except:
+		log_utils.error()
 		return None
 
 
 def done(title, dest, downloaded):
-	playing = xbmc.Player().isPlaying()
-	text = xbmcgui.Window(10000).getProperty('GEN-DOWNLOADED')
-	if len(text) > 0:
-		text += '[CR]'
-	if downloaded:
-		text += '%s : %s' % (dest.rsplit(os.sep)[-1], '[COLOR forestgreen]Download succeeded[/COLOR]')
-	else:
-		text += '%s : %s' % (dest.rsplit(os.sep)[-1], '[COLOR red]Download failed[/COLOR]')
-	xbmcgui.Window(10000).setProperty('GEN-DOWNLOADED', text)
-	if (not downloaded) or (not playing): 
-		xbmcgui.Dialog().ok(title, text)
-		xbmcgui.Window(10000).clearProperty('GEN-DOWNLOADED')
+	try:
+		playing = control.player.isPlaying()
+		text = control.window.getProperty('GEN-DOWNLOADED')
+
+		if len(text) > 0:
+			text += '[CR]'
+		if downloaded:
+			text += '%s : %s' % (dest.rsplit(os.sep)[-1], '[COLOR forestgreen]Download succeeded[/COLOR]')
+		else:
+			text += '%s : %s' % (dest.rsplit(os.sep)[-1], '[COLOR red]Download failed[/COLOR]')
+		control.window.setProperty('GEN-DOWNLOADED', text)
+
+		if (not downloaded) or (not playing): 
+			control.okDialog(title, text)
+			control.window.clearProperty('GEN-DOWNLOADED')
+	except:
+		log_utils.error()
+		pass
 
 
 def doDownload(url, dest, title, image, headers):
-	headers = json.loads(unquote_plus(headers))
-	url = unquote_plus(url)
-	title = unquote_plus(title)
-	image = unquote_plus(image)
-	dest = unquote_plus(dest)
 	file = dest.rsplit(os.sep, 1)[-1]
 	resp = getResponse(url, headers, 0)
 	if not resp:
-		xbmcgui.Dialog().ok(title, dest, 'Download failed', 'No response from server')
+		control.hide()
+		control.okDialog(title, dest + 'Download failed: No response from server')
 		return
 	try:
 		content = int(resp.headers['Content-Length'])
@@ -125,7 +131,8 @@ def doDownload(url, dest, title, image, headers):
 	if resumable:
 		print("Download is resumable")
 	if content < 1:
-		xbmcgui.Dialog().ok(title, file, 'Unknown filesize', 'Unable to download')
+		control.hide()
+		control.okDialog(title, file + 'Unknown filesize: Unable to download')
 		return
 	size = 1024 * 1024
 	mb   = content / (1024 * 1024)
@@ -137,12 +144,13 @@ def doDownload(url, dest, title, image, headers):
 	count   = 0
 	resume  = 0
 	sleep   = 0
-	if xbmcgui.Dialog().yesno(title + ' - Confirm Download', file, 'Complete file is %dMB' % mb, 'Continue with download?', 'Confirm',  'Cancel') == 1:
+	control.hide()
+	if control.yesnoDialog(file, 'Complete file is %dMB' % mb, 'Continue with download?', 'Confirm Download', 'Confirm',  'Cancel') == 1:
 		return
 	print('Download File Size : %dMB %s ' % (mb, dest))
 
 	#f = open(dest, mode='wb')
-	f = xbmcvfs.File(dest, 'w')
+	f = control.openFile(dest, 'w')
 	chunk  = None
 	chunks = []
 
@@ -152,7 +160,7 @@ def doDownload(url, dest, title, image, headers):
 			downloaded += len(c)
 		percent = min(100 * downloaded / content, 100)
 		if percent >= notify:
-			xbmc.executebuiltin( "XBMC.Notification(%s,%s,%i,%s)" % ( title + ' - Download Progress - ' + str(percent)+'%', dest, 10000, image))
+			control.execute("XBMC.Notification(%s,%s,%i,%s)" % ( title + ' - Download Progress - ' + str(percent)+'%', dest, 10000, image))
 			print('Download percent : %s %s %dMB downloaded : %sMB File Size : %sMB' % (str(percent)+'%', dest, mb, downloaded / 1000000, content / 1000000))
 			notify += 10
 		chunk = None
@@ -199,7 +207,8 @@ def doDownload(url, dest, title, image, headers):
 			errors += 1
 			count  += 1
 			print('%d Error(s) whilst downloading %s' % (count, dest))
-			xbmc.sleep(sleep*1000)
+			# xbmc.sleep(sleep*1000)
+			control.sleep(sleep*1000)
 
 		if (resumable and errors > 0) or errors >= 10:
 			if (not resumable and resume >= 50) or resume >= 500:
@@ -217,7 +226,3 @@ def doDownload(url, dest, title, image, headers):
 			else:
 				#use existing response
 				pass
-
-if __name__ == '__main__':
-	if 'downloader.py' in sys.argv[0]:
-		doDownload(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])

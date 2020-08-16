@@ -1185,21 +1185,21 @@ class Collections:
 			isPlayable = 'true'
 
 		if control.setting('hosts.mode') == '2':
-			playbackMenu = control.lang(32063).encode('utf-8')
+			playbackMenu = control.lang(32063)
 		else:
-			playbackMenu = control.lang(32064).encode('utf-8')
+			playbackMenu = control.lang(32064)
 
 		if trakt.getTraktIndicatorsInfo():
-			watchedMenu = control.lang(32068).encode('utf-8')
-			unwatchedMenu = control.lang(32069).encode('utf-8')
+			watchedMenu = control.lang(32068)
+			unwatchedMenu = control.lang(32069)
 		else:
-			watchedMenu = control.lang(32066).encode('utf-8')
-			unwatchedMenu = control.lang(32067).encode('utf-8')
+			watchedMenu = control.lang(32066)
+			unwatchedMenu = control.lang(32067)
 
-		playlistManagerMenu = control.lang(35522).encode('utf-8')
-		queueMenu = control.lang(32065).encode('utf-8')
-		traktManagerMenu = control.lang(32070).encode('utf-8')
-		addToLibrary = control.lang(32551).encode('utf-8')
+		playlistManagerMenu = control.lang(35522)
+		queueMenu = control.lang(32065)
+		traktManagerMenu = control.lang(32070)
+		addToLibrary = control.lang(32551)
 
 		for i in items:
 			try:
@@ -1310,7 +1310,7 @@ class Collections:
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
 				cm.append(('Find similar', 'ActivateWindow(10025,%s?action=movies&url=https://api.trakt.tv/movies/%s/related,return)' % (sysaddon, imdb)))
-				cm.append((control.lang(32611).encode('utf-8'), 'RunPlugin(%s?action=clearSources&opensettings=false)' % sysaddon))
+				cm.append((control.lang(32611), 'RunPlugin(%s?action=clearSources&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 ####################################
 
@@ -1353,7 +1353,7 @@ class Collections:
 				if url == '':
 					raise Exception()
 
-				nextMenu = control.lang(32053).encode('utf-8')
+				nextMenu = control.lang(32053)
 				url_params = dict(parse_qsl(url))
 
 				if 'imdb.com' in url:
@@ -1385,7 +1385,7 @@ class Collections:
 			if type(name) is str or type(name) is unicode:
 				name = str(name)
 			if type(name) is int:
-				name = control.lang(name).encode('utf-8')
+				name = control.lang(name)
 		except:
 			log_utils.error()
 
@@ -1399,7 +1399,7 @@ class Collections:
 			cm.append((queueMenu, 'RunPlugin(%s?action=queueItem)' % sysaddon))
 
 		if context:
-			cm.append((control.lang(context[0]).encode('utf-8'), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
+			cm.append((control.lang(context[0]), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
 		cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 
 		item = control.item(label=name)

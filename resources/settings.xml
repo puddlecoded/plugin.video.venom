@@ -10,13 +10,13 @@
 		<setting id="fanart" type="bool" label="32318" default="true" />
 		<setting id="disable.fanarttv" type="bool" label="32012" default="false" />
 		<setting id="clear.metacache1" type="action" label="32612" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=clearMetaCache&amp;opensettings=true&amp;query=0.7)" />
-		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=disableFanartTV&amp;query=0.8)" option="close"/>
-		<setting id="disable.player.art" type="bool" label="Disable clearart, clearlogo, and discart in player" default="false" enable="!eq(-3,true)" />
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=disableFanartTV&amp;query=0.8)" />
+		<setting id="disable.player.art" type="bool" label="35525" default="false" enable="!eq(-3,true)" />
 		<setting id="hidecinema" type="bool" label="32571" default="false" />
 		<setting id="hidecinema.rollback" type="slider" label="40063" enable="eq(-1,true)" default="6" range="1,12" option="int" />
-		<setting id="movie.unaired.identify" type="select" label="Movie theatrical unreleased color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="8" />
+		<setting id="movie.unaired.identify" type="select" label="35526" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="8" />
 		<setting id="newmovies.widget" type="select" label="32320" lvalues="32302|32321|32322|32323|32324|32580" default="5" />
-		<setting id="notification.sound" type="bool" label="Enable Notification Sound" default="false" />
+		<setting id="notification.sound" type="bool" label="35527" default="false" />
 		<setting id="general.checkAddonUpdates" type="bool" label="35524" default="true" />
 		<setting type = "lsep" label="32003" />
 		<setting id="sort.movies.type" type="select" label="35190" lvalues="33564|33039|35187|35188|35391|35392|35393" default="4" />
@@ -31,6 +31,7 @@
 		<setting id="mylists.widget" type="bool" label="32329" default="true" />
 		<setting id="navi.anime" type="bool" label="40068" default="false" />
 		<setting id="navi.youtube" type="bool" label="40061" default="false" />
+		<setting id="navi.prem.services" type="bool" label="40060" default="false" />
 		<setting id="navi.news" type="bool" label="32013" default="true" />
 		<setting id="navi.changelog" type="bool" label="32014" default="true" />
 		<setting type="lsep" label="32001" />
@@ -92,12 +93,12 @@
 <!-- 		<setting id="tvshows.seasoncount.enabled" type="bool" label="33890" default="false" /> -->
 		<setting id="tvshows.unwatched.enabled" type="bool" label="33891" default="false" />
 		<setting id="multi.unwatched.enabled" type="bool" label="    allow multi Episodes to Show Unwatched Count" default="false" visible="eq(-1,true)"/>
-		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=multi.unwatched&amp;query=2.10)" option="close" visible="eq(-2,true)" />
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=multi.unwatched&amp;query=2.9)" visible="eq(-2,true)" />
 		<setting id="tvshows.calendar.extended" type="bool" label="32023" default="false" />
 		<setting type="lsep" label="40025" />
 		<setting type="action" action="InstallAddon(service.upnext)" label="40027" option="close" visible="!System.HasAddon(service.upnext)" />
 		<setting id="enable.upnext" type="bool" default="false" label="40028" visible="System.HasAddon(service.upnext)" />
-		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=upnext&amp;query=2.16)" option="close"/>
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=upnext&amp;query=2.15)" />
 		<setting id="upnext.time" type="slider" enable="eq(-2,true)" visible="eq(-2,true)" default="60" label="40029" option="int" range="10,60" />
 		<setting id="auto.playlistcreate" type="bool" label="40030" default="true" />
 		<setting type="lsep" label="32375" />
@@ -105,7 +106,7 @@
 		<!-- <setting id="tvshows.networks.filter" type="select" label="32379" lvalues="32380|32381|32382|32383|32384|32385" default="4" enable="eq(-1, 1)" /> -->
 		<setting label="32004" type="lsep" />
 		<setting id="tvshows.direct" type="bool" label="35492" default="false" visible="!eq(-17,)" />
-		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=directProgress&amp;query=2.25)" option="close"/>
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=directProgress&amp;query=2.24)" />
 		<setting id="sort.shows.type" type="select" label="35191" lvalues="33564|33039|35187|35188|35391|35392|35393" default="0" />
 		<setting id="sort.shows.order" type="enum" label="33679" lvalues="33649|33650" default="0" subsetting="true" enable="!eq(-1,0)" />
 		<setting id="sort.progress.type" type="select" label="35572" lvalues="33564|33039|35187|35188|35391|35392|35393" default="6" visible="!eq(-20,)" />
@@ -134,7 +135,7 @@
 	<category label="32345">
 		<setting id="module.provider" type="text" label="32650" default="Openscrapers Scrapers" visible="true" enable="false" />
 		<setting id="open.settings" type="action" label="32651" option="close" action="RunPlugin(plugin://script.module.openscrapers/?action=OpenscrapersSettings&amp;opensettings=true&amp;query=4.1)" />
-		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=Providers&amp;query=4.02)" option="close"/>
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=Providers&amp;query=4.02)" />
 		<setting type="lsep" label="40067" />
 		<setting id="clear.sources1" type="action" label="32611" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=clearSources&amp;opensettings=true&amp;query=4.2)" />
 	</category>
@@ -143,7 +144,7 @@
 	<category label="Source Options">
 		<setting id="providers.lang" type="select" label="32360" values="English|German|Greek|Polish|Spanish|German+English|Greek+English|Polish+English|Spanish+English" default="English" />
 		<setting id="cf.disable" type="bool" label="32364" default="false" />
-		<setting id="enable.season.packs" type="bool" label="Enable Pack scraping" default="false" />
+		<setting id="enable.season.packs" type="bool" label="Enable Pack scraping" default="true" />
 		<setting id="scrapers.timeout.1" type="slider" label="32312" default="30" range="10,60" option="int" />
 		<setting id="preemptive.termination" type="bool" label="32654" default="false" />
 		<setting id="preemptive.limit" type="slider" label="32655" default="25" range="1,50" option="int" visible="eq(-1,true)" />
@@ -216,14 +217,14 @@
 		<setting id="tm.user" type="text" option="hidden" label="TMDb API" default="" />
 		<setting id="tmdb.username" type="text" label="TMDb username" default="" />
 		<setting id="tmdb.password" type="text" label="TMDb password" default="" />
-		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=tmdbUser&amp;query=8.7)" option="close"/>
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=tmdbUser&amp;query=8.7)" />
 		<setting type="action" label="Authorize TMDb" option="close" enable="!eq(-3,) + !eq(-2,)" action="RunPlugin(plugin://plugin.video.venom/?action=authTMDb&amp;opensettings=true&amp;query=8.5)" />
 		<setting id="tmdb.session_id" type="text" default="" label="session_id" enable="false" />
 		<setting type="action" label="Revoke TMDb session_id" option="close" enable="!eq(-1,)" action="RunPlugin(plugin://plugin.video.venom/?action=revokeTMDb&amp;opensettings=true&amp;query=8.7)" />
 		<setting type="lsep" label="TVDb" />
 		<setting id="tvdb.api.key" type="select" label="TVDb API" lvalues="32369|32370|32371" default="0" />
 		<setting id="clear.cache1" type="action" label="32613" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=clearCache&amp;opensettings=true&amp;query=8.14)" />
-		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=tvdbApiKey&amp;query=8.15)" option="close"/>
+		<setting label="      [COLOR FFA0C12C]Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=tvdbApiKey&amp;query=8.15)" />
 		<setting id="tvdb.jw" type="text" default="" visible="false" />
 		<setting type="lsep" label="IMDb" />
 		<setting id="imdb.user" type="text" label="32303" default="" />
@@ -279,7 +280,7 @@
 		<setting id="debug.location" type="enum" label="32617" lvalues="32618|32619" default="1" enable="eq(-1,true)" />
 		<setting type="sep" />
 		<setting id="dev.mode.enable" type="bool" label="Developer mode" default="false" />
-		<setting label="      [COLOR FFA0C12C]Dev Mode Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=devMode&amp;query=12.5)" option="close"/>
+		<setting label="      [COLOR FFA0C12C]Dev Mode Help[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=devMode&amp;query=12.5)" />
 		<setting id="dev.disable.single" type="bool" label="Disable single episode scraping" default="false" visible="eq(-2,true)" />
 <!-- 		<setting id="dev.disable.single.filter" type="bool" label="    Disable single scraper filter" default="false" visible="eq(-3,true)" enable="eq(-1,false)" /> -->
 		<setting id="dev.disable.season.packs" type="bool" label="Disable season pack scraping" default="false" visible="eq(-3,true)" />
