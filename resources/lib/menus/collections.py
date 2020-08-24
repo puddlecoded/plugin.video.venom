@@ -26,12 +26,8 @@ from resources.lib.modules import views
 from resources.lib.modules import workers
 from resources.lib.indexers import tmdb as tmdb_indexer
 
-sysaddon = sys.argv[0]
-syshandle = int(sys.argv[1])
-
-params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
-action = params.get('action')
-notificationSound = control.setting('notification.sound') == 'true'
+# params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
+# action = params.get('action')
 is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
 
 
@@ -380,19 +376,19 @@ class Collections:
 		self.xmen_link = self.tmdb_api_link % '33137'
 
 
-	def collectionsNavigator(self, lite=False):
-		self.addDirectoryItem('Movies', 'collectionBoxset', 'boxsets.png', 'DefaultVideoPlaylists.png')
-		self.addDirectoryItem('Martial Arts', 'collection_martial_arts', 'boxsets.png', 'DefaultVideoPlaylists.png')
+	def collections_Navigator(self, lite=False):
+		self.addDirectoryItem('Movies', 'collections_Boxset', 'boxsets.png', 'DefaultVideoPlaylists.png')
+		self.addDirectoryItem('Martial Arts', 'collections_MartialArts', 'boxsets.png', 'DefaultVideoPlaylists.png')
 		if control.getMenuEnabled('navi.xmascollections'):
 			self.addDirectoryItem('Christmas Collections', 'collections&url=xmasmovies', 'boxsets.png', 'DefaultVideoPlaylists.png')
 		self.addDirectoryItem('DC Comics', 'collections&url=dcmovies', 'boxsets.png', 'DefaultVideoPlaylists.png')
 		self.addDirectoryItem('Marvel Comics', 'collections&url=marvelmovies', 'boxsets.png', 'DefaultVideoPlaylists.png')
-		self.addDirectoryItem('Superheroes', 'collectionSuperhero', 'boxsets.png', 'DefaultVideoPlaylists.png')
-		self.addDirectoryItem('Kids Collections', 'collectionKids', 'boxsets.png', 'DefaultVideoPlaylists.png')
+		self.addDirectoryItem('Superheroes', 'collections_Superhero', 'boxsets.png', 'DefaultVideoPlaylists.png')
+		self.addDirectoryItem('Kids Collections', 'collections_Kids', 'boxsets.png', 'DefaultVideoPlaylists.png')
 		self.endDirectory()
 
 
-	def collectionBoxset(self):
+	def collections_Boxset(self):
 		self.addDirectoryItem('12 Rounds (2009-2015)', 'collections&url=rounds', 'collectionboxset.png', 'DefaultVideoPlaylists.png')
 		self.addDirectoryItem('300 (2007-2014)', 'collections&url=tmdb300', 'collectionboxset.png', 'DefaultVideoPlaylists.png')
 		self.addDirectoryItem('48 Hrs. (1982-1990)', 'collections&url=fortyeighthours', 'collectionboxset.png', 'DefaultVideoPlaylists.png')
@@ -586,13 +582,13 @@ class Collections:
 		self.endDirectory()
 
 
-	def collection_martial_arts(self):
+	def collections_martial_arts(self):
 		self.addDirectoryItem('All Movies', 'collections&url=martialartsmovies', 'boxsets.png', 'DefaultVideoPlaylists.png')
-		self.addDirectoryItem('By Actors', 'collection_martial_arts_actors', 'people.png', 'DefaultVideoPlaylists.png')
+		self.addDirectoryItem('By Actors', 'collections_MartialArtsActors', 'people.png', 'DefaultVideoPlaylists.png')
 		self.endDirectory()
 
 
-	def collection_martial_arts_actors(self):
+	def collections_martial_arts_actors(self):
 		self.addDirectoryItem('Brandon Lee', 'collections&url=brandonlee', 'people.png', 'DefaultActor.png')
 		self.addDirectoryItem('Bruce Lee', 'collections&url=brucelee2', 'people.png', 'DefaultActor.png')
 		self.addDirectoryItem('Chuck Norris', 'collections&url=chucknorris', 'people.png', 'DefaultActor.png')
@@ -615,14 +611,14 @@ class Collections:
 		self.endDirectory()
 
 
-	def collectionKids(self):
+	def collections_Kids(self):
 		self.addDirectoryItem('Disney Collection', 'collections&url=disneymovies', 'collectiondisney.png', 'DefaultVideoPlaylists.png')
-		self.addDirectoryItem('Kids Boxset Collection', 'collectionBoxsetKids', 'collectionkidsboxset.png', 'DefaultVideoPlaylists.png')
+		self.addDirectoryItem('Kids Boxset Collection', 'collections_BoxsetKids', 'collectionkidsboxset.png', 'DefaultVideoPlaylists.png')
 		self.addDirectoryItem('Kids Movie Collection', 'collections&url=kidsmovies', 'collectionkids.png', 'DefaultVideoPlaylists.png')
 		self.endDirectory()
 
 
-	def collectionBoxsetKids(self):
+	def collections_BoxsetKids(self):
 		self.addDirectoryItem('101 Dalmations (1961-2003)', 'collections&url=onehundredonedalmations', 'collectionkidsboxset.png', 'DefaultVideoPlaylists.png')
 		self.addDirectoryItem('Addams Family (1991-1998)', 'collections&url=addamsfamily', 'collectionkidsboxset.png', 'DefaultVideoPlaylists.png')
 		self.addDirectoryItem('Aladdin (1992-1996)', 'collections&url=aladdin', 'collectionkidsboxset.png', 'DefaultVideoPlaylists.png')
@@ -692,7 +688,7 @@ class Collections:
 		self.endDirectory()
 
 
-	def collectionSuperhero(self):
+	def collections_Superhero(self):
 		self.addDirectoryItem('Avengers (2008-2017)', 'collections&url=avengers', 'collectionsuperhero.png', 'DefaultVideoPlaylists.png')
 		self.addDirectoryItem('Batman (1989-2016)', 'collections&url=batman', 'collectionsuperhero.png', 'DefaultVideoPlaylists.png')
 		self.addDirectoryItem('Captain America (2011-2016)', 'collections&url=captainamerica', 'collectionsuperhero.png', 'DefaultVideoPlaylists.png')
@@ -1168,9 +1164,11 @@ class Collections:
 	def movieDirectory(self, items, next=True):
 		if not items: 
 			control.hide()
-			control.notification(title=32000, message=33049, icon='default', sound=notificationSound)
+			control.notification(title=32000, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 			sys.exit()
 
+		sysaddon = sys.argv[0]
+		syshandle = int(sys.argv[1])
 		settingFanart = control.setting('fanart')
 		addonPoster = control.addonPoster()
 		addonFanart = control.addonFanart()
@@ -1389,26 +1387,27 @@ class Collections:
 		except:
 			log_utils.error()
 
-		url = '%s?action=%s' % (sysaddon, query) if isAction else query
-
+		sysaddon = sys.argv[0]
+		syshandle = int(sys.argv[1])
 		artPath = control.artPath()
 		thumb = control.joinPath(artPath, thumb) if artPath else icon
+
+		url = '%s?action=%s' % (sysaddon, query) if isAction else query
 
 		cm = []
 		if queue:
 			cm.append((queueMenu, 'RunPlugin(%s?action=queueItem)' % sysaddon))
-
 		if context:
 			cm.append((control.lang(context[0]), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
 		cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 
 		item = control.item(label=name)
 		item.setArt({'icon': icon, 'poster': thumb, 'thumb': thumb, 'fanart': control.addonFanart(), 'banner': thumb})
-
 		item.addContextMenuItems(cm)
 		control.addItem(handle=syshandle, url=url, listitem=item, isFolder=isFolder)
 
 
 	def endDirectory(self):
+		syshandle = int(sys.argv[1])
 		control.content(syshandle, 'addons')
 		control.directory(syshandle, cacheToDisc=True)

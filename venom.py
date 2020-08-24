@@ -17,9 +17,9 @@ except:
 from resources.lib.modules import control
 
 params = dict(parse_qsl(argv[2].replace('?','')))
-action = params.get('action')
 
-subid = params.get('subid')
+action = params.get('action')
+id = params.get('id')
 name = params.get('name')
 title = params.get('title')
 year = params.get('year')
@@ -32,33 +32,18 @@ tvshowtitle = params.get('tvshowtitle')
 premiered = params.get('premiered')
 type = params.get('type')
 url = params.get('url')
-image = params.get('image')
 meta = params.get('meta')
-art = params.get('art')
-select = params.get('select')
 query = params.get('query')
 source = params.get('source')
-content = params.get('content')
-table = params.get('table')
-list_name = params.get('list_name')
-provider = params.get('provider')
-magnet_url = params.get('magnet_url')
-info_hash = params.get('info_hash')
-
-folder_id = params.get('folder_id')
-folder_name = params.get('folder_name')
-
-url_link = params.get('url_link')
-caller = params.get('caller')
 
 windowedtrailer = params.get('windowedtrailer')
 windowedtrailer = int(windowedtrailer) if windowedtrailer in ("0","1") else 0
-notificationSound = control.setting('notification.sound') == 'true'
 
 homeWindow = xbmcgui.Window(10000)
 playAction = xbmcaddon.Addon('plugin.video.venom').getSetting('hosts.mode')
 autoPlay = 'true' if playAction == '2' else ''
 homeWindow.setProperty('plugin.video.venom.autoPlay', autoPlay)
+
 
 if action is None:
 	from resources.lib.menus import navigator
@@ -96,6 +81,13 @@ elif action == 'ShowHelp':
 	from resources.help import help
 	help.get(name)
 	control.openSettings(query)
+
+
+elif action == 'setReuseLanguageInvoker':
+	control.set_reuselanguageinvoker()
+	# control.openSettings(query)
+
+
 
 
 ####################################################
@@ -185,75 +177,69 @@ elif action == 'movieUserlists':
 ####################################################
 #---Collections
 ####################################################
-elif action == 'collectionsNavigator':
-	from resources.lib.menus import collections
-	collections.Collections().collectionsNavigator()
+if action and 'collections' in action:
+	if action == 'collections_Navigator':
+		from resources.lib.menus import collections
+		collections.Collections().collections_Navigator()
 
-elif action == 'collectionActors':
-	from resources.lib.menus import collections
-	collections.Collections().collectionActors()
+	elif action == 'collections_Boxset':
+		from resources.lib.menus import collections
+		collections.Collections().collections_Boxset()
 
-elif action == 'collectionBoxset':
-	from resources.lib.menus import collections
-	collections.Collections().collectionBoxset()
+	elif action == 'collections_Kids':
+		from resources.lib.menus import collections
+		collections.Collections().collections_Kids()
 
-elif action == 'collectionKids':
-	from resources.lib.menus import collections
-	collections.Collections().collectionKids()
+	elif action == 'collections_BoxsetKids':
+		from resources.lib.menus import collections
+		collections.Collections().collections_BoxsetKids()
 
-elif action == 'collectionBoxsetKids':
-	from resources.lib.menus import collections
-	collections.Collections().collectionBoxsetKids()
+	elif action == 'collections_Superhero':
+		from resources.lib.menus import collections
+		collections.Collections().collections_Superhero()
 
-elif action == 'collectionSuperhero':
-	from resources.lib.menus import collections
-	collections.Collections().collectionSuperhero()
+	elif action == 'collections_MartialArts':
+		from resources.lib.menus import collections
+		collections.Collections().collections_martial_arts()
 
-elif action == 'collections':
-	from resources.lib.menus import collections
-	collections.Collections().get(url)
+	elif action == 'collections_MartialArtsActors':
+		from resources.lib.menus import collections
+		collections.Collections().collections_martial_arts_actors()
 
-
-####################################################
-#---Martial Arts Collections
-####################################################
-elif action == 'collection_martial_arts':
-	from resources.lib.menus import collections
-	collections.Collections().collection_martial_arts()
-
-elif action == 'collection_martial_arts_actors':
-	from resources.lib.menus import collections
-	collections.Collections().collection_martial_arts_actors()
+	elif action == 'collections':
+		from resources.lib.menus import collections
+		collections.Collections().get(url)
 
 
 ####################################################
 #---Furk
 ####################################################
-elif action == "furkNavigator":
-	from resources.lib.menus import navigator
-	navigator.Navigator().furk()
+if action and 'furk' in action:
+	if action == "furkNavigator":
+		from resources.lib.menus import navigator
+		navigator.Navigator().furk()
 
-elif action == "furkMetaSearch":
-	from resources.lib.menus import furk
-	furk.Furk().furk_meta_search(url)
+	elif action == "furkMetaSearch":
+		from resources.lib.menus import furk
+		furk.Furk().furk_meta_search(url)
 
-elif action == "furkSearch":
-	from resources.lib.menus import furk
-	furk.Furk().search()
+	elif action == "furkSearch":
+		from resources.lib.menus import furk
+		furk.Furk().search()
 
-elif action == "furkUserFiles":
-	from resources.lib.menus import furk
-	furk.Furk().user_files()
+	elif action == "furkUserFiles":
+		from resources.lib.menus import furk
+		furk.Furk().user_files()
 
-elif action == "furkSearchNew":
-	from resources.lib.menus import furk
-	furk.Furk().search_new()
+	elif action == "furkSearchNew":
+		from resources.lib.menus import furk
+		furk.Furk().search_new()
 
 
 ####################################################
 # TV Shows
 ####################################################
-elif action == 'tvNavigator':
+if action == 'tvNavigator':
 	from resources.lib.menus import navigator
 	navigator.Navigator().tvshows()
 
@@ -341,23 +327,24 @@ elif action == 'tvUserlists':
 ####################################################
 #---SEASONS
 ####################################################
-elif action == 'seasons':
-	from resources.lib.menus import seasons
-	seasons.Seasons().get(tvshowtitle, year, imdb, tmdb, tvdb)
+if action and 'seasons' in action:
+	if action == 'seasons':
+		from resources.lib.menus import seasons
+		seasons.Seasons().get(tvshowtitle, year, imdb, tmdb, tvdb)
 
-elif action == 'seasonsUserlists':
-	from resources.lib.indexers import seasons
-	seasons.Seasons().userlists()
+	elif action == 'seasonsUserlists':
+		from resources.lib.indexers import seasons
+		seasons.Seasons().userlists()
 
-elif action == 'seasonsList':
-	from resources.lib.menus import seasons
-	seasons.Seasons().seasonList(url)
+	elif action == 'seasonsList':
+		from resources.lib.menus import seasons
+		seasons.Seasons().seasonList(url)
 
 
 ####################################################
 #---EPISODES
 ####################################################
-elif action == 'playEpisodesList':
+if action == 'playEpisodesList':
 	import json
 	from resources.lib.menus import episodes
 	items = episodes.Episodes().get(tvshowtitle, year, imdb, tmdb, tvdb, season, episode, idx=False)
@@ -421,17 +408,17 @@ elif action == 'premiumizeService':
 	from resources.lib.menus import navigator
 	navigator.Navigator().premiumize_service()
 
-elif action == 'pmAccountInfo':
+elif action == 'pmMyFiles':
 	from resources.lib.modules import premiumize
-	premiumize.Premiumize().acount_info_to_dialog()
-
-elif action == 'pmCloudStorage':
-	from resources.lib.modules import premiumize
-	premiumize.Premiumize().user_cloud_to_listItem(folder_id, folder_name)
+	premiumize.Premiumize().my_files_to_listItem(id, name)
 
 elif action == 'pmTransfers':
 	from resources.lib.modules import premiumize
 	premiumize.Premiumize().user_transfers_to_listItem()
+
+elif action == 'pmAccountInfo':
+	from resources.lib.modules import premiumize
+	premiumize.Premiumize().acount_info_to_dialog()
 
 elif action == 'pmAuthorize':
 	from resources.lib.modules import premiumize
@@ -439,29 +426,56 @@ elif action == 'pmAuthorize':
 
 elif action == 'pmRename':
 	from resources.lib.modules import premiumize
-	premiumize.Premiumize().rename(type, folder_id, folder_name)
+	premiumize.Premiumize().rename(type, id, name)
 
 elif action == 'pmDelete':
 	from resources.lib.modules import premiumize
-	premiumize.Premiumize().delete(type, folder_id, folder_name)
+	premiumize.Premiumize().delete(type, id, name)
 
 elif action == 'pmDeleteTransfer':
 	from resources.lib.modules import premiumize
-	premiumize.Premiumize().delete_transfer(folder_id, folder_name)
+	premiumize.Premiumize().delete_transfer(id, name)
 
 elif action == 'pmClearFinishedTransfers':
 	from resources.lib.modules import premiumize
 	premiumize.Premiumize().clear_finished_transfers()
 
-
-
-
-
 elif action == 'realdebridService':
 	from resources.lib.menus import navigator
 	navigator.Navigator().realdebrid_service()
 
+elif action == 'rdUserTorrentsToListItem':
+	from resources.lib.modules import realdebrid
+	realdebrid.RealDebrid().user_torrents_to_listItem()
+
+elif action == 'rdMyDownloads':
+	from resources.lib.modules import realdebrid
+	realdebrid.RealDebrid().my_downloads_to_listItem(int(query))
+
+elif action == 'rdAccountInfo':
+	from resources.lib.modules import realdebrid
+	realdebrid.RealDebrid().user_info_to_dialog()
+
+elif action == 'rdAuthorize':
+	from resources.lib.modules import realdebrid
+	realdebrid.RealDebrid().auth()
+
+elif action == 'rdBrowseUserTorrents':
+	from resources.lib.modules import realdebrid
+	realdebrid.RealDebrid().browse_user_torrents(id)
+
+elif action == 'rdDeleteUserTorrent':
+	from resources.lib.modules import realdebrid
+	realdebrid.RealDebrid().delete_user_torrent(id, name)
+
+elif action == 'rdDeleteDownload':
+	from resources.lib.modules import realdebrid
+	realdebrid.RealDebrid().delete_download(id, name)
+
+
+
 elif action == 'alldebridService':
+	control.okDialog(title='default', message='Coming Soon!!')
 	from resources.lib.menus import navigator
 	navigator.Navigator().alldebrid_service()
 
@@ -471,23 +485,24 @@ elif action == 'alldebridService':
 ####################################################
 #---Anime
 ####################################################
-elif action == 'animeNavigator':
-	from resources.lib.menus import navigator
-	navigator.Navigator().anime()
+if action and 'anime' in action:
+	if action == 'animeNavigator':
+		from resources.lib.menus import navigator
+		navigator.Navigator().anime()
 
-elif action == 'animeMovies':
-	from resources.lib.menus import movies
-	movies.Movies().get(url)
+	elif action == 'animeMovies':
+		from resources.lib.menus import movies
+		movies.Movies().get(url)
 
-elif action == 'animeTVshows':
-	from resources.lib.menus import tvshows
-	tvshows.TVshows().get(url)
+	elif action == 'animeTVshows':
+		from resources.lib.menus import tvshows
+		tvshows.TVshows().get(url)
 
 
 ####################################################
 #---Originals
 ####################################################
-elif action == 'originals':
+if action == 'originals':
 	from resources.lib.menus import tvshows
 	tvshows.TVshows().originals()
 
@@ -497,16 +512,22 @@ elif action == 'originals':
 ####################################################
 elif action == 'youtube':
 	from resources.lib.menus import youtube
-	if subid is None:
+	if id is None:
 		youtube.yt_index().root(action)
 	else:
-		youtube.yt_index().get(action, subid)
+		youtube.yt_index().get(action, id)
+
+elif action == 'sectionItem':
+    pass # Placeholder. This is a non-clickable menu item for notes, etc.
+
 
 
 ####################################################
 #---Tools
 ####################################################
 elif action == 'download':
+	caller = params.get('caller')
+	image = params.get('image')
 	if caller == 'sources':
 		control.busy()
 		try:
@@ -523,29 +544,32 @@ elif action == 'download':
 		try:
 			from resources.lib.modules import downloader
 			from resources.lib.modules import premiumize
-			downloader.download(name, image, premiumize.Premiumize().add_headers_to_url(url_link.replace(' ', '%20')))
+			downloader.download(name, image, premiumize.Premiumize().add_headers_to_url(url.replace(' ', '%20')))
 		except:
 			import traceback
 			traceback.print_exc()
 			pass
 
-	# if caller == 'realdebrid':
-		# control.busy()
-		# try:
-			# from resources.lib.modules import downloader
-			# from resources.lib.modules import realdebrid
-			# downloader.download(name, image, realdebrid.RealDebrid().add_headers_to_url(url_link.replace(' ', '%20')))
-		# except:
-			# import traceback
-			# traceback.print_exc()
-			# pass
+	if caller == 'realdebrid':
+		control.busy()
+		try:
+			from resources.lib.modules import downloader
+			from resources.lib.modules import realdebrid
+			if type == 'unrestrict':
+				downloader.download(name, image, realdebrid.RealDebrid().unrestrict_link(url.replace(' ', '%20')))
+			else:
+				downloader.download(name, image, url.replace(' ', '%20'))
+		except:
+			import traceback
+			traceback.print_exc()
+			pass
 
 	# if caller == 'alldebrid':
 		# control.busy()
 		# try:
 			# from resources.lib.modules import downloader
 			# from resources.lib.modules import alldebrid
-			# downloader.download(name, image, alldebrid.AllDebrid().add_headers_to_url(url_link.replace(' ', '%20')))
+			# downloader.download(name, image, alldebrid.AllDebrid().add_headers_to_url(url.replace(' ', '%20')))
 		# except:
 			# import traceback
 			# traceback.print_exc()
@@ -555,6 +579,8 @@ elif action == 'download':
 elif action == 'downloadNavigator':
 	from resources.lib.menus import navigator
 	navigator.Navigator().downloads()
+
+
 
 elif action == 'libraryNavigator':
 	from resources.lib.menus import navigator
@@ -581,6 +607,7 @@ elif action == 'cleanSettings':
 
 elif action == 'addView':
 	from resources.lib.modules import views
+	content = params.get('content')
 	views.addView(content)
 
 elif action == 'refresh':
@@ -675,6 +702,7 @@ elif action == 'revokeTMDb':
 ####################################################
 elif action == 'playlistManager':
 	from resources.lib.modules import playlist
+	art = params.get('art')
 	playlist.playlistManager(name, url, meta, art)
 
 elif action == 'showPlaylist':
@@ -688,24 +716,34 @@ elif action == 'clearPlaylist':
 elif action == 'queueItem':
 	control.queueItem()
 	if name is None:
-		control.notification(title=35515, message=35519, icon='default', sound=notificationSound)
+		control.notification(title=35515, message=35519, icon='default', sound=(control.setting('notification.sound') == 'true'))
 	else:
-		control.notification(title = name, message = 35519, icon='default', sound=notificationSound)
+		control.notification(title=name, message=35519, icon='default', sound=(control.setting('notification.sound') == 'true'))
+
 
 
 ####################################################
-#---Player
+#---Play
 ####################################################
 elif action == 'play':
 	from resources.lib.modules import sources
 	rescrape = params.get('rescrape')
+	select = params.get('select')
 	sources.Sources().play(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape)
 
 elif action == 'playAll':
 	control.player2().play(control.playlist)
 
 elif action == 'playURL':
-	control.player2().play(url_link.replace(' ', '%20'))
+	caller = params.get('caller')
+	if caller == 'realdebrid':
+		from resources.lib.modules import realdebrid
+		if type == 'unrestrict':
+			control.player2().play(realdebrid.RealDebrid().unrestrict_link(url.replace(' ', '%20')))
+		else:
+			control.player2().play(url.replace(' ', '%20'))
+	else:
+		control.player2().play(url.replace(' ', '%20'))
 
 elif action == 'playItem':
 	from resources.lib.modules import sources
@@ -725,18 +763,16 @@ elif action == 'trailer':
 
 elif action == 'showDebridPack':
 	from resources.lib.modules.sources import Sources
-	Sources().debridPackDialog(provider, name, magnet_url, info_hash) 
-
-
+	caller = params.get('caller')
+	Sources().debridPackDialog(caller, name, url, source)
 
 elif action == 'cacheTorrent':
-	if provider == 'Real-Debrid':
+	caller = params.get('caller')
+	if caller == 'Real-Debrid':
 		from resources.lib.modules.realdebrid import RealDebrid as debrid_function
-	elif provider == 'Premiumize.me':
+	elif caller == 'Premiumize.me':
 		from resources.lib.modules.premiumize import Premiumize as debrid_function
-	debrid_function().create_transfer(magnet_url)
-
-
+	debrid_function().create_transfer(url)
 
 elif action == 'random':
 	rtype = params.get('rtype')
@@ -766,7 +802,7 @@ elif action == 'random':
 
 	try:
 		rand = randint(1,len(rlist))-1
-		for p in ['title','year','imdb','tvdb','season','episode','tvshowtitle','premiered','select']:
+		for p in ['title', 'year', 'imdb', 'tvdb', 'season', 'episode', 'tvshowtitle', 'premiered', 'select']:
 			if rtype == "show" and p == "tvshowtitle":
 				try:
 					r += '&'+p+'='+quote_plus(rlist[rand]['title'])
@@ -783,17 +819,17 @@ elif action == 'random':
 			r += '&meta='+quote_plus("{}")
 		if rtype == "movie":
 			try:
-				control.notification(title=32536, message=rlist[rand]['title'], icon='default', sound=notificationSound)
+				control.notification(title=32536, message=rlist[rand]['title'], icon='default', sound=(control.setting('notification.sound') == 'true'))
 			except:
 				pass
 		elif rtype == "episode":
 			try:
-				control.notification(title=32536, message=rlist[rand]['tvshowtitle']+" - Season "+rlist[rand]['season']+" - "+rlist[rand]['title'], icon='default', sound=notificationSound)
+				control.notification(title=32536, message=rlist[rand]['tvshowtitle']+" - Season "+rlist[rand]['season']+" - "+rlist[rand]['title'], icon='default', sound=(control.setting('notification.sound') == 'true'))
 			except:
 				pass
 		control.execute('RunPlugin(%s)' % r)
 	except:
-		control.notification(title='default', message=32537, icon='default', sound=notificationSound)
+		control.notification(title='default', message=32537, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 ####################################################
 #---Library Actions
@@ -804,7 +840,7 @@ elif action == 'movieToLibrary':
 
 elif action == 'moviesToLibrary':
 	from resources.lib.modules import libtools
-	libtools.libmovies().range(url, list_name)
+	libtools.libmovies().range(url, name)
 
 elif action == 'moviesListToLibrary':
 	from resources.lib.menus import movies
@@ -820,7 +856,7 @@ elif action == 'tvshowToLibrary':
 
 elif action == 'tvshowsToLibrary':
 	from resources.lib.modules import libtools
-	libtools.libtvshows().range(url, list_name)
+	libtools.libtvshows().range(url, name)
 
 elif action == 'tvshowsListToLibrary':
 	from resources.lib.menus import tvshows
@@ -888,7 +924,7 @@ elif action == 'clearCacheSearch':
 
 elif action == 'clearSearchPhrase':
 	from resources.lib.menus import navigator
-	navigator.Navigator().clearCacheSearchPhrase(table, name)
+	navigator.Navigator().clearCacheSearchPhrase(source, name)
 
 elif action == 'clearBookmarks':
 	from resources.lib.menus import navigator

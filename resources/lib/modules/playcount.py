@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import xbmc
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -297,7 +296,7 @@ def tvshows(tvshowtitle, imdb, tvdb, season, watched):
 			count = len(items)
 
 			for i in range(count):
-				if xbmc.abortRequested:
+				if control.monitor.abortRequested():
 					return sys.exit()
 				dialog.update(int(100.0 / count * i), str(name), str(items[i]['label']))
 				season, episode = items[i]['season'], items[i]['episode']

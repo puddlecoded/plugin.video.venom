@@ -1,3 +1,23 @@
+[B][COLOR red]Update - v4.0.8 - Aug. 23, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Changed episode unaired condition when meta
+    provider does not return a premiered date.  The
+    item is now considered unaired.[/I]
+[COLOR yellow]--[/COLOR][I] Added Real-Debrid to the new "Premium Services"
+    menu.  You can view, play, download, and manage
+    your RD account from here.[/I]
+[COLOR yellow]--[/COLOR][I] Added a new setting that allows user to flip and test
+    kodi 18's new setting called "reuselanguageinvoker" that
+    greatly improves the performance of the addon.
+    Option is found under the "Debugging-Developer Mode".
+    You must enable Developer mode for option to be visible.
+    Note that this is an experimental feature you can test.
+    It has been reported that this can cause kodi to crash
+    and seems to effect widgets.  The issue has been posted
+    to Team Kodi's github so it's on them to fix it. I'm not
+    discussing this experimental inclusion beyond this.[/I]
+[COLOR yellow]--[/COLOR][I] Many code changes for the above have taken place
+    to comply with its requirements.[/I]
+
 [B][COLOR red]Update - v4.0.7 - Aug. 15, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed issue with free hosters not showing in source
     select.[/I]

@@ -30,12 +30,8 @@ from resources.lib.modules import trakt
 from resources.lib.modules import views
 from resources.lib.modules import workers
 
-sysaddon = sys.argv[0]
-syshandle = int(sys.argv[1])
-
-params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
-action = params.get('action')
-notificationSound = control.setting('notification.sound') == 'true'
+# params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
+# action = params.get('action')
 is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
 
 
@@ -203,7 +199,7 @@ class TVshows:
 			if len(self.list) == 0 and self.search_link in url:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32010, message=33049, icon='default', sound=notificationSound)
+					control.notification(title=32010, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 			if idx:
 				self.tvshowDirectory(self.list)
@@ -216,7 +212,7 @@ class TVshows:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32002, message=33049, icon='default', sound=notificationSound)
+					control.notification(title=32002, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 	def getTMDb(self, url, idx=True, cached=True):
@@ -249,7 +245,7 @@ class TVshows:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32002, message=33049, icon='default', sound=notificationSound)
+					control.notification(title=32002, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 	def getTVmaze(self, url, idx=True):
@@ -276,7 +272,7 @@ class TVshows:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32002, message=33049, icon='default', sound=notificationSound)
+					control.notification(title=32002, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 	def sort(self):
@@ -504,7 +500,7 @@ class TVshows:
 			self.list = cache.get(self.imdb_person_list, 1, url)
 		if len(self.list) == 0:
 			control.hide()
-			control.notification(title=32010, message=33049, icon='default', sound=notificationSound)
+			control.notification(title=32010, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 		for i in range(0, len(self.list)):
 			self.list[i].update({'icon': 'DefaultActor.png', 'action': 'tvshows'})
 		self.addDirectory(self.list)
@@ -697,6 +693,8 @@ class TVshows:
 					continue
 
 				# if int(year) > int((self.datetime).strftime('%Y')): raise Exception()
+
+				# log_utils.log('ids = %s for title = %s' % (item.get('ids'), title), __name__, log_utils.LOGDEBUG)
 
 				imdb = item.get('ids', {}).get('imdb', '0')
 				if imdb == '' or imdb is None or imdb == 'None':
@@ -1038,6 +1036,8 @@ class TVshows:
 			tmdb = self.list[i]['tmdb'] if 'tmdb' in self.list[i] else '0'
 			tvdb = self.list[i]['tvdb'] if 'tvdb' in self.list[i] else '0'
  
+			# log_utils.log('imdb = %s, tmdb = %s, tvdb = %s for title = %s' % (imdb, tmdb, tvdb, self.list[i]['title']), __name__, log_utils.LOGDEBUG)
+
 			if (tvdb == '0' or tmdb == '0') and imdb != '0':
 				try:
 					trakt_ids = trakt.IdLookup('imdb', imdb, 'show')
@@ -1076,6 +1076,7 @@ class TVshows:
 						if tvdb == '' or tvdb is None or tvdb == 'None':
 							tvdb = '0'
 				except:
+					log_utils.error()
 					pass
 
 ###--Check TVDb by seriesname
@@ -1293,9 +1294,11 @@ class TVshows:
 	def tvshowDirectory(self, items, next=True):
 		if not items:
 			control.hide()
-			control.notification(title=32002, message=33049, icon='default', sound=notificationSound)
+			control.notification(title=32002, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 			sys.exit()
 
+		sysaddon = sys.argv[0]
+		syshandle = int(sys.argv[1])
 		settingFanart = control.setting('fanart')
 		addonPoster = control.addonPoster()
 		addonFanart = control.addonFanart()
@@ -1489,9 +1492,11 @@ class TVshows:
 	def addDirectory(self, items, queue=False):
 		if not items: 
 			control.hide()
-			control.notification(title = 32002, message = 33049, icon = 'default', sound=notificationSound)
+			control.notification(title = 32002, message = 33049, icon = 'default', sound=(control.setting('notification.sound') == 'true'))
 			sys.exit()
 
+		sysaddon = sys.argv[0]
+		syshandle = int(sys.argv[1])
 		addonThumb = control.addonThumb()
 		artPath = control.artPath()
 
@@ -1522,15 +1527,12 @@ class TVshows:
 
 				cm = []
 				cm.append((playRandom, 'RunPlugin(%s?action=random&rtype=show&url=%s)' % (sysaddon, quote_plus(i['url']))))
-
 				if queue:
 					cm.append((queueMenu, 'RunPlugin(%s?action=queueItem)' % sysaddon))
-
 				try:
 					if control.setting('library.service.update') == 'true':
-						cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowsToLibrary&url=%s&list_name=%s)' % (sysaddon, quote_plus(i['context']), name)))
+						cm.append((addToLibrary, 'RunPlugin(%s?action=tvshowsToLibrary&url=%s&name=%s)' % (sysaddon, quote_plus(i['context']), name)))
 				except: pass
-				# cm.append((control.lang(32610), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 
 				item = control.item(label=name)

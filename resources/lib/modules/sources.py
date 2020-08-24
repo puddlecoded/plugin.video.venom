@@ -17,7 +17,6 @@ try:
 	from urlparse import parse_qsl
 except:
 	from urllib.parse import quote_plus, parse_qsl, unquote
-import xbmc
 
 from resources.lib.modules import cleantitle
 from resources.lib.modules import client
@@ -48,7 +47,6 @@ class Sources:
 		self.single_expiry = timedelta(hours=6)
 		self.season_expiry = timedelta(hours=48)
 		self.show_expiry = timedelta(hours=48)
-		self.notificationSound = control.setting('notification.sound') == 'true'
 		self.getConstants()
 		self.sources = []
 		self.uncached_sources = []
@@ -133,6 +131,7 @@ class Sources:
 
 			if rescrape :
 				self.clr_item_providers(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
+
 			if isSTRM or external_caller:
 				items = self.getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 				# items, uncached_items = self.getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
@@ -149,11 +148,10 @@ class Sources:
 					select = '2'
 				else:
 					select = control.setting('hosts.mode')
-					# if control.window.getProperty('extendedinfo_running') or control.window.getProperty('infodialogs.active') and select == '1':
-					if xbmc.getCondVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Netflix.xml)") or \
-							xbmc.getCondVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Estuary.xml)") or \
-							xbmc.getCondVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Aura.xml)") or \
-							xbmc.getCondVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo.xml)") and select == '1':
+					if control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Netflix.xml)") or \
+							control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Estuary.xml)") or \
+							control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Aura.xml)") or \
+							control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo.xml)") and select == '1':
 						select = '0'
 			else:
 				select = select
@@ -250,19 +248,24 @@ class Sources:
 				cm = []
 				if downloads:
 					if not 'uncached' in items[i]['source']:
+						try:
+							new_sysname = quote_plus(items[i]['name'])
+						except:
+							new_sysname = sysname
+							pass
 						cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&source=%s&caller=sources)' %
-								(sysaddon, sysname, sysimage, syssource)))
+								(sysaddon, new_sysname, sysimage, syssource)))
 
 				if 'package' in items[i]:
 					if not 'uncached' in items[i]['source']:
-						cm.append(('Browse Debrid Pack', 'RunPlugin(%s?action=showDebridPack&provider=%s&name=%s&magnet_url=%s&info_hash=%s)' %
+						cm.append(('Browse Debrid Pack', 'RunPlugin(%s?action=showDebridPack&caller=%s&name=%s&url=%s&source=%s)' %
 								(sysaddon, quote_plus(items[i]['debrid']), quote_plus(items[i]['name']), quote_plus(items[i]['url']), quote_plus(items[i]['hash']))))
 
 				if 'uncached' in items[i]['source']:
 					seeders = int(items[i]['seeders'])
 					if seeders > 0:
 						d = self.debrid_abv(items[i]['debrid'])
-						cm.append(('Cache to %s Cloud (seeders=%s)' % (d, seeders), 'RunPlugin(%s?action=cacheTorrent&provider=%s&magnet_url=%s)' %
+						cm.append(('Cache to %s Cloud (seeders=%s)' % (d, seeders), 'RunPlugin(%s?action=cacheTorrent&caller=%s&url=%s)' %
 								(sysaddon, quote_plus(items[i]['debrid']), quote_plus(items[i]['url']))))
 
 				if control.setting('enable.resquality.icons') == 'true':
@@ -374,7 +377,7 @@ class Sources:
 					m = ''
 					for x in range(3600):
 						try:
-							if xbmc.abortRequested:
+							if control.monitor.abortRequested():
 								return sys.exit()
 							if progressDialog.iscanceled():
 								return progressDialog.close()
@@ -397,7 +400,7 @@ class Sources:
 
 					for x in range(30):
 						try:
-							if xbmc.abortRequested:
+							if control.monitor.abortRequested():
 								return sys.exit()
 							if progressDialog.iscanceled():
 								return progressDialog.close()
@@ -454,7 +457,6 @@ class Sources:
 			'progress.dialog') == '0' else control.progressDialogBG
 		progressDialog.create(control.addonInfo('name'), '')
 		progressDialog.update(0)
-
 		self.prepareSources()
 		sourceDict = self.sourceDict
 		progressDialog.update(0, control.lang(32600))
@@ -463,7 +465,9 @@ class Sources:
 			meta = json.loads(unquote(control.window.getProperty(self.metaProperty).replace('%22', '\\"')))
 			genres = [i.lower() for i in meta.get('genre')]
 		except:
+			log_utils.error()
 			genres = None
+			pass
 
 		content = 'movie' if tvshowtitle is None else 'episode'
 		if content == 'movie':
@@ -474,11 +478,9 @@ class Sources:
 			sourceDict = [(i[0], i[1], getattr(i[1], 'tvshow', None)) for i in sourceDict]
 			if not genres:
 				genres = trakt.getGenre('show', 'tvdb', tvdb)
-
 		sourceDict = [(i[0], i[1], i[2]) for i in sourceDict if not hasattr(i[1], 'genre_filter') or not i[1].genre_filter or any(
 								x in i[1].genre_filter for x in genres)]
 		sourceDict = [(i[0], i[1]) for i in sourceDict if i[2] is not None]
-
 		language = self.getLanguage()
 		sourceDict = [(i[0], i[1], i[1].language) for i in sourceDict]
 		sourceDict = [(i[0], i[1]) for i in sourceDict if any(x in i[2] for x in language)]
@@ -491,7 +493,6 @@ class Sources:
 
 		if control.setting('cf.disable') == 'true':
 			sourceDict = [(i[0], i[1]) for i in sourceDict if not any(x in i[0] for x in self.sourcecfDict)]
-
 		sourceDict = [(i[0], i[1], i[1].priority) for i in sourceDict]
 		sourceDict = sorted(sourceDict, key=lambda i: i[2]) # sorted by scraper priority num
 
@@ -520,7 +521,6 @@ class Sources:
 
 		pdpc = control.setting('progress.dialog.prem.color')
 		pdpc = control.getColor(pdpc)
-
 		pdfc = control.setting('progress.dialog.free.color')
 		pdfc = control.getColor(pdfc)
 
@@ -578,9 +578,8 @@ class Sources:
 					if (source_sd + d_source_sd) >= pre_emp_limit:
 						break
 			try:
-				if xbmc.abortRequested:
+				if control.monitor.abortRequested():
 					return sys.exit()
-
 				try:
 					if progressDialog.iscanceled():
 						break
@@ -1337,60 +1336,60 @@ class Sources:
 					return
 		else:
 			self.url = None
-			# may need to add a check if user turned off "cached torrents" only in resolveURL and want them to be sent to there cloud
-			if not 'uncached' in item['source']:
+			# may need to add a check if user turned off "cached torrents" only in resolveURL and want them to be sent to their cloud
+			# if not 'uncached' in item['source']:
+			try:
+				u = url = item['url']
+				d = item['debrid']
+				direct = item['direct']
+				local = item.get('local', False)
+				provider = item['provider']
+				call = [i[1] for i in self.sourceDict if i[0] == provider][0]
+				u = url = call.resolve(url)
+				if url is None or ('://' not in url and not local and 'magnet:' not in url):
+					raise Exception()
+				if not local:
+					url = url[8:] if url.startswith('stack:') else url
+					urls = []
+					for part in url.split(' , '):
+						u = part
+						if d != '':
+							part = debrid.resolver(part, d)
+						elif direct is not True:
+							hmf = resolveurl.HostedMediaFile(url=u, include_disabled=True, include_universal=False)
+							if hmf.valid_url() is True:
+								part = hmf.resolve()
+						urls.append(part)
+					url = 'stack://' + ' , '.join(urls) if len(urls) > 1 else urls[0]
+				if url is False or url is None:
+					raise Exception()
+				ext = url.split('?')[0].split('&')[0].split('|')[0].rsplit('.')[-1].replace('/', '').lower()
+				if ext == 'rar':
+					raise Exception()
 				try:
-					u = url = item['url']
-					d = item['debrid']
-					direct = item['direct']
-					local = item.get('local', False)
-					provider = item['provider']
-					call = [i[1] for i in self.sourceDict if i[0] == provider][0]
-					u = url = call.resolve(url)
-					if url is None or ('://' not in url and not local and 'magnet:' not in url):
-						raise Exception()
-					if not local:
-						url = url[8:] if url.startswith('stack:') else url
-						urls = []
-						for part in url.split(' , '):
-							u = part
-							if d != '':
-								part = debrid.resolver(part, d)
-							elif direct is not True:
-								hmf = resolveurl.HostedMediaFile(url=u, include_disabled=True, include_universal=False)
-								if hmf.valid_url() is True:
-									part = hmf.resolve()
-							urls.append(part)
-						url = 'stack://' + ' , '.join(urls) if len(urls) > 1 else urls[0]
-					if url is False or url is None:
-						raise Exception()
-					ext = url.split('?')[0].split('&')[0].split('|')[0].rsplit('.')[-1].replace('/', '').lower()
-					if ext == 'rar':
-						raise Exception()
-					try:
-						headers = url.rsplit('|', 1)[1]
-					except:
-						headers = ''
-					headers = quote_plus(headers).replace('%3D', '=') if ' ' in headers else headers
-					headers = dict(parse_qsl(headers))
-
-					if url.startswith('http') and '.m3u8' in url:
-						result = client.request(url.split('|')[0], headers=headers, output='geturl', timeout='20')
-						if result is None:
-							raise Exception()
-
-					elif url.startswith('http'):
-						result = client.request(url.split('|')[0], headers=headers, output='chunk', timeout='20')
-						if result is None:
-							raise Exception()
-
-					self.url = url
-					return url
+					headers = url.rsplit('|', 1)[1]
 				except:
-					if info:
-						control.notification(title='default', message='Skipping unplayable resolveURL link', icon='default', sound=self.notificationSound)
-					log_utils.error()
-					return
+					headers = ''
+				headers = quote_plus(headers).replace('%3D', '=') if ' ' in headers else headers
+				headers = dict(parse_qsl(headers))
+
+				if url.startswith('http') and '.m3u8' in url:
+					result = client.request(url.split('|')[0], headers=headers, output='geturl', timeout='20')
+					if result is None:
+						raise Exception()
+
+				elif url.startswith('http'):
+					result = client.request(url.split('|')[0], headers=headers, output='chunk', timeout='20')
+					if result is None:
+						raise Exception()
+
+				self.url = url
+				return url
+			except:
+				if info:
+					control.notification(title='default', message='Skipping unplayable resolveURL link', icon='default', sound=(control.setting('notification.sound') == 'true'))
+				log_utils.error()
+				return
 
 
 	# @timeIt
@@ -1449,11 +1448,11 @@ class Sources:
 					m = ''
 					for x in range(3600):
 						try:
-							if xbmc.abortRequested:
-								control.notification(title='default', message='Sources Cancelled', icon='default', sound=self.notificationSound)
+							if control.monitor.abortRequested():
+								control.notification(title='default', message='Sources Cancelled', icon='default', sound=(control.setting('notification.sound') == 'true'))
 								return sys.exit()
 							if progressDialog.iscanceled():
-								control.notification(title='default', message='Sources Cancelled', icon='default', sound=self.notificationSound)
+								control.notification(title='default', message='Sources Cancelled', icon='default', sound=(control.setting('notification.sound') == 'true'))
 								return progressDialog.close()
 						except:
 							pass
@@ -1475,11 +1474,11 @@ class Sources:
 
 					for x in range(30):
 						try:
-							if xbmc.abortRequested:
-								control.notification(title='default', message='Sources Cancelled', icon='default', sound=self.notificationSound)
+							if control.monitor.abortRequested():
+								control.notification(title='default', message='Sources Cancelled', icon='default', sound=(control.setting('notification.sound') == 'true'))
 								return sys.exit()
 							if progressDialog.iscanceled():
-								control.notification(title='default', message='Sources Cancelled', icon='default', sound=self.notificationSound)
+								control.notification(title='default', message='Sources Cancelled', icon='default', sound=(control.setting('notification.sound') == 'true'))
 								return progressDialog.close()
 						except:
 							log_utils.error()
@@ -1562,7 +1561,7 @@ class Sources:
 				pass
 
 			try:
-				if xbmc.abortRequested:
+				if control.monitor.abortRequested():
 					return sys.exit()
 
 				url = self.sourcesResolve(items[i])
@@ -1649,9 +1648,9 @@ class Sources:
 			control.sleep(200) # added 5/14
 			control.hide()
 			if self.url == 'close://':
-				control.notification(title='default', message='Sources Cancelled', icon='default', sound=self.notificationSound)
+				control.notification(title='default', message='Sources Cancelled', icon='default', sound=(control.setting('notification.sound') == 'true'))
 			else:
-				control.notification(title='default', message=32401, icon='default', sound=self.notificationSound)
+				control.notification(title='default', message=32401, icon='default', sound=(control.setting('notification.sound') == 'true'))
 			control.cancelPlayback()
 		except:
 			log_utils.error()
@@ -1940,8 +1939,8 @@ class Sources:
 
 	def clr_item_providers(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered):
 		providerscache.remove(self.getSources, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered) # function cache removal of item
-		if not season:
-			season = episode = ''
+		# if not season:
+			# season = episode = ''
 		try:
 			dbcon = database.connect(self.sourceFile)
 			dbcur = dbcon.cursor()
@@ -1965,8 +1964,8 @@ class Sources:
 				raise Exception()
 			result = client.request('https://v2.sg.media-imdb.com/suggestion/t/{}.json'.format(imdb))
 			result = json.loads(result)['d'][0]
-			year_ck = result['y']
-			title_ck = result['l']
+			year_ck = str(result['y'])
+			title_ck = result['l'].encode('utf-8')
 			if not year_ck or not title_ck:
 				raise Exception()
 			if year != year_ck:

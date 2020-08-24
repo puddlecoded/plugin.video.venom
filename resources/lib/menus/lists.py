@@ -34,7 +34,6 @@ from resources.lib.modules import workers
 from resources.lib.modules import youtube
 from resources.lib.modules import views
 
-notificationSound = control.setting('notification.sound') == 'true'
 
 class indexer:
 	def __init__(self):
@@ -1073,7 +1072,7 @@ class resolver:
 			url = self.process(url)
 			control.execute('Dialog.Close(busydialog)')
 			if url is None:
-				return control.notification(title='default', message=30705, icon='default', sound=notificationSound)
+				return control.notification(title='default', message=30705, icon='default', sound=(control.setting('notification.sound') == 'true'))
 			return url
 		except:
 			pass
@@ -1274,7 +1273,7 @@ class player(xbmc.Player):
 			control.execute('Dialog.Close(busydialog)')
 
 			if url is None:
-				return control.notification(title='default', message=30705, icon='default', sound=notificationSound)
+				return control.notification(title='default', message=30705, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 			if url is False:
 				return

@@ -4,7 +4,6 @@
 	Venom Add-on
 '''
 
-import json
 import re
 import requests
 from sys import argv
@@ -24,34 +23,24 @@ except:
 	token = ''
 	pass
 
-sysaddon = argv[0]
-syshandle = int(argv[1])
-
 FormatDateTime = '%y%d%m%I%M%f'
 CLIENT_ID = '522962560' # used to auth
 BaseUrl = 'https://www.premiumize.me/api'
-
 folder_list = '%s/folder/list' % BaseUrl
 folder_rename = '%s/folder/rename' % BaseUrl
 folder_delete = '%s/folder/delete' % BaseUrl
-
 item_details = '%s/item/details' % BaseUrl
 item_delete = '%s/item/delete' % BaseUrl
 item_rename = '%s/item/rename' % BaseUrl
-
 transfer_create = '%s/transfer/create' % BaseUrl
 transfer_directdl = '%s/transfer/directdl' % BaseUrl
 transfer_list = '%s/transfer/list' % BaseUrl
 transfer_clear_finished = '%s/transfer/clearfinished' % BaseUrl
 transfer_delete = '%s/transfer/delete' % BaseUrl
-
 account_info = '%s/account/info' % BaseUrl
-
 cache_check = '%s/cache/check' % BaseUrl
 list_services_path = '%s/services/list' % BaseUrl
-
-artPath = control.artPath()
-pm_icon = control.joinPath(artPath, 'premiumize.png')
+pm_icon = control.joinPath(control.artPath(), 'premiumize.png')
 addonFanart = control.addonFanart()
 
 
@@ -98,7 +87,7 @@ class Premiumize:
 		poll_again = True
 		success = False
 		progressDialog = control.progressDialog
-		progressDialog.create(control.addonName(),
+		progressDialog.create(control.lang(40054),
 								line1=control.lang(32513) % token['verification_uri'],
 								line2=control.lang(32514) % token['user_code'])
 		progressDialog.update(0)
@@ -117,16 +106,13 @@ class Premiumize:
 	def poll_token(self, device_code):
 		data = {'client_id': CLIENT_ID, 'code': device_code, 'grant_type': 'device_code'}
 		token = requests.post('https://www.premiumize.me/token', data=data, timeout=15).json()
-
 		if 'error' in token:
 			if token['error'] == "access_denied":
 				return False, False
 			return True, False
-
 		control.addon('script.module.resolveurl').setSetting('PremiumizeMeResolver_token', token['access_token'])
 		self.headers = {'User-Agent': 'Venom for Kodi', 'Authorization': 'Bearer %s' % token['access_token']}
 		control.addon('script.module.resolveurl').setSetting('PremiumizeMeResolver_auth', 'true')
-
 		return False, True
 
 
@@ -145,15 +131,14 @@ class Premiumize:
 		import math
 		try:
 			accountInfo = self.get_acount_info()
-			customer_id = accountInfo['customer_id']
-			expires = datetime.strptime(str(accountInfo['premium_until']), '%y%d%m%I%M%f')
+			expires = datetime.strptime(str(accountInfo['premium_until']), FormatDateTime)
 			days_remaining = (expires - datetime.today()).days
 			expires = expires.strftime('%Y-%m-%d')
 			points_used = int(math.floor(float(accountInfo['space_used']) / 1073741824.0))
 			space_used = float(int(accountInfo['space_used']))/1073741824
 			percentage_used = str(round(float(accountInfo['limit_used']) * 100.0, 1))
 			items = []
-			items += [control.lang(40040) % customer_id]
+			items += [control.lang(40040) %  accountInfo['customer_id']]
 			items += [control.lang(40041) % expires]
 			items += [control.lang(40042) % days_remaining]
 			items += [control.lang(40043) % points_used]
@@ -287,20 +272,17 @@ class Premiumize:
 		try:
 			end_results = []
 			extensions = supported_video_extensions()
-
 			data = {'src': magnet_url}
-			result = requests.post(transfer_directdl, data=data, headers=self.headers, timeout=5).text
-			result = json.loads(result)
-
+			result = self._post(transfer_directdl, data=data)
 			if not 'status' in result or result['status'] != 'success':
 				return None
-
 			for item in result.get('content'):
 				if any(item.get('path').lower().endswith(x) for x in extensions) and not item.get('link', '') == '':
-					try: path = item['path'].split('/')[-1]
-					except: path = item['path']
+					try:
+						path = item['path'].split('/')[-1]
+					except:
+						path = item['path']
 					end_results.append({'link': item['link'], 'filename': path, 'size': float(item['size'])/1073741824})
-
 			return end_results
 		except Exception as e:
 			log_utils.log('Error display_magnet_pack: %s' % str(e), __name__, log_utils.LOGDEBUG)
@@ -320,7 +302,6 @@ class Premiumize:
 			if 'status' in result:
 				if result.get('status') == 'success':
 					response = result.get('response', False)
-					# log_utils.log('response = %s' % response, __name__, log_utils.LOGDEBUG)
 					if isinstance(response, list):
 						return response[0]
 				if result.get('status') == 'error':
@@ -439,7 +420,7 @@ class Premiumize:
 		return
 
 
-	def user_cloud(self, folder_id=None):
+	def my_files(self, folder_id=None):
 		try:
 			if folder_id:
 				url = folder_list + '?id=%s' % folder_id
@@ -454,10 +435,12 @@ class Premiumize:
 		return None
 
 
-	def user_cloud_to_listItem(self, folder_id=None, folder_name=None):
+	def my_files_to_listItem(self, folder_id=None, folder_name=None):
 		try:
+			sysaddon = argv[0]
+			syshandle = int(argv[1])
 			extensions = supported_video_extensions()
-			cloud_files = self.user_cloud(folder_id)
+			cloud_files = self.my_files(folder_id)
 			if not cloud_files:
 				control.notification(title='default', message='Empty Content', icon='default')
 				return
@@ -472,17 +455,14 @@ class Premiumize:
 			try:
 				cm = []
 				type = item['type']
-				# name = clean_file_name(item['name']).upper()
-				name = item['name'].upper()
+				name = item['name']
+				# name = control.strip_non_ascii_and_unprintable(item['name']) #keep an eye out if this is needed
 				if type == 'folder':
-					isPlayable = 'false'
 					isFolder = True
 					size = 0
 					label = '%02d | [B]%s[/B] | [I]%s [/I]' % (count, folder_str, name)
-					# url_params = {'mode': 'premiumize.pm_torrent_cloud', 'id': item['id'], 'folder_name': normalize(item['name'])}
-					url = '%s?action=pmCloudStorage&folder_id=%s&folder_name=%s' % (sysaddon, item['id'], quote_plus(item['name']))
+					url = '%s?action=pmMyFiles&id=%s&name=%s' % (sysaddon, item['id'], quote_plus(name))
 				else:
-					isPlayable = 'true'
 					isFolder = False
 					url_link = item['link']
 					if url_link.startswith('/'):
@@ -490,21 +470,20 @@ class Premiumize:
 					size = item['size']
 					display_size = float(int(size))/1073741824
 					label = '%02d | [B]%s[/B] | %.2f GB | [I]%s [/I]' % (count, file_str, display_size, name)
-					url = '%s?action=playURL&url_link=%s' % (sysaddon, url_link)
-					cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&url_link=%s&caller=premiumize)' %
-								(sysaddon, quote_plus(item['name']), quote_plus(pm_icon), url_link)))
-				cm.append((renameMenu % type.capitalize(), 'RunPlugin(%s?action=pmRename&type=%s&folder_id=%s&folder_name=%s)' %
-								(sysaddon, type, item['id'], quote_plus(item['name']))))
-				cm.append((deleteMenu % type.capitalize(), 'RunPlugin(%s?action=pmDelete&type=%s&folder_id=%s&folder_name=%s)' %
-								(sysaddon, type, item['id'], quote_plus(item['name']))))
+					url = '%s?action=playURL&url=%s' % (sysaddon, url_link)
+					cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&url=%s&caller=premiumize)' %
+								(sysaddon, quote_plus(name), quote_plus(pm_icon), url_link)))
+				cm.append((renameMenu % type.capitalize(), 'RunPlugin(%s?action=pmRename&type=%s&id=%s&name=%s)' %
+								(sysaddon, type, item['id'], quote_plus(name))))
+				cm.append((deleteMenu % type.capitalize(), 'RunPlugin(%s?action=pmDelete&type=%s&id=%s&name=%s)' %
+								(sysaddon, type, item['id'], quote_plus(name))))
+
 				item = control.item(label=label)
 				item.addContextMenuItems(cm)
 				item.setArt({'icon': pm_icon, 'poster': pm_icon, 'thumb': pm_icon, 'fanart': addonFanart, 'banner': pm_icon})
-				item.setProperty('IsPlayable', isPlayable)
-				if isPlayable == 'true':
-					item.setInfo(type='video', infoLabels='')
-					video_streaminfo = {'codec': 'h264'}
-					item.addStreamInfo('video', video_streaminfo)
+				item.setInfo(type='video', infoLabels='')
+				video_streaminfo = {'codec': 'h264'}
+				item.addStreamInfo('video', video_streaminfo)
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=isFolder)
 			except:
 				log_utils.error()
@@ -526,9 +505,10 @@ class Premiumize:
 
 	def user_transfers_to_listItem(self):
 		try:
+			sysaddon = argv[0]
+			syshandle = int(argv[1])
 			extensions = supported_video_extensions()
 			transfer_files = self.user_transfers()
-			# log_utils.log('transfer_files = %s' % str(transfer_files), __name__, log_utils.LOGDEBUG)
 			if not transfer_files:
 				control.notification(title='default', message='Empty Content', icon='default')
 				return
@@ -541,32 +521,29 @@ class Premiumize:
 			try:
 				cm = []
 				type = 'folder' if item['file_id'] is None else 'file'
-				# name = clean_file_name(item['name']).upper()
-				name = item['name'].upper()
+				name = item['name']
+				# name = control.strip_non_ascii_and_unprintable(item['name']) #keep an eye out if this is needed
 				status = item['status']
-
 				progress = item['progress']
 				if status == 'finished':
 					progress = 100
 				else:
 					try:
-						progress = re.findall('\.{0,1}(\d+)', str(progress))[0][:2]
+						progress = re.findall(r'(?:\d{0,1}\.{0,1})(\d+)', str(progress))[0][:2]
 					except:
 						progress = 'UNKNOWN'
 				if type == 'folder':
-					isPlayable = 'false'
 					isFolder = True if status == 'finished' else False
-					label = '%02d | %s%% | [B]%s[/B] | [I]%s [/I]' % (count, str(progress), folder_str, name)
-					# url_params = {'mode': 'premiumize.pm_torrent_cloud', 'id': item['folder_id'], 'folder_name': normalize(item['name'])}
-					url = '%s?action=pmCloudStorage&folder_id=%s&folder_name=%s' % (sysaddon, item['folder_id'], quote_plus(item['name']))
+					status_str = '[COLOR %s]%s[/COLOR]' % (control.getColor(control.setting('highlight.color')), status.capitalize())
+					label = '%02d | [B]%s[/B] - %s | [B]%s[/B] | [I]%s [/I]' % (count, status_str, str(progress) + '%', folder_str, name)
+					url = '%s?action=pmMyFiles&id=%s&name=%s' % (sysaddon, item['folder_id'], quote_plus(name))
 
 # Till PM addresses issue with item also being removed from public acess if item not accessed for 60 days this option is disabled.
 					# cm.append((clearFinishedMenu, 'RunPlugin(%s?action=pmClearFinishedTransfers)' % sysaddon))
 					if status != 'finished':
-						cm.append((deleteMenu % 'Transfer', 'RunPlugin(%s?action=pmDeleteTransfer&folder_id=%s&folder_name=%s)' %
-								(sysaddon, item['id'], quote_plus(item['name']))))
+						cm.append((deleteMenu % 'Transfer', 'RunPlugin(%s?action=pmDeleteTransfer&id=%s&name=%s)' %
+								(sysaddon, item['id'], quote_plus(name))))
 				else:
-					isPlayable = 'true'
 					isFolder = False
 					details = self.item_details(item['file_id'])
 					if not details:
@@ -579,23 +556,23 @@ class Premiumize:
 					size = details['size']
 					display_size = float(int(size))/1073741824
 					label = '%02d | %s%% | [B]%s[/B] | %.2f GB | [I]%s [/I]' % (count, str(progress), file_str, display_size, name)
-					url = '%s?action=playURL&url_link=%s' % (sysaddon, url_link)
-					cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&url_link=%s&caller=premiumize)' %
-								(sysaddon, quote_plus(item['name']), quote_plus(pm_icon), url_link)))
+					url = '%s?action=playURL&url=%s' % (sysaddon, url_link)
+					cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&url=%s&caller=premiumize)' %
+								(sysaddon, quote_plus(name), quote_plus(pm_icon), url_link)))
+
 				item = control.item(label=label)
 				item.addContextMenuItems(cm)
 				item.setArt({'icon': pm_icon, 'poster': pm_icon, 'thumb': pm_icon, 'fanart': addonFanart, 'banner': pm_icon})
-				item.setProperty('IsPlayable', isPlayable)
-				if isPlayable == 'true':
-					item.setInfo(type='video', infoLabels='')
-					video_streaminfo = {'codec': 'h264'}
-					item.addStreamInfo('video', video_streaminfo)
+				item.setInfo(type='video', infoLabels='')
+				video_streaminfo = {'codec': 'h264'}
+				item.addStreamInfo('video', video_streaminfo)
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=isFolder)
 			except:
 				log_utils.error()
 				pass
 		control.content(syshandle, 'files')
 		control.directory(syshandle, cacheToDisc=True)
+
 
 
 	def item_details(self, item_id):

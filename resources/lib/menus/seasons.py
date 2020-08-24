@@ -32,12 +32,8 @@ from resources.lib.modules import views
 from resources.lib.menus import episodes as episodesx
 from resources.lib.menus import tvshows as tvshowsx
 
-sysaddon = sys.argv[0]
-syshandle = int(sys.argv[1])
-
-params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
-action = params.get('action')
-notificationSound = control.setting('notification.sound') == 'true'
+# params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
+# action = params.get('action')
 disable_fanarttv = control.setting('disable.fanarttv')
 is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
 
@@ -531,6 +527,9 @@ class Seasons:
 				# elif premiered == '0':
 					# continue
 				elif premiered == '0':
+					# unaired = 'true'
+					# if self.showunaired != 'true':
+						# continue
 					pass
 				elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.today_date))):
 					unaired = 'true'
@@ -586,9 +585,10 @@ class Seasons:
 				# Show Unaired items.
 				if status.lower() == 'ended':
 					pass
-				# elif premiered == '0':
-					# continue
 				elif premiered == '0':
+					unaired = 'true'
+					if self.showunaired != 'true':
+						continue
 					pass
 				elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.today_date))):
 					unaired = 'true'
@@ -875,9 +875,11 @@ class Seasons:
 	def seasonDirectory(self, items):
 		if not items:
 			control.hide()
-			control.notification(title=32054, message=33049, icon='default', sound=notificationSound)
+			control.notification(title=32054, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 			sys.exit()
 
+		sysaddon = sys.argv[0]
+		syshandle = int(sys.argv[1])
 		settingFanart = control.setting('fanart')
 		addonPoster = control.addonPoster()
 		addonFanart = control.addonFanart()

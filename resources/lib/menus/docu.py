@@ -17,9 +17,8 @@ from resources.lib.modules import cache
 from resources.lib.modules import client
 from resources.lib.modules import control
 
-sysaddon = sys.argv[0] ; syshandle = int(sys.argv[1])
-artPath = control.artPath() ; addonFanart = control.addonFanart()
-notificationSound = control.setting('notification.sound') == 'true'
+artPath = control.artPath()
+addonFanart = control.addonFanart()
 
 
 class documentary:
@@ -107,7 +106,7 @@ class documentary:
 				url = self.getDailyMotionStream(video_id)
 			else:
 				log_utils.log('Play Documentary: Unknown Host: ' + str(url))
-				control.notification(title='default', message='Unknown Host - Report To Developer: ' + str(url), icon='default', sound=notificationSound)
+				control.notification(title='default', message='Unknown Host - Report To Developer: ' + str(url), icon='default', sound=(control.setting('notification.sound') == 'true'))
 			control.execute('PlayMedia(%s)' % url)
 
 			# item = xbmcgui.ListItem(str(docu_title), iconImage='DefaultVideo.png', thumbnailImage='DefaultVideo.png')
@@ -178,15 +177,20 @@ class documentary:
 
 
 	def addDirectoryItem(self, name, query, thumb, icon, context=None, queue=False, isAction=True, isFolder=True):
-		try: name = control.lang(name)
-		except: pass
+		try:
+			name = control.lang(name)
+		except:
+			pass
+
+		sysaddon = sys.argv[0]
+		syshandle = int(sys.argv[1])
+
 		url = '%s?action=%s' % (sysaddon, query) if isAction is True else query
 		thumb = control.joinPath(artPath, thumb) if artPath is not None else icon
-		cm = []
 
+		cm = []
 		if queue:
 			cm.append((queueMenu, 'RunPlugin(%s?action=queueItem)' % sysaddon))
-
 		if context:
 			cm.append((control.lang(context[0]), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
 
@@ -197,6 +201,7 @@ class documentary:
 
 
 	def endDirectory(self):
+		syshandle = int(sys.argv[1])
 		control.content(syshandle, 'addons')
 		control.directory(syshandle, cacheToDisc=True)
 
@@ -204,15 +209,13 @@ class documentary:
 	def addDirectory(self, items, queue=False, isFolder=True):
 		if items is None or len(items) == 0: 
 			control.hide()
-			control.notification(title=32002, message=33049, icon='default', sound=notificationSound)
+			control.notification(title=32002, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 			sys.exit()
 
 		sysaddon = sys.argv[0]
 		syshandle = int(sys.argv[1])
-
 		addonThumb = control.addonThumb()
 		artPath = control.artPath()
-
 		queueMenu = control.lang(32065)
 		playRandom = control.lang(32535)
 		addToLibrary = control.lang(32551)

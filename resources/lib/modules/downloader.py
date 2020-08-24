@@ -34,7 +34,12 @@ def download(name, image, url):
 
 		url = url.split('|')[0]
 
-		content = re.compile('(.+?)(?:\.| - |-|\s)(?:S|s)(\d*)(?:E|e)\d*').findall(name.replace('\'', ''))
+		try:
+			content = re.search(r'(.+?)(?:|\.| - |-|\s)(?:S|s|\s|\.)(\d{1,2})(?!\d)(?:-{0,1})(?:E{0,1}|e{0,1})[0-2]{1}[0-9]{1}(?!\w)', name.replace('\'', '')).groups()
+			# log_utils.log('content = %s' % str(content), log_utils.LOGDEBUG)
+		except:
+			content = ()
+
 		transname = name.translate(None, '\/:*?"<>|').strip('.')
 		ext_list = ['.mp4', '.mkv', '.flv', '.avi', '.mpg']
 		for i in ext_list:
@@ -50,7 +55,20 @@ def download(name, image, url):
 				except:
 					pass
 			control.makeFile(dest)
-			dest = os.path.join(dest, transname)
+
+			try:
+				movie_info = re.search(r'(.+?)(?:\.{0,1}-{0,1}\.{0,1}|\s*)(?:\({0,1})((?:19|20)(?:[0-9]{2}))', name.replace('\'', '')).groups()
+				# log_utils.log('movie_info = %s' % str(movie_info), log_utils.LOGDEBUG)
+			except:
+				movie_info = ()
+
+			if len(movie_info) != 0:
+				movietitle = titlecase(re.sub('[^A-Za-z0-9\s]+', ' ', movie_info[0]))
+				dest = os.path.join(dest, movietitle + '_' + movie_info[1])
+			else:
+				dest = os.path.join(dest, transname)
+			# log_utils.log('dest = %s' % str(dest), log_utils.LOGDEBUG)
+
 			control.makeFile(dest)
 		else:
 			dest = control.setting('tv.download.path')
@@ -61,13 +79,12 @@ def download(name, image, url):
 				except:
 					pass
 			control.makeFile(dest)
-			transtvshowtitle = content[0][0].translate(None, '\/:*?"<>|').strip('.').replace('.', ' ')
+			transtvshowtitle = content[0].translate(None, '\/:*?"<>|').strip('.').replace('.', ' ')
 			if not transtvshowtitle[0].isupper():
 				transtvshowtitle = transtvshowtitle.capitalize()
-
 			dest = os.path.join(dest, transtvshowtitle)
 			control.makeFile(dest)
-			dest = os.path.join(dest, 'Season %01d' % int(content[0][1]))
+			dest = os.path.join(dest, 'Season %01d' % int(content[1]))
 			control.makeFile(dest)
 		ext = os.path.splitext(urlparse(url).path)[1][1:]
 		if not ext in ['mp4', 'mkv', 'flv', 'avi', 'mpg']:
@@ -128,8 +145,8 @@ def doDownload(url, dest, title, image, headers):
 		resumable = 'bytes' in resp.headers['Accept-Ranges'].lower()
 	except:
 		resumable = False
-	if resumable:
-		print("Download is resumable")
+	# if resumable:
+		# print("Download is resumable")
 	if content < 1:
 		control.hide()
 		control.okDialog(title, file + 'Unknown filesize: Unable to download')
@@ -138,16 +155,16 @@ def doDownload(url, dest, title, image, headers):
 	mb   = content / (1024 * 1024)
 	if content < size:
 		size = content
-	total   = 0
-	notify  = 0
-	errors  = 0
-	count   = 0
-	resume  = 0
-	sleep   = 0
+	total = 0
+	notify = 0
+	errors = 0
+	count = 0
+	resume = 0
+	sleep = 0
 	control.hide()
 	if control.yesnoDialog(file, 'Complete file is %dMB' % mb, 'Continue with download?', 'Confirm Download', 'Confirm',  'Cancel') == 1:
 		return
-	print('Download File Size : %dMB %s ' % (mb, dest))
+	# print('Download File Size : %dMB %s ' % (mb, dest))
 
 	#f = open(dest, mode='wb')
 	f = control.openFile(dest, 'w')
@@ -160,8 +177,7 @@ def doDownload(url, dest, title, image, headers):
 			downloaded += len(c)
 		percent = min(100 * downloaded / content, 100)
 		if percent >= notify:
-			control.execute("XBMC.Notification(%s,%s,%i,%s)" % ( title + ' - Download Progress - ' + str(percent)+'%', dest, 10000, image))
-			print('Download percent : %s %s %dMB downloaded : %sMB File Size : %sMB' % (str(percent)+'%', dest, mb, downloaded / 1000000, content / 1000000))
+			control.notification(title=title + ' - Download Progress - ' + str(percent)+'%', message=dest, icon=image, time=10000, sound=(control.setting('notification.sound') == 'true'))
 			notify += 10
 		chunk = None
 		error = False
@@ -176,10 +192,10 @@ def doDownload(url, dest, title, image, headers):
 						f.write(c)
 						del c
 					f.close()
-					print('%s download complete' % (dest))
 					return done(title, dest, True)
-		except Exception, e:
-			print(str(e))
+		except Exception as e:
+			# print(str(e))
+			log_utils.log('DOWNNLOADER EXCEPTION | %s' % str(e), __name__, log_utils.LOGDEBUG)
 			error = True
 			sleep = 10
 			errno = 0
@@ -206,14 +222,11 @@ def doDownload(url, dest, title, image, headers):
 		if error:
 			errors += 1
 			count  += 1
-			print('%d Error(s) whilst downloading %s' % (count, dest))
-			# xbmc.sleep(sleep*1000)
 			control.sleep(sleep*1000)
 
 		if (resumable and errors > 0) or errors >= 10:
 			if (not resumable and resume >= 50) or resume >= 500:
 				#Give up!
-				print('%s download canceled - too many error whilst downloading' % (dest))
 				return done(title, dest, False)
 			resume += 1
 			errors  = 0
@@ -221,8 +234,25 @@ def doDownload(url, dest, title, image, headers):
 			if resumable:
 				chunks  = []
 				#create new response
-				print('Download resumed (%d) %s' % (resume, dest))
+				# print('Download resumed (%d) %s' % (resume, dest))
 				resp = getResponse(url, headers, total)
 			else:
 				#use existing response
 				pass
+
+
+def titlecase(string):
+	# not perfect but close enough
+	try:
+		articles = ['a', 'an', 'the', 'vs', 'v']
+		word_list = re.split(' ', string)
+		sw_num = re.match(r'^(19|20[0-9]{2})', string)
+		final = [word_list[0].capitalize()]
+		pos = 1
+		for word in word_list[1:]:
+			final.append(word if word in articles and (not sw_num and pos == 1) else word.capitalize())
+			pos += 1
+		return " ".join(final)
+	except:
+		log_utils.error()
+		return string

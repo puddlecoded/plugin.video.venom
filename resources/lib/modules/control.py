@@ -8,13 +8,15 @@ import datetime
 import glob
 import os
 import re
-import sys
+import string
+from sys import argv
 import time
 
 try:
 	from urllib import urlencode
 except:
 	from urllib.parse import urlencode
+
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -59,10 +61,11 @@ content = xbmcplugin.setContent
 property = xbmcplugin.setProperty
 resolve = xbmcplugin.setResolvedUrl
 
-infoLabel = xbmc.getInfoLabel
 condVisibility = xbmc.getCondVisibility
-keyboard = xbmc.Keyboard
 execute = xbmc.executebuiltin
+infoLabel = xbmc.getInfoLabel
+keyboard = xbmc.Keyboard
+monitor = xbmc.Monitor()
 skin = xbmc.getSkinDir()
 
 player = xbmc.Player()
@@ -142,15 +145,15 @@ def deaccentString(text):
 	return text
 
 
+def strip_non_ascii_and_unprintable(text):
+	result = ''.join(char for char in text if char in string.printable)
+	return result.encode('ascii', errors='ignore').decode('ascii', errors='ignore')
+
+
 def sleep(time):  # Modified `sleep`(in milli secs) command that honors a user exit request
-	while time > 0 and not xbmc.abortRequested:
+	while time > 0 and not monitor.abortRequested():
 		xbmc.sleep(min(100, time))
 		time = time - 100
-
-
-def sleep2(seconds):
-	import time
-	time.sleep(seconds)
 
 
 def getCurrentViewId():
@@ -192,7 +195,7 @@ def get_plugin_url(queries):
 			if isinstance(queries[k], unicode):
 				queries[k] = queries[k].encode('utf-8')
 		query = urlencode(queries)
-	addon_id = sys.argv[0]
+	addon_id = argv[0]
 	if not addon_id:
 		addon_id = addonId()
 	return addon_id + '?' + query
@@ -374,7 +377,7 @@ def hide():
 
 
 def closeAll():
-	return execute('Dialog.Close(all,true)')
+	return execute('Dialog.Close(all, true)')
 
 
 def closeOk():
@@ -383,7 +386,7 @@ def closeOk():
 
 def cancelPlayback():
 	playlist.clear()
-	syshandle = int(sys.argv[1])
+	syshandle = int(argv[1])
 	resolve(syshandle, False, item())
 	closeOk()
 
@@ -761,8 +764,56 @@ def clean_settings():
 			nfo_file.write(new_content)
 			nfo_file.close()
 			sleep(200)
-			notification(title=addon_name, message=lang(32084).format(str(len(removed_settings))), icon='default', sound=False)
+			notification(title=addon_name, message=lang(32084).format(str(len(removed_settings))), icon='default', sound=(setting('notification.sound') == 'true'))
 		except:
 			import traceback
 			traceback.print_exc()
-			notification(title=addon_name, message='Error Cleaning Settings.xml. Old settings.xml files Restored.', icon='default', sound=False)
+			notification(title=addon_name, message='Error Cleaning Settings.xml. Old settings.xml files Restored.', icon='default', sound=(setting('notification.sound') == 'true'))
+
+
+def set_reuselanguageinvoker():
+	if getKodiVersion() < 18:
+		notification(title='default', message='This feature is only supported in kodi 18 and beyond', icon='default', sound=(setting('notification.sound') == 'true'))
+		return
+	try:
+		addon_id = 'plugin.video.venom'
+		addon = xbmcaddon.Addon(id=addon_id)
+		addon_name = addon.getAddonInfo('name')
+		addon_dir = xbmc.translatePath(addon.getAddonInfo('path'))
+		addon_xml = os.path.join(addon_dir, 'addon.xml')
+		tree = ElementTree.parse(addon_xml)
+		root = tree.getroot()
+
+		for item in root.iter('reuselanguageinvoker'):
+			curr_value = str(item.text)
+		if curr_value:
+			yes = yesnoDialog('Current value of <reuselanguageinvoker> from addon.xml = %s' % curr_value, 'Note: instability issue may occur. Test on your own free will', '')
+			if not yes:
+				return
+			new_value = 'true' if curr_value == 'false' else 'false'
+			item.text = new_value
+			hash_start = gen_file_hash(addon_xml)
+			# xbmc.log('hash_start = %s' % str(hash_start), 2)
+			tree.write(addon_xml)
+			hash_end = gen_file_hash(addon_xml)
+			# xbmc.log('hash_end = %s' % str(hash_end), 2)
+			if hash_start != hash_end:
+				okDialog(title='default', message='New value = %s: Successfully changed. You must restart kodi for change to take effect.' % new_value)
+			else:
+				okDialog(title='default', message='Write failed')
+	except:
+		import traceback
+		traceback.print_exc()
+
+
+def gen_file_hash(file):
+	try:
+		import hashlib
+		md5_hash = hashlib.md5()
+		with open(file, 'rb') as afile:
+			buf = afile.read()
+			md5_hash.update(buf)
+			return md5_hash.hexdigest()
+	except:
+		import traceback
+		traceback.print_exc()

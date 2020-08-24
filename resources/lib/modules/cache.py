@@ -17,7 +17,6 @@ from resources.lib.modules import control
 from resources.lib.modules import log_utils
 
 cache_table = 'cache'
-notificationSound = control.setting('notification.sound') == 'true'
 
 
 def get(function, duration, *args):
@@ -154,7 +153,7 @@ def cache_clean(duration = 1209600):
 def cache_version_check():
 	if _find_cache_version():
 		cache_clear_all()
-		control.notification(title='default', message=32057, icon='default', sound=notificationSound)
+		control.notification(title='default', message=32057, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 def cache_clear_all():

@@ -33,13 +33,6 @@ from resources.lib.modules import metacache
 from resources.lib.modules import playcount
 from resources.lib.modules import trakt
 
-try:
-	sysaddon = sys.argv[0]
-	syshandle = int(sys.argv[1])
-except:
-	pass
-
-notificationSound = control.setting('notification.sound') == 'true'
 
 class Player(xbmc.Player):
 	def __init__(self):
@@ -142,7 +135,7 @@ class Player(xbmc.Player):
 			if 'plugin' not in control.infoLabel('Container.PluginName') or select != '1':
 				if control.window.getProperty('infodialogs.active'):
 					control.closeAll()
-				control.resolve(syshandle, True, item)
+				control.resolve(int(sys.argv[1]), True, item)
 
 			elif select == '1':
 				control.closeAll()
@@ -764,6 +757,6 @@ class Bookmarks:
 			label = ('%02d:%02d:%02d' % (hours, minutes, seconds)).encode('utf-8')
 			message = control.lang(32660)
 
-			control.notification(title=name, message=message + '(' + label + ')', icon='default', sound=notificationSound)
+			control.notification(title=name, message=message + '(' + label + ')', icon='default', sound=(control.setting('notification.sound') == 'true'))
 		dbcur.connection.commit()
 		dbcon.close()

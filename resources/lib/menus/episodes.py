@@ -31,12 +31,8 @@ from resources.lib.modules import views
 from resources.lib.modules import workers
 from resources.lib.extensions import tools
 
-sysaddon = sys.argv[0]
-syshandle = int(sys.argv[1])
-
-params = dict(parse_qsl(sys.argv[2].replace('?', ''))) if len(sys.argv) > 1 else dict()
-action = params.get('action')
-notificationSound = control.setting('notification.sound') == 'true'
+# params = dict(parse_qsl(sys.argv[2].replace('?', ''))) if len(sys.argv) > 1 else dict()
+# action = params.get('action')
 disable_fanarttv = control.setting('disable.fanarttv')
 is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
 
@@ -102,7 +98,7 @@ class Episodes:
 		control.busy()
 		playcount.episodes(imdb, tvdb, season, episode, '7')
 		control.hide()
-		control.notification(title=35510, message=35513, icon='default', sound=notificationSound)
+		control.notification(title=35510, message=35513, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 	@classmethod
@@ -110,7 +106,7 @@ class Episodes:
 		control.busy()
 		playcount.episodes(imdb, tvdb, season, episode, '6')
 		control.hide()
-		control.notification(title=35511, message=35513, icon='default', sound=notificationSound)
+		control.notification(title=35511, message=35513, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 	def sort(self, type='shows'):
@@ -174,7 +170,7 @@ class Episodes:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32326, message=33049, icon='default', sound=notificationSound)
+					control.notification(title=32326, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 	def unfinished(self, url):
@@ -222,7 +218,7 @@ class Episodes:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32326, message=33049, icon='default', sound=notificationSound)
+					control.notification(title=32326, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 	def calendar(self, url):
@@ -1447,7 +1443,7 @@ class Episodes:
 	def episodeDirectory(self, items, unfinished=False, next=True):
 		if not items:
 			control.hide()
-			control.notification(title=32326, message=33049, icon='default', sound=notificationSound)
+			control.notification(title=32326, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 			sys.exit()
 
 		# Retrieve additional metadata if not super info was retireved (eg: Trakt lists, such as Unfinished and History)
@@ -1463,6 +1459,8 @@ class Episodes:
 			log_utils.error()
 			pass
 
+		sysaddon = sys.argv[0]
+		syshandle = int(sys.argv[1])
 		settingFanart = control.setting('fanart')
 		addonPoster = control.addonPoster()
 		addonFanart = control.addonFanart()
@@ -1679,7 +1677,6 @@ class Episodes:
 				banner = banner3 or banner2 or banner1 or addonBanner
 
 				clearlogo = meta.get('clearlogo')
-				# log_utils.log('clearlogo = %s for tvshowtitle = %s' % (str(clearlogo), str(tvshowtitle)), __name__, log_utils.LOGDEBUG)
 				clearart = meta.get('clearart')
 
 				art = {}
@@ -1857,12 +1854,13 @@ class Episodes:
 	def addDirectory(self, items, queue=False):
 		if not items:
 			control.hide()
-			control.notification(title=32326, message=33049, icon='default', sound=notificationSound)
+			control.notification(title=32326, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 			sys.exit()
 
+		sysaddon = sys.argv[0]
+		syshandle = int(sys.argv[1])
 		addonThumb = control.addonThumb()
 		artPath = control.artPath()
-
 		queueMenu = control.lang(32065)
 
 		for i in items:

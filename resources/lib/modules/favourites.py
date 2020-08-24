@@ -15,7 +15,7 @@ addonInfo = xbmcaddon.Addon().getAddonInfo
 dataPath = xbmc.translatePath(addonInfo('profile')).decode('utf-8')
 favouritesFile = control.joinPath(dataPath, 'favourites.db')
 progressFile = control.joinPath(dataPath, 'progress.db')
-notificationSound = control.setting('notification.sound') == 'true'
+
 
 def getFavourites(content):
 	try:
@@ -79,7 +79,7 @@ def addFavourite(meta, content):
 		dbcon.close()
 
 		control.refresh()
-		control.notification(title=title, message='Added to Favorites', icon='default', sound=notificationSound)
+		control.notification(title=title, message='Added to Favorites', icon='default', sound=(control.setting('notification.sound') == 'true'))
 	except:
 		return
 
@@ -124,7 +124,7 @@ def addEpisodes(meta, content):
 		dbcon.close()
 
 		control.refresh()
-		control.notification(title=title, message='Added to Favorites', icon='default', sound=notificationSound)
+		control.notification(title=title, message='Added to Favorites', icon='default', sound=(control.setting('notification.sound') == 'true'))
 	except:
 		return
 
@@ -146,7 +146,7 @@ def deleteFavourite(meta, content):
 		dbcon.close()
 
 		control.refresh()
-		control.notification(title=title, message='Removed From Favorites', icon='default', sound=notificationSound)
+		control.notification(title=title, message='Removed From Favorites', icon='default', sound=(control.setting('notification.sound') == 'true'))
 	except:
 		return
 

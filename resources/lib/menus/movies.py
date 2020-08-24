@@ -27,12 +27,8 @@ from resources.lib.modules import views
 from resources.lib.modules import workers
 from resources.lib.indexers import tmdb as tmdb_indexer
 
-sysaddon = sys.argv[0]
-syshandle = int(sys.argv[1])
-
-params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
-action = params.get('action')
-notificationSound = control.setting('notification.sound') == 'true'
+# params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
+# action = params.get('action')
 is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
 
 
@@ -237,7 +233,7 @@ class Movies:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32001, message=33049, icon='default', sound=notificationSound)
+					control.notification(title=32001, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 	def getTMDb(self, url, idx=True, cached=True):
@@ -274,7 +270,7 @@ class Movies:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title = 32001, message = 33049, icon = 'default', sound=notificationSound)
+					control.notification(title=32001, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 	def unfinished(self, url, idx=True):
@@ -321,7 +317,7 @@ class Movies:
 			if invalid:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32001, message=33049, icon='default', sound=notificationSound)
+					control.notification(title=32001, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 	def newMovies(self):
@@ -554,7 +550,7 @@ class Movies:
 			self.list = cache.get(self.imdb_person_list, 1, url)
 		if len(self.list) == 0:
 			control.hide()
-			control.notification(title=32010, message=33049, icon='default', sound=notificationSound)
+			control.notification(title=32010, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 		for i in range(0, len(self.list)):
 			self.list[i].update({'icon': 'DefaultActor.png', 'action': 'movies'})
 		self.addDirectory(self.list)
@@ -1260,11 +1256,12 @@ class Movies:
 	def movieDirectory(self, items, unfinished=False, next=True):
 		if not items:
 			control.hide()
-			control.notification(title=32001, message=33049, icon='default', sound=notificationSound)
+			control.notification(title=32001, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 			sys.exit()
 
+		sysaddon = sys.argv[0]
+		syshandle = int(sys.argv[1])
 		settingFanart = control.setting('fanart')
-
 		addonPoster = control.addonPoster()
 		addonFanart = control.addonFanart()
 		addonBanner = control.addonBanner()
@@ -1497,9 +1494,11 @@ class Movies:
 	def addDirectory(self, items, queue=False):
 		if not items:
 			control.hide()
-			control.notification(title=32001, message=33049, icon='default', sound=notificationSound)
+			control.notification(title=32001, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 			sys.exit()
 
+		sysaddon = sys.argv[0]
+		syshandle = int(sys.argv[1])
 		addonThumb = control.addonThumb()
 		artPath = control.artPath()
 
@@ -1536,9 +1535,8 @@ class Movies:
 
 				try:
 					if control.setting('library.service.update') == 'true':
-						cm.append((addToLibrary, 'RunPlugin(%s?action=moviesToLibrary&url=%s&list_name=%s)' % (sysaddon, quote_plus(i['context']), name)))
+						cm.append((addToLibrary, 'RunPlugin(%s?action=moviesToLibrary&url=%s&name=%s)' % (sysaddon, quote_plus(i['context']), name)))
 				except: pass
-				# cm.append((control.lang(32610), 'RunPlugin(%s?action=clearAllCache&opensettings=false)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 
 				item = control.item(label=name)

@@ -34,7 +34,6 @@ databaseTable = 'trakt'
 
 server_notification = control.setting('trakt.server.notifications') == 'true'
 general_notification = control.setting('trakt.general.notifications') == 'true'
-notificationSound = control.setting('notification.sound') == 'true'
 
 
 def getTrakt(url, post=None, cache=True, check=False, timestamp=None, extended=False, direct=False, authentication=None):
@@ -136,7 +135,7 @@ def getTraktAsJson(url, post=None, authentication=None):
 def _error(url, post, timestamp, message):
 	_cache(url = url, post = post, timestamp = timestamp)
 	if server_notification:
-		control.notification(title=32315, message=message, icon='default', sound=notificationSound)
+		control.notification(title=32315, message=message, icon='default', sound=(control.setting('notification.sound') == 'true'))
 	control.hide()
 	return None
 
@@ -354,7 +353,7 @@ def watch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
 			name = '%s-Season%s...' % (name, season)
 		if season and episode:
 			name = '%s-S%sxE%02d...' % (name, season, int(episode))
-		control.notification(title=32315, message=control.lang(35502) % name, icon='default', sound=notificationSound)
+		control.notification(title=32315, message=control.lang(35502) % name, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 def unwatch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
@@ -381,7 +380,7 @@ def unwatch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 			name = '%s-Season%s...' % (name, season)
 		if season and episode:
 			name = '%s-S%sxE%02d...' % (name, season, int(episode))
-		control.notification(title=32315, message=control.lang(35503) % name, icon='default', sound=notificationSound)
+		control.notification(title=32315, message=control.lang(35503) % name, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 def rate(imdb=None, tvdb=None, season=None, episode=None):
@@ -427,7 +426,7 @@ def _rating(action, imdb=None, tvdb=None, season=None, episode=None):
 			data = {'action': 'manualRating', 'ratingData': data}
 			sqlitequeue.SqliteQueue().append(data)
 		else:
-			control.notification(title=32315, message=33659, icon='default', sound=notificationSound)
+			control.notification(title=32315, message=33659, icon='default', sound=(control.setting('notification.sound') == 'true'))
 	except:
 		log_utils.error()
 		pass
@@ -454,7 +453,7 @@ def hideItem(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True
 		control.refresh()
 	control.trigger_widget_refresh()
 	if general_notification:
-		control.notification(title=32315, message=control.lang(33053) % (name, sections_display[selection]), icon='default', sound=notificationSound)
+		control.notification(title=32315, message=control.lang(33053) % (name, sections_display[selection]), icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
 def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
@@ -561,7 +560,7 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 					control.refresh()
 				control.trigger_widget_refresh()
 				if general_notification:
-					control.notification(title=name, message=message, icon='default', sound=notificationSound)
+					control.notification(title=name, message=message, icon='default', sound=(control.setting('notification.sound') == 'true'))
 	except:
 		log_utils.error()
 		control.hide()
@@ -580,10 +579,10 @@ def listAdd(successNotification=True):
 	try:
 		slug = json.loads(result)['ids']['slug']
 		if successNotification:
-			control.notification(title=32070, message=33661, icon='default', sound=notificationSound)
+			control.notification(title=32070, message=33661, icon='default', sound=(control.setting('notification.sound') == 'true'))
 		return slug
 	except:
-		control.notification(title=32070, message=33584, icon='default', sound=notificationSound)
+		control.notification(title=32070, message=33584, icon='default', sound=(control.setting('notification.sound') == 'true'))
 		return None
 
 

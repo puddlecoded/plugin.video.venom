@@ -2276,7 +2276,7 @@ msgid "Download Manager"
 msgstr ""
 
 msgctxt "#33586"
-msgid "Error Connecting to TMDB"
+msgid "Error"
 msgstr ""
 
 msgctxt "#33587"
@@ -2295,9 +2295,45 @@ msgctxt "#33590"
 msgid ""
 msgstr ""
 
+msgctxt "#33591"
+msgid ""
+msgstr ""
 
+msgctxt "#33592"
+msgid ""
+msgstr ""
 
+msgctxt "#33593"
+msgid ""
+msgstr ""
 
+msgctxt "#33594"
+msgid ""
+msgstr ""
+
+msgctxt "#33595"
+msgid ""
+msgstr ""
+
+msgctxt "#33596"
+msgid ""
+msgstr ""
+
+msgctxt "#33597"
+msgid ""
+msgstr ""
+
+msgctxt "#33598"
+msgid ""
+msgstr ""
+
+msgctxt "#33599"
+msgid ""
+msgstr ""
+
+msgctxt "#33600"
+msgid ""
+msgstr ""
 
 
 
@@ -2977,10 +3013,101 @@ msgctxt "#35547"
 msgid "Force"
 msgstr ""
 
+msgctxt "#35548"
+msgid ""
+msgstr ""
 
+msgctxt "#35549"
+msgid ""
+msgstr ""
 
+msgctxt "#35550"
+msgid ""
+msgstr ""
 
+msgctxt "#35551"
+msgid ""
+msgstr ""
 
+msgctxt "#35552"
+msgid ""
+msgstr ""
+
+msgctxt "#35553"
+msgid ""
+msgstr ""
+
+msgctxt "#35554"
+msgid ""
+msgstr ""
+
+msgctxt "#35555"
+msgid ""
+msgstr ""
+
+msgctxt "#35556"
+msgid ""
+msgstr ""
+
+msgctxt "#35557"
+msgid ""
+msgstr ""
+
+msgctxt "#35558"
+msgid ""
+msgstr ""
+
+msgctxt "#35559"
+msgid ""
+msgstr ""
+
+msgctxt "#35560"
+msgid ""
+msgstr ""
+
+msgctxt "#35561"
+msgid ""
+msgstr ""
+
+msgctxt "#35562"
+msgid ""
+msgstr ""
+
+msgctxt "#35563"
+msgid ""
+msgstr ""
+
+msgctxt "#35564"
+msgid ""
+msgstr ""
+
+msgctxt "#35565"
+msgid ""
+msgstr ""
+
+msgctxt "#35566"
+msgid ""
+msgstr ""
+
+msgctxt "#35567"
+msgid ""
+msgstr ""
+
+msgctxt "#35568"
+msgid ""
+msgstr ""
+
+msgctxt "#35569"
+msgid ""
+msgstr ""
+
+msgctxt "#35570"
+msgid ""
+msgstr ""
+
+msgctxt "#35571"
+msgid ""
+msgstr ""
 
 msgctxt "#35572"
 msgid "Progress Sorting"
@@ -2990,13 +3117,162 @@ msgctxt "#35573"
 msgid "Calendar Sorting"
 msgstr ""
 
+msgctxt "#35574"
+msgid ""
+msgstr ""
+
+msgctxt "#35575"
+msgid ""
+msgstr ""
+
+msgctxt "#35576"
+msgid ""
+msgstr ""
+
+msgctxt "#35577"
+msgid ""
+msgstr ""
+
+msgctxt "#35578"
+msgid ""
+msgstr ""
+
+msgctxt "#35579"
+msgid ""
+msgstr ""
+
+msgctxt "#35580"
+msgid ""
+msgstr ""
+
+msgctxt "#35581"
+msgid ""
+msgstr ""
+
+msgctxt "#35582"
+msgid ""
+msgstr ""
+
+msgctxt "#35583"
+msgid ""
+msgstr ""
+
+msgctxt "#35584"
+msgid ""
+msgstr ""
+
+msgctxt "#35585"
+msgid ""
+msgstr ""
+
+msgctxt "#35586"
+msgid ""
+msgstr ""
+
+msgctxt "#35587"
+msgid ""
+msgstr ""
+
+msgctxt "#35588"
+msgid ""
+msgstr ""
+
+msgctxt "#35589"
+msgid ""
+msgstr ""
+
+msgctxt "#35589"
+msgid ""
+msgstr ""
+
+msgctxt "#35590"
+msgid ""
+msgstr ""
+
+msgctxt "#35591"
+msgid ""
+msgstr ""
+
+msgctxt "#35592"
+msgid ""
+msgstr ""
+
+msgctxt "#35593"
+msgid ""
+msgstr ""
+
+msgctxt "#35594"
+msgid ""
+msgstr ""
+
+msgctxt "#35595"
+msgid ""
+msgstr ""
+
+msgctxt "#35596"
+msgid ""
+msgstr ""
+
+msgctxt "#355977"
+msgid ""
+msgstr ""
+
+msgctxt "#35598"
+msgid ""
+msgstr ""
+
+msgctxt "#35599"
+msgid ""
+msgstr ""
+
+msgctxt "#35600"
+msgid ""
+msgstr ""
 
 
 
 
 
 
+msgctxt "#40010"
+msgid ""
+msgstr ""
 
+msgctxt "#40011"
+msgid ""
+msgstr ""
+
+msgctxt "#40012"
+msgid ""
+msgstr ""
+
+msgctxt "#40013"
+msgid ""
+msgstr ""
+
+msgctxt "#40014"
+msgid ""
+msgstr ""
+
+msgctxt "#40015"
+msgid ""
+msgstr ""
+
+msgctxt "#40016"
+msgid ""
+msgstr ""
+
+msgctxt "#40017"
+msgid ""
+msgstr ""
+
+msgctxt "#40018"
+msgid ""
+msgstr ""
+
+msgctxt "#40019"
+msgid ""
+msgstr ""
 
 msgctxt "#40020"
 msgid ""
@@ -3059,23 +3335,23 @@ msgid "Add Meta Provider Labels..ex. (IMDb)"
 msgstr ""
 
 msgctxt "#40035"
-msgid ""
+msgid "[B]Email:[/B] %s"
 msgstr ""
 
 msgctxt "#40036"
-msgid ""
+msgid "[B]Username:[/B] %s"
 msgstr ""
 
 msgctxt "#40037"
-msgid ""
+msgid "[B]Status:[/B] %s"
 msgstr ""
 
 msgctxt "#40038"
-msgid ""
+msgid "[B]Fidelity Points:[/B] %s"
 msgstr ""
 
 msgctxt "#40039"
-msgid ""
+msgid "Highlight Color"
 msgstr ""
 
 msgctxt "#40040"
@@ -3127,23 +3403,23 @@ msgid "[B]Clear Finished Transfers[/B]"
 msgstr ""
 
 msgctxt "#40052"
-msgid "Preminumiize.me succesfuly authorized"
+msgid "Preminumize.me succesfuly authorized"
 msgstr ""
 
 msgctxt "#40053"
-msgid ""
+msgid "Authentication with Real-Debrid has failed, please try again"
 msgstr ""
 
 msgctxt "#40054"
-msgid ""
+msgid "Premiumize.me Auth"
 msgstr ""
 
 msgctxt "#40055"
-msgid ""
+msgid "Real-Debrid Auth"
 msgstr ""
 
 msgctxt "#40056"
-msgid ""
+msgid "All-Debrid Auth"
 msgstr ""
 
 msgctxt "#40057"
