@@ -616,14 +616,18 @@ def getActivity():
 	try:
 		i = getTraktAsJson('/sync/last_activities')
 		activity = []
+		activity.append(i['movies']['watched_at']) # added 8/30/20
 		activity.append(i['movies']['collected_at'])
-		activity.append(i['episodes']['collected_at'])
 		activity.append(i['movies']['watchlisted_at'])
+		activity.append(i['movies']['paused_at']) # added 8/30/20
+		activity.append(i['episodes']['watched_at']) # added 8/30/20
+		activity.append(i['episodes']['collected_at'])
+		activity.append(i['episodes']['watchlisted_at'])
+		activity.append(i['episodes']['paused_at']) # added 8/30/20
 		activity.append(i['shows']['watchlisted_at'])
 		activity.append(i['seasons']['watchlisted_at'])
-		activity.append(i['episodes']['watchlisted_at'])
-		activity.append(i['lists']['updated_at'])
 		activity.append(i['lists']['liked_at'])
+		activity.append(i['lists']['updated_at'])
 		activity = [int(cleandate.iso_2_utc(i)) for i in activity]
 		activity = sorted(activity, key=int)[-1]
 		return activity
@@ -638,6 +642,20 @@ def getWatchedActivity():
 		activity = []
 		activity.append(i['movies']['watched_at'])
 		activity.append(i['episodes']['watched_at'])
+		activity = [int(cleandate.iso_2_utc(i)) for i in activity]
+		activity = sorted(activity, key=int)[-1]
+		return activity
+	except:
+		log_utils.error()
+		pass
+
+
+def getPausedActivity():
+	try:
+		i = getTraktAsJson('/sync/last_activities')
+		activity = []
+		activity.append(i['movies']['paused_at'])
+		activity.append(i['episodes']['paused_at'])
 		activity = [int(cleandate.iso_2_utc(i)) for i in activity]
 		activity = sorted(activity, key=int)[-1]
 		return activity
@@ -799,12 +817,11 @@ def showCount(imdb, refresh=True, wait=False):
 	try:
 		if not imdb:
 			return None
-
 		if not imdb.startswith('tt'):
 			return None
 
 		result = {'total': 0, 'watched': 0, 'unwatched': 0}
-		indicators = seasonCount(imdb = imdb, refresh = refresh, wait = wait)
+		indicators = seasonCount(imdb=imdb, refresh=refresh, wait=wait)
 		if indicators is None:
 			return None
 
@@ -822,11 +839,12 @@ def seasonCount(imdb, refresh=True, wait=False):
 	try:
 		if not imdb:
 			return None
-
 		if not imdb.startswith('tt'):
 			return None
-
 		indicators = cache.cache_existing(_seasonCountRetrieve, imdb)
+		# log_utils.log('indicators = %s' % indicators, log_utils.LOGDEBUG)
+		if indicators:
+			return indicators # added 9/2/20
 
 		if refresh:
 			# NB: Do not retrieve a fresh count, otherwise loading show/season menus are slow.
@@ -845,6 +863,7 @@ def _seasonCountCache(imdb):
 	return cache.get(_seasonCountRetrieve, 0, imdb)
 
 
+		# indicators = getTraktAsJson('/users/me/watched/shows?extended=full')
 def _seasonCountRetrieve(imdb):
 	try:
 		if getTraktCredentialsInfo() is False:
@@ -1105,6 +1124,22 @@ def IdLookup(id_type, id, type):
 	except:
 		log_utils.error()
 		return None
+
+
+def scrobbleMovie(imdb, watched_percent):
+	try:
+		if not imdb.startswith('tt'): imdb = 'tt' + imdb
+		return getTrakt('/scrobble/pause', {"movie": {"ids": {"imdb": imdb}}, "progress": watched_percent})
+	except:
+		log_utils.error()
+
+
+def scrobbleEpisode(tvdb, season, episode, watched_percent):
+	try:
+		season, episode = int('%01d' % int(season)), int('%01d' % int(episode))
+		return getTrakt('/scrobble/pause', {"show": {"ids": {"tvdb": tvdb}}, "episode": {"season": season, "number": episode}, "progress": watched_percent})
+	except:
+		log_utils.error()
 
 
 def _scrobbleType(type):
