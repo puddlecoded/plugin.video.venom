@@ -185,14 +185,12 @@ class RealDebrid:
 			sysaddon = sys.argv[0]
 			syshandle = int(sys.argv[1])
 			torrent_files = self.user_torrents()
-			# log_utils.log('torrent_files = %s' % str(torrent_files), __name__, log_utils.LOGDEBUG)
 			if not torrent_files:
 				return
 			# torrent_files = [i for i in torrent_files if i['status'] == 'downloaded']
 			folder_str, deleteMenu = control.lang(40046).upper(), control.lang(40050)
 
 			for count, item in enumerate(torrent_files, 1):
-				# log_utils.log('item = %s' % str(item), __name__, log_utils.LOGDEBUG)
 				try:
 					cm = []
 					isFolder = True if item['status'] == 'downloaded' else False
@@ -606,9 +604,7 @@ class RealDebrid:
 				timeout -= interval
 				control.sleep(1000 * interval)
 				torrent_info = self.torrent_info(torrent_id)
-				log_utils.log('torrent_info = %s' % torrent_info, __name__, log_utils.LOGDEBUG)
 				status = torrent_info['status']
-
 				line3 = control.lang(40012) % str(torrent_info['seeders'])
 			try:
 				control.progressDialog.close()

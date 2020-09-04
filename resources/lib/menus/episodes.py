@@ -1601,7 +1601,7 @@ class Episodes:
 					cm.append((addToLibrary, 'RunPlugin(%s?action=library_tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (
 											sysaddon, systvshowtitle, year, imdb, tmdb, tvdb)))
 				cm.append((control.lang(32611), 'RunPlugin(%s?action=cache_clearSources&opensettings=false)' % sysaddon))
-				# cm.append(('PlayAll', 'RunPlugin(%s?action=playAll)' % sysaddon))
+				cm.append(('PlayAll', 'RunPlugin(%s?action=playAll)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 ####################################
 

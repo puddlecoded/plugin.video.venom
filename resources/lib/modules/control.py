@@ -78,17 +78,20 @@ except:
 	addonPath = xbmcaddon.Addon().getAddonInfo('path')
 
 joinPath = os.path.join
-existsPath = os.path.exists
+# existsPath = os.path.exists
 isfilePath = os.path.isfile
-makeDirs = os.makedirs
+# makeDirs = os.makedirs
 
 deleteDir = xbmcvfs.rmdir
 deleteFile = xbmcvfs.delete
-# existsPath = xbmcvfs.exists
+existsPath = xbmcvfs.exists
 listDir = xbmcvfs.listdir
 makeFile = xbmcvfs.mkdir
+makeDirs = xbmcvfs.mkdirs
 openFile = xbmcvfs.File
 transPath = xbmc.translatePath
+
+
 
 menus_path = os.path.join(addonPath, 'resources', 'lib', 'menus')
 SETTINGS_PATH = xbmc.translatePath(os.path.join(addonInfo('path'), 'resources', 'settings.xml'))

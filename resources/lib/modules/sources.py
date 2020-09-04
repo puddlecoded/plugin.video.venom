@@ -265,10 +265,10 @@ class Sources:
 				if not isCached:
 					try: seeders = int(items[i]['seeders'])
 					except: seeders = 0
-					if seeders > 0:
-						d = self.debrid_abv(items[i]['debrid'])
-						if d == 'PM' or d == 'RD' or d == 'AD':
-							cm.append(('Cache to %s Cloud (seeders=%s)' % (d, seeders), 'RunPlugin(%s?action=cacheTorrent&caller=%s&type=%s&url=%s)' %
+					# if seeders > 0:
+					d = self.debrid_abv(items[i]['debrid'])
+					if d == 'PM' or d == 'RD' or d == 'AD':
+						cm.append(('Cache to %s Cloud (seeders=%s)' % (d, seeders), 'RunPlugin(%s?action=cacheTorrent&caller=%s&type=%s&url=%s)' %
 												(sysaddon, d, type, quote_plus(items[i]['url']))))
 
 				if control.setting('enable.resquality.icons') == 'true':

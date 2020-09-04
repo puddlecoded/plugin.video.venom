@@ -171,6 +171,8 @@ class lib_tools:
 
 		if not contains:
 			try:
+				global folder_setup
+				global service_update
 				if control.setting('library.service.update') == 'false' or service_update is False:
 					return contains
 				if folder_setup:
@@ -179,13 +181,11 @@ class lib_tools:
 				msg = 'Your Library Folders do not exist in Kodi Sources.  Would you like to run full setup of Library Folders to Kodi Sources now?'
 				if control.yesnoDialog(msg, '', ''):
 					lib_tools.total_setup()
-					global folder_setup
 					folder_setup = True
 					contains = True
 				else:
 					msg = 'Would you like to turn off Library Auto Update Service?'
 					if control.yesnoDialog(msg, '', ''):
-						global service_update
 						service_update = False
 						control.setSetting('library.service.update', 'false')
 						contains = False
@@ -328,7 +328,6 @@ class libmovies:
 				if 'trakt' in url:
 					from resources.lib.menus import movies
 					items = movies.Movies().trakt_list(url, control.setting('trakt.user').strip())
-
 				if 'themoviedb' in url:
 					if '/list/' not in url:
 						from resources.lib.indexers import tmdb
@@ -340,7 +339,7 @@ class libmovies:
 				log_utils.error()
 				pass
 
-			if items is None or items == []:
+			if not items:
 				continue
 
 			if service_notification and not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
@@ -476,8 +475,8 @@ class libmovies:
 			else:
 				message = 'list import'
 		except:
-				log_utils.error()
-				pass
+			log_utils.error()
+			pass
 
 		if general_notification:
 			if not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):

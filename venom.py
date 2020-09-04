@@ -679,6 +679,9 @@ elif action == 'cachesyncTVShows':
 #---Play
 ####################################################
 elif action == 'play':
+	# control.player2().play(control.playlist)
+	# xbmc.executebuiltin('RunPlugin(plugin://plugin.video.venom/?action=playAll)')
+	# xbmc.executebuiltin('PlayMedia(plugin://plugin.video.venom/?action=playAll)')
 	from resources.lib.modules import sources
 	rescrape = params.get('rescrape')
 	select = params.get('select')

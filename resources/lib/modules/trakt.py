@@ -32,9 +32,6 @@ REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'
 databaseName = control.cacheFile
 databaseTable = 'trakt'
 
-server_notification = control.setting('trakt.server.notifications') == 'true'
-general_notification = control.setting('trakt.general.notifications') == 'true'
-
 
 def getTrakt(url, post=None, cache=True, check=False, timestamp=None, extended=False, direct=False, authentication=None):
 # def getTrakt(url, post = None, cache = True, check = True, timestamp = None, extended = False, direct = False, authentication = None):
@@ -134,7 +131,7 @@ def getTraktAsJson(url, post=None, authentication=None):
 
 def _error(url, post, timestamp, message):
 	_cache(url = url, post = post, timestamp = timestamp)
-	if server_notification:
+	if control.setting('trakt.server.notifications') == 'true':
 		control.notification(title=32315, message=message, icon='default', sound=(control.setting('notification.sound') == 'true'))
 	control.hide()
 	return None
@@ -348,7 +345,7 @@ def watch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
 	if refresh:
 		control.refresh()
 	control.trigger_widget_refresh()
-	if general_notification:
+	if control.setting('trakt.general.notifications') == 'true':
 		if season and not episode:
 			name = '%s-Season%s...' % (name, season)
 		if season and episode:
@@ -375,7 +372,7 @@ def unwatch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 	if refresh:
 		control.refresh()
 	control.trigger_widget_refresh()
-	if general_notification:
+	if control.setting('trakt.general.notifications') == 'true':
 		if season and not episode:
 			name = '%s-Season%s...' % (name, season)
 		if season and episode:
@@ -452,7 +449,7 @@ def hideItem(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True
 	if refresh:
 		control.refresh()
 	control.trigger_widget_refresh()
-	if general_notification:
+	if control.setting('trakt.general.notifications') == 'true':
 		control.notification(title=32315, message=control.lang(33053) % (name, sections_display[selection]), icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
@@ -559,7 +556,7 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 				if refresh:
 					control.refresh()
 				control.trigger_widget_refresh()
-				if general_notification:
+				if control.setting('trakt.general.notifications') == 'true':
 					control.notification(title=name, message=message, icon='default', sound=(control.setting('notification.sound') == 'true'))
 	except:
 		log_utils.error()
