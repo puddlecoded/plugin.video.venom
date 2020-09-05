@@ -1,3 +1,7 @@
+[B][COLOR red]Update - v4.1.2 – Sept. 05, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed hosters not displayed from previous update.  Hoster
+    support may be removed is the near future.[/I]
+
 [B][COLOR red]Update - v4.1.1 – Sept. 04, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed issue with fresh install failing with log error notice.[/I]
 
