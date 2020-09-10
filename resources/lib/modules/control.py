@@ -41,7 +41,7 @@ item = xbmcgui.ListItem
 listControl = xbmcgui.ControlList
 labelControl = xbmcgui.ControlLabel
 window = xbmcgui.Window(10000)
-# homeWindow = xbmcgui.Window(10000)
+homeWindow = xbmcgui.Window(10000)
 
 windowDialog = xbmcgui.WindowDialog()
 dialog = xbmcgui.Dialog()
@@ -126,7 +126,7 @@ def setSetting(id, value):
 
 def make_settings_dict():
 	kodi_version = getKodiVersion()
-	profile_dir = xbmc.translatePath('special://userdata/addon_data/plugin.video.venom')
+	profile_dir = xbmc.translatePath('special://profile/addon_data/plugin.video.venom/')
 	settings_xml = os.path.join(profile_dir, 'settings.xml')
 	root = ET.parse(settings_xml).getroot()
 	settings_dict = {}

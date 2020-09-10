@@ -396,7 +396,7 @@ def _find_cache_version():
 			f.close()
 	except:
 		log_utils.log('Venom Addon Data Path Does not Exist. Creating Folder....', __name__, log_utils.LOGDEBUG)
-		ad_folder = control.transPath('special://home/userdata/addon_data/plugin.video.venom')
+		ad_folder = control.transPath('special://profile/addon_data/plugin.video.venom')
 		# os.makedirs(ad_folder)
 		control.makeDirs(ad_folder)
 	try:

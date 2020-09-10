@@ -233,10 +233,8 @@ class Sources:
 		multiline = control.setting('sourcelist.multiline')
 		for i in range(len(items)):
 			try:
-				if multiline == 'true':
-					label = str(items[i]['multiline_label'])
-				else:
-					label = str(items[i]['label'])
+				if multiline == 'true': label = str(items[i]['multiline_label'])
+				else: label = str(items[i]['label'])
 
 				syssource = quote_plus(json.dumps([items[i]]))
 				sysurl = '%s?action=playItem&title=%s&source=%s' % (sysaddon, systitle, syssource)
@@ -244,26 +242,22 @@ class Sources:
 				cm = []
 				type = 'pack' if 'package' in items[i] else 'single'
 				isCached = True if re.match(r'cached.*torrent', items[i]['source']) else False
-				if downloads and isCached:
-					try: 
-						new_sysname = quote_plus(items[i]['name'])
-					except:
-						new_sysname = sysname
-						pass
+				if downloads and (isCached or items[i]['direct'] == True or (items[i]['debridonly'] == True and 'magnet:' not in items[i]['url'])):
+					try: new_sysname = quote_plus(items[i]['name'])
+					except: new_sysname = sysname
 					cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&source=%s&caller=sources&title=%s)' %
 										(sysaddon, new_sysname, sysimage, syssource, sysname)))
 
 				if type == 'pack' and isCached:
-					cm.append(('Browse Debrid Pack', 'RunPlugin(%s?action=showDebridPack&caller=%s&name=%s&url=%s&source=%s)' %
+					cm.append(('[B]Browse Debrid Pack[/B]', 'RunPlugin(%s?action=showDebridPack&caller=%s&name=%s&url=%s&source=%s)' %
 									(sysaddon, quote_plus(items[i]['debrid']), quote_plus(items[i]['name']), quote_plus(items[i]['url']), quote_plus(items[i]['hash']))))
 
-				if not isCached and items[i]['debrid']:
+				if not isCached and 'magnet:' in items[i]['url']:
 					d = self.debrid_abv(items[i]['debrid'])
 					if d in ('PM', 'RD', 'AD'):
 						try: seeders = int(items[i]['seeders'])
 						except: seeders = 0
-						# # if seeders > 0:
-						cm.append(('Cache to %s Cloud (seeders=%s)' % (d, seeders), 'RunPlugin(%s?action=cacheTorrent&caller=%s&type=%s&url=%s)' %
+						cm.append(('[B]Cache to %s Cloud (seeders=%s)[/B]' % (d, seeders), 'RunPlugin(%s?action=cacheTorrent&caller=%s&type=%s&url=%s)' %
 											(sysaddon, d, type, quote_plus(items[i]['url']))))
 
 				if control.setting('enable.resquality.icons') == 'true':
@@ -493,10 +487,8 @@ class Sources:
 
 		[i.start() for i in threads]
 
-		pdpc = control.setting('progress.dialog.prem.color')
-		pdpc = control.getColor(pdpc)
-		pdfc = control.setting('progress.dialog.free.color')
-		pdfc = control.getColor(pdfc)
+		pdpc = control.getColor(control.setting('progress.dialog.prem.color'))
+		pdfc = control.getColor(control.setting('progress.dialog.free.color'))
 
 		string1 = control.lang(32404)
 		string2 = control.lang(32405)
@@ -717,6 +709,7 @@ class Sources:
 
 		try: progressDialog.close()
 		except: pass
+		del progressDialog
 		if len(self.sources) > 0:
 			self.sourcesFilter()
 		return self.sources
