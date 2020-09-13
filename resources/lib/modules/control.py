@@ -112,11 +112,14 @@ trailer = 'plugin://plugin.video.youtube/play/?video_id=%s'
 def setting(id, fallback=None):
 	try: settings_dict = json.loads(window.getProperty('venom_settings'))
 	except: settings_dict = make_settings_dict()
-	# xbmc.log('settings_dict = %s' % settings_dict, 2)
+	if settings_dict is None: settings_dict = settings_fallback(id, fallback)
 	value = settings_dict.get(id, '')
 	if fallback is None: return value
 	if value == '': return fallback
 	return value
+
+def settings_fallback(id):
+	return {id: xbmcaddon.Addon().getSetting(id)}
 
 
 def setSetting(id, value):
@@ -125,21 +128,24 @@ def setSetting(id, value):
 
 
 def make_settings_dict():
-	kodi_version = getKodiVersion()
-	profile_dir = xbmc.translatePath('special://profile/addon_data/plugin.video.venom/')
-	settings_xml = os.path.join(profile_dir, 'settings.xml')
-	root = ET.parse(settings_xml).getroot()
-	settings_dict = {}
-	for item in root:
-		dict_item = {}
-		setting_id = item.get('id')
-		if kodi_version >= 18: setting_value = item.text
-		else: setting_value = item.get('value')
-		if setting_value is None: setting_value = ''
-		dict_item = {setting_id: setting_value}
-		settings_dict.update(dict_item)
-	window.setProperty('venom_settings', json.dumps(settings_dict))
-	return settings_dict
+	try:
+		kodi_version = getKodiVersion()
+		profile_dir = xbmc.translatePath('special://profile/addon_data/plugin.video.venom/')
+		settings_xml = os.path.join(profile_dir, 'settings.xml')
+		root = ET.parse(settings_xml).getroot()
+		settings_dict = {}
+		for item in root:
+			dict_item = {}
+			setting_id = item.get('id')
+			if kodi_version >= 18: setting_value = item.text
+			else: setting_value = item.get('value')
+			if setting_value is None: setting_value = ''
+			dict_item = {setting_id: setting_value}
+			settings_dict.update(dict_item)
+		window.setProperty('venom_settings', json.dumps(settings_dict))
+		return settings_dict
+	except:
+		return None
 
 
 def lang(language_id):
