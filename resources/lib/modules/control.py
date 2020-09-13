@@ -112,7 +112,7 @@ trailer = 'plugin://plugin.video.youtube/play/?video_id=%s'
 def setting(id, fallback=None):
 	try: settings_dict = json.loads(window.getProperty('venom_settings'))
 	except: settings_dict = make_settings_dict()
-	if settings_dict is None: settings_dict = settings_fallback(id, fallback)
+	if settings_dict is None: settings_dict = settings_fallback(id)
 	value = settings_dict.get(id, '')
 	if fallback is None: return value
 	if value == '': return fallback
