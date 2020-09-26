@@ -1,3 +1,6 @@
+[B][COLOR red]Update - v4.2.1 – Sept. 26, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] fix incorrect version bump.[/I]
+
 [B][COLOR red]Update - v4.2.0 – Sept. 26, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Free hoster and foreign scraper support has been removed
     due to limited time to maintain.  Premium hosters supported

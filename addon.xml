@@ -1,4 +1,4 @@
-<addon id="plugin.video.venom" name="[COLOR red]Venom[/COLOR]" provider-name="Venom" version="4.2.0">
+<addon id="plugin.video.venom" name="[COLOR red]Venom[/COLOR]" provider-name="Venom" version="4.2.1">
 	<requires>
 		<import addon="xbmc.python" version="2.19.0" />
 		<import addon="script.module.myaccounts" version="1.0.0" />
@@ -33,6 +33,9 @@
 			<screenshot>resources/screenshots/screenshot003.jpg</screenshot>
 		</assets>
 		<news>
+[B][COLOR red]Update - v4.2.1 – Sept. 26, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] fix incorrect version bump.[/I]
+
 [B][COLOR red]Update - v4.2.0 – Sept. 26, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Free hoster and foreign scraper support has been removed
     due to limited time to maintain.  Premium hosters supported
