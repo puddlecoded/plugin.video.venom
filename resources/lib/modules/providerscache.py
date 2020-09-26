@@ -51,10 +51,8 @@ def get(function, duration, *args):
 		# If the cache is old, but we didn't get fresh result, return the old cache
 		# if not fresh_result:
 		if invalid:
-			if cache_result:
-				return ast.literal_eval(cache_result['value'].encode('utf-8'))
-			else:
-				return None
+			if cache_result: return ast.literal_eval(cache_result['value'].encode('utf-8'))
+			else: return None
 
 		return ast.literal_eval(fresh_result.encode('utf-8'))
 	except:
@@ -73,10 +71,8 @@ def remove(function, *args):
 			cursor.close()
 	except:
 		log_utils.error()
-		try:
-			cursor.close()
-		except:
-			pass
+		try: cursor.close()
+		except: pass
 
 
 def cache_get(key):
@@ -93,10 +89,8 @@ def cache_get(key):
 		return results
 	except:
 		log_utils.error()
-		try:
-			cursor.close()
-		except:
-			pass
+		try: cursor.close()
+		except: pass
 		return None
 
 
@@ -118,7 +112,6 @@ def cache_insert(key, value):
 def cache_clear_providers():
 	cursor = _get_connection_cursor()
 	for t in ['cache', 'rel_src', 'rel_url']:
-	# for t in ['cache', 'rel_src', 'rel_url', 'rel_src_seasonPack', 'rel_src_showPack']:
 		try:
 			cursor.execute("DROP TABLE IF EXISTS %s" % t)
 			cursor.execute("VACUUM")
@@ -158,10 +151,8 @@ def _get_function_name(function_instance):
 
 def _generate_md5(*args):
 	md5_hash = hashlib.md5()
-	try:
-		[md5_hash.update(str(arg)) for arg in args]
-	except:
-		[md5_hash.update(str(arg).encode('utf-8')) for arg in args]
+	try: [md5_hash.update(str(arg)) for arg in args]
+	except: [md5_hash.update(str(arg).encode('utf-8')) for arg in args]
 	return str(md5_hash.hexdigest())
 
 

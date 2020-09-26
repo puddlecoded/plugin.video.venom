@@ -18,8 +18,7 @@ def clearViews():
 		skin = control.skin
 		control.hide()
 		yes = control.yesnoDialog(control.lang(32056), '', '')
-		if not yes:
-			return
+		if not yes: return
 		control.makeFile(control.dataPath)
 		dbcon = database.connect(control.viewsFile)
 		dbcur = dbcon.cursor()
@@ -83,14 +82,12 @@ def setView(content, viewDict=None):
 				dbcur = dbcon.cursor()
 				dbcur.execute("SELECT * FROM views WHERE skin = '%s' AND view_type = '%s'" % (record[0], record[1]))
 				view = dbcur.fetchone()
-				if not view:
-					raise Exception()
+				if not view: raise Exception()
 				view = view[2]
 				return control.execute('Container.SetViewMode(%s)' % str(view))
 			except:
 				try:
-					if skin not in viewDict:
-						return
+					if skin not in viewDict: return
 					return control.execute('Container.SetViewMode(%s)' % str(viewDict[skin]))
 				except:
 					log_utils.error()

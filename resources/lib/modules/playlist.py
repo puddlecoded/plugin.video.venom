@@ -24,8 +24,7 @@ def playlistManager(name=None, url=None, meta=None, art=None):
 		items += [(control.lang(35516), 'playlistClear')]
 		control.hide()
 		select = control.selectDialog([i[0] for i in items], heading = control.addonInfo('name') + ' - ' + control.lang(35522))
-		if select == -1:
-			return
+		if select == -1: return
 		if select >= 0:
 			if select == 0:
 				control.busy()
@@ -77,17 +76,13 @@ def playListItems():
 		return []
 	result = unicode(result, 'utf-8', errors = 'ignore')
 	result = json.loads(result)['result']['items']
-	try:
-		return [i['label'].encode('utf-8') for i in result]
-	except:
-		return []
+	try: return [i['label'].encode('utf-8') for i in result]
+	except: return []
 
 
 def position(label):
-	try:
-		return playListItems().index(label)
-	except:
-		return -1
+	try: return playListItems().index(label)
+	except: return -1
 
 
 def playlistAdd(name, url, meta, art):
@@ -95,13 +90,10 @@ def playlistAdd(name, url, meta, art):
 	labelPosition = position(label = name)
 	if labelPosition >= 0:
 		return control.notification(title=35522, message='Title already in playlist', icon='default', sound=(control.setting('notification.sound') == 'true'))
-
 	if isinstance(meta, basestring):
 		meta = json.loads(meta)
-
 	if isinstance(art, basestring):
 		art = json.loads(art)
-
 	item = control.item(label=name)
 	item.setArt(art)
 	item.setProperty('IsPlayable', 'true')
@@ -117,13 +109,11 @@ def playlistAdd(name, url, meta, art):
 
 def playlistRemove(name):
 	labelPosition = position(label=name)
-
 	if labelPosition >= 0:
 		rpc = '{"jsonrpc": "2.0", "method": "Playlist.Remove", "params": {"playlistid": %s, "position": %s}, "id": 1 }' % (Id, labelPosition)
 		control.jsonrpc(rpc)
 		if notification:
 			control.notification(title=35522, message=str(name) + ' Removed from playlist', icon='default', sound=(control.setting('notification.sound') == 'true'))
-
 	if labelPosition == -1:
 		if notification:
 			control.notification(title=35522, message='Not found in playlist', icon='default', sound=(control.setting('notification.sound') == 'true'))

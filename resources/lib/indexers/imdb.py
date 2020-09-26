@@ -27,17 +27,13 @@ class movies:
 		self.list = []
 		self.meta = []
 		disable_fanarttv = control.setting('disable.fanarttv')
-
 		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
-
-		self.imdb_user = control.setting('imdb.user').replace('ur', '')
-
 		self.lang = control.apiLanguage()['trakt']
 
-		self.tmdb_key = control.setting('tm.user')
-		if self.tmdb_key == '' or self.tmdb_key is None:
+		self.imdb_user = control.setting('imdb.user').replace('ur', '')
+		self.tmdb_key = control.setting('tmdb.api.key')
+		if not self.tmdb_key:
 			self.tmdb_key = '3320855e65a9758297fec4f7c9717698'
-
 		self.user = str(self.imdb_user) + str(self.tmdb_key)
 
 		self.tmdb_poster = 'https://image.tmdb.org/t/p/w500'
@@ -368,19 +364,14 @@ class tvshows:
 		self.meta = []
 
 		self.lang = control.apiLanguage()['tvdb']
-
 		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
 
 		self.fanart_tv_user = control.setting('fanart.tv.user')
-		if self.fanart_tv_user == '' or self.fanart_tv_user is None:
+		if not self.fanart_tv_user:
 			self.fanart_tv_user = 'cf0ebcc2f7b824bd04cf3a318f15c17d'
 		self.user = self.fanart_tv_user + str('')
+		self.tvdb_key = control.setting('tvdb.api.key')
 
-		tvdb_key_list = [
-			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
-			'MUQ2MkYyRjkwMDMwQzQ0NA==',
-			'N1I4U1paWDkwVUE5WU1CVQ==']
-		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
 		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/%s.xml' % (self.tvdb_key.decode('base64'), '%s', self.lang)
 		self.tvdb_by_imdb = 'https://thetvdb.com/api/GetSeriesByRemoteID.php?imdbid=%s'
 		self.tvdb_by_query = 'https://thetvdb.com/api/GetSeries.php?seriesname=%s'

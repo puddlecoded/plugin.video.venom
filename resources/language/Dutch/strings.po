@@ -1096,8 +1096,8 @@ msgid "Powered by..."
 msgstr "Aangedreven door..."
 
 msgctxt "#32651"
-msgid "Open Scrapers Settings"
-msgstr "Open Scrapers-instellingen"
+msgid "Fenomscrapers Settings"
+msgstr "Fenomscrapers-instellingen"
 
 msgctxt "#32652"
 msgid "Clear Providers Cache"

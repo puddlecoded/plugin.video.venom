@@ -28,10 +28,9 @@ tvdb = params.get('tvdb')
 season = params.get('season')
 episode = params.get('episode')
 tvshowtitle = params.get('tvshowtitle')
-premiered = params.get('premiered')
 type = params.get('type')
 url = params.get('url')
-meta = params.get('meta')
+# meta = params.get('meta')
 query = params.get('query')
 source = params.get('source')
 
@@ -40,7 +39,7 @@ windowedtrailer = int(windowedtrailer) if windowedtrailer in ("0","1") else 0
 
 playAction = xbmcaddon.Addon('plugin.video.venom').getSetting('hosts.mode')
 autoPlay = 'true' if playAction == '2' else ''
-control.window.setProperty('plugin.video.venom.autoPlay', autoPlay)
+control.homeWindow.setProperty('plugin.video.venom.autoPlay', autoPlay)
 
 
 if action is None:
@@ -78,11 +77,9 @@ elif action == 'ShowChangelog':
 elif action == 'ShowHelp':
 	from resources.help import help
 	help.get(name)
-	control.openSettings(query)
 
 elif action == 'setReuseLanguageInvoker':
 	control.set_reuselanguageinvoker()
-	# control.openSettings(query)
 
 
 ####################################################
@@ -406,35 +403,35 @@ if action and action.startswith('pm_'):
 		navigator.Navigator().premiumize_service()
 
 	elif action == 'pm_AccountInfo':
-		from resources.lib.modules import premiumize
-		premiumize.Premiumize().acount_info_to_dialog()
+		from resources.lib.debrid import premiumize
+		premiumize.Premiumize().account_info_to_dialog()
 
 	elif action == 'pm_Authorize':
-		from resources.lib.modules import premiumize
+		from resources.lib.debrid import premiumize
 		premiumize.Premiumize().auth()
 
 	elif action == 'pm_MyFiles':
-		from resources.lib.modules import premiumize
+		from resources.lib.debrid import premiumize
 		premiumize.Premiumize().my_files_to_listItem(id, name)
 
 	elif action == 'pm_Transfers':
-		from resources.lib.modules import premiumize
+		from resources.lib.debrid import premiumize
 		premiumize.Premiumize().user_transfers_to_listItem()
 
 	elif action == 'pm_Rename':
-		from resources.lib.modules import premiumize
+		from resources.lib.debrid import premiumize
 		premiumize.Premiumize().rename(type, id, name)
 
 	elif action == 'pm_Delete':
-		from resources.lib.modules import premiumize
+		from resources.lib.debrid import premiumize
 		premiumize.Premiumize().delete(type, id, name)
 
 	elif action == 'pm_DeleteTransfer':
-		from resources.lib.modules import premiumize
+		from resources.lib.debrid import premiumize
 		premiumize.Premiumize().delete_transfer(id, name)
 
 	elif action == 'pm_ClearFinishedTransfers': # disabled for now till PM fixes
-		from resources.lib.modules import premiumize
+		from resources.lib.debrid import premiumize
 		premiumize.Premiumize().clear_finished_transfers()
 
 if action and action.startswith('rd_'):
@@ -443,31 +440,31 @@ if action and action.startswith('rd_'):
 		navigator.Navigator().realdebrid_service()
 
 	elif action == 'rd_AccountInfo':
-		from resources.lib.modules import realdebrid
-		realdebrid.RealDebrid().acount_info_to_dialog()
+		from resources.lib.debrid import realdebrid
+		realdebrid.RealDebrid().account_info_to_dialog()
 
 	elif action == 'rd_Authorize':
-		from resources.lib.modules import realdebrid
+		from resources.lib.debrid import realdebrid
 		realdebrid.RealDebrid().auth()
 
 	elif action == 'rd_UserTorrentsToListItem':
-		from resources.lib.modules import realdebrid
+		from resources.lib.debrid import realdebrid
 		realdebrid.RealDebrid().user_torrents_to_listItem()
 
 	elif action == 'rd_MyDownloads':
-		from resources.lib.modules import realdebrid
+		from resources.lib.debrid import realdebrid
 		realdebrid.RealDebrid().my_downloads_to_listItem(int(query))
 
 	elif action == 'rd_BrowseUserTorrents':
-		from resources.lib.modules import realdebrid
+		from resources.lib.debrid import realdebrid
 		realdebrid.RealDebrid().browse_user_torrents(id)
 
 	elif action == 'rd_DeleteUserTorrent':
-		from resources.lib.modules import realdebrid
+		from resources.lib.debrid import realdebrid
 		realdebrid.RealDebrid().delete_user_torrent(id, name)
 
 	elif action == 'rd_DeleteDownload':
-		from resources.lib.modules import realdebrid
+		from resources.lib.debrid import realdebrid
 		realdebrid.RealDebrid().delete_download(id, name)
 
 if action and action.startswith('ad_'):
@@ -476,31 +473,31 @@ if action and action.startswith('ad_'):
 		navigator.Navigator().alldebrid_service()
 
 	elif action == 'ad_AccountInfo':
-		from resources.lib.modules import alldebrid
-		alldebrid.AllDebrid().acount_info_to_dialog()
+		from resources.lib.debrid import alldebrid
+		alldebrid.AllDebrid().account_info_to_dialog()
 
 	elif action == 'ad_Authorize':
-		from resources.lib.modules import alldebrid
+		from resources.lib.debrid import alldebrid
 		alldebrid.AllDebrid().auth()
 
 	elif action == 'ad_Transfers':
-		from resources.lib.modules import alldebrid
+		from resources.lib.debrid import alldebrid
 		alldebrid.AllDebrid().user_transfers_to_listItem()
 
 	elif action == 'ad_CloudStorage':
-		from resources.lib.modules import alldebrid
+		from resources.lib.debrid import alldebrid
 		alldebrid.AllDebrid().user_cloud_to_listItem()
 
 	elif action == 'ad_BrowseUserCloud':
-		from resources.lib.modules import alldebrid
+		from resources.lib.debrid import alldebrid
 		alldebrid.AllDebrid().browse_user_cloud(source)
 
 	elif action == 'ad_DeleteTransfer':
-		from resources.lib.modules import alldebrid
+		from resources.lib.debrid import alldebrid
 		alldebrid.AllDebrid().delete_transfer(id, name, silent=False)
 
 	elif action == 'ad_RestartTransfer':
-		from resources.lib.modules import alldebrid
+		from resources.lib.debrid import alldebrid
 		alldebrid.AllDebrid().restart_transfer(id, name, silent=False)
 
 
@@ -526,10 +523,8 @@ if action and action.startswith('anime_'):
 ####################################################
 if action == 'youtube':
 	from resources.lib.menus import youtube
-	if id is None:
-		youtube.yt_index().root(action)
-	else:
-		youtube.yt_index().get(action, id)
+	if id is None: youtube.yt_index().root(action)
+	else: youtube.yt_index().get(action, id)
 
 elif action == 'sectionItem':
 	pass # Placeholder. This is a non-clickable menu item for notes, etc.
@@ -561,7 +556,7 @@ if action and action.startswith('download'):
 			control.busy()
 			try:
 				from resources.lib.modules import downloader
-				from resources.lib.modules import premiumize
+				from resources.lib.debrid import premiumize
 				downloader.download(name, image, premiumize.Premiumize().add_headers_to_url(url.replace(' ', '%20')))
 			except:
 				import traceback
@@ -571,7 +566,7 @@ if action and action.startswith('download'):
 			control.busy()
 			try:
 				from resources.lib.modules import downloader
-				from resources.lib.modules import realdebrid
+				from resources.lib.debrid import realdebrid
 				if type == 'unrestrict':
 					downloader.download(name, image, realdebrid.RealDebrid().unrestrict_link(url.replace(' ', '%20')))
 				else:
@@ -584,7 +579,7 @@ if action and action.startswith('download'):
 			control.busy()
 			try:
 				from resources.lib.modules import downloader
-				from resources.lib.modules import alldebrid
+				from resources.lib.debrid import alldebrid
 				downloader.download(name, image, alldebrid.AllDebrid().unrestrict_link(url.replace(' ', '%20')))
 			except:
 				import traceback
@@ -607,6 +602,11 @@ elif action == 'viewsNavigator':
 	from resources.lib.menus import navigator
 	navigator.Navigator().views()
 
+elif action == 'addView':
+	from resources.lib.modules import views
+	content = params.get('content')
+	views.addView(content)
+
 elif action == 'resetViewTypes':
 	from resources.lib.modules import views
 	views.clearViews()
@@ -614,10 +614,34 @@ elif action == 'resetViewTypes':
 elif action == 'cleanSettings':
 	control.clean_settings()
 
-elif action == 'addView':
-	from resources.lib.modules import views
-	content = params.get('content')
-	views.addView(content)
+elif action == 'openMyAccount':
+	control.openSettings(query, 'script.module.myaccounts')
+	control.sleep(500)
+	while True:
+		if control.condVisibility('Window.IsVisible(addonsettings)'):
+			control.sleep(500)
+			continue
+		else: break
+	control.syncMyAccounts()
+	if params.get('opensettings') == 'true':
+		control.openSettings('8.0', 'plugin.video.venom')
+
+elif action == 'syncMyAccount':
+	control.syncMyAccounts()
+	if params.get('opensettings') == 'true':
+		control.openSettings(query, 'plugin.video.venom')
+
+elif action == 'traktAcctMyAccounts':
+	control.execute('RunScript(script.module.myaccounts, action=traktAcct)')
+
+elif action == 'adAcctMyAccounts':
+	control.execute('RunScript(script.module.myaccounts, action=alldebridAcct)')
+
+elif action == 'pmAcctMyAccounts':
+	control.execute('RunScript(script.module.myaccounts, action=premiumizeAcct)')
+
+elif action == 'rdAcctMyAccounts':
+	control.execute('RunScript(script.module.myaccounts, action=realdebridAcct)')
 
 elif action == 'openSettings':
 	control.openSettings(query)
@@ -625,43 +649,30 @@ elif action == 'openSettings':
 elif action == 'open.Settings.CacheProviders':
 	control.openSettings(query)
 
-elif action == 'UpNextSettings':
-	control.openSettings('0.0', 'service.upnext')
-
 elif action == 'contextVenomSettings':
 	control.openSettings('0.0', 'context.venom')
 	control.trigger_widget_refresh()
 
-elif action == 'openscrapersSettings':
-	control.openSettings('0.0', 'script.module.openscrapers')
+elif action == 'UpNextSettings':
+	control.openSettings('0.0', 'service.upnext')
+	while control.condVisibility('Window.IsVisible(addonsettings)'):
+		control.sleep(500)
+	if params.get('opensettings') == 'true':
+		control.openSettings(query, 'plugin.video.venom')
 
-elif action == 'resolveurlSettings':
-	control.openSettings(query, "script.module.resolveurl")
+elif action == 'fenomscrapersSettings':
+	control.openSettings('0.0', 'script.module.fenomscrapers')
+	# while control.condVisibility('Window.IsVisible(addonsettings)'):
+		# control.sleep(500)
+	# if params.get('opensettings') == 'true':
+		# control.openSettings(query, 'plugin.video.venom')
 
 elif action == 'widgetRefresh':
 	control.trigger_widget_refresh()
 
-elif action == 'authTMDb':
-	from resources.lib.indexers import tmdb
-	tmdb.Auth().create_session_id()
-	if params.get('opensettings') == 'true':
-		control.openSettings(query, "plugin.video.venom")
-
-elif action == 'revokeTMDb':
-	from resources.lib.indexers import tmdb
-	tmdb.Auth().revoke_session_id()
-	if params.get('opensettings') == 'true':
-		control.openSettings(query, "plugin.video.venom")
-
 elif action == 'traktManager':
 	from resources.lib.modules import trakt
 	trakt.manager(name, imdb, tvdb, season, episode)
-
-elif action == 'authTrakt':
-	from resources.lib.modules import trakt
-	trakt.authTrakt()
-	if params.get('opensettings') == 'true':
-		control.openSettings(query, "plugin.video.venom")
 
 elif action == 'cachesyncMovies':
 	from resources.lib.modules import trakt
@@ -685,6 +696,8 @@ elif action == 'play':
 	from resources.lib.modules import sources
 	rescrape = params.get('rescrape')
 	select = params.get('select')
+	premiered = params.get('premiered')
+	meta = params.get('meta')
 	sources.Sources().play(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape)
 
 elif action == 'playAll':
@@ -693,19 +706,14 @@ elif action == 'playAll':
 elif action == 'playURL':
 	caller = params.get('caller')
 	if caller == 'realdebrid':
-		from resources.lib.modules import realdebrid
-		if type == 'unrestrict':
-			control.player.play(realdebrid.RealDebrid().unrestrict_link(url.replace(' ', '%20')))
-		else:
-			control.player.play(url.replace(' ', '%20'))
+		from resources.lib.debrid import realdebrid
+		if type == 'unrestrict': control.player.play(realdebrid.RealDebrid().unrestrict_link(url.replace(' ', '%20')))
+		else: control.player.play(url.replace(' ', '%20'))
 	elif caller == 'alldebrid':
-		from resources.lib.modules import alldebrid
-		if type == 'unrestrict':
-			control.player.play(alldebrid.AllDebrid().unrestrict_link(url.replace(' ', '%20')))
-		else:
-			control.player.play(url.replace(' ', '%20'))
-	else:
-		control.player.play(url.replace(' ', '%20'))
+		from resources.lib.debrid import alldebrid
+		if type == 'unrestrict': control.player.play(alldebrid.AllDebrid().unrestrict_link(url.replace(' ', '%20')))
+		else: control.player.play(url.replace(' ', '%20'))
+	else: control.player.play(url.replace(' ', '%20'))
 
 elif action == 'playItem':
 	from resources.lib.modules import sources
@@ -717,6 +725,7 @@ elif action == 'addItem':
 
 elif action == 'alterSources':
 	from resources.lib.modules import sources
+	meta = params.get('meta')
 	sources.Sources().alterSources(url, meta)
 
 elif action == 'trailer':
@@ -732,16 +741,15 @@ elif action == 'cacheTorrent':
 	caller = params.get('caller')
 	pack = True if type == 'pack' else False
 	if caller == 'RD':
-		from resources.lib.modules.realdebrid import RealDebrid as debrid_function
+		from resources.lib.debrid.realdebrid import RealDebrid as debrid_function
 	elif caller == 'PM':
-		from resources.lib.modules.premiumize import Premiumize as debrid_function
+		from resources.lib.debrid.premiumize import Premiumize as debrid_function
 	elif caller == 'AD':
-		from resources.lib.modules.alldebrid import AllDebrid as debrid_function
+		from resources.lib.debrid.alldebrid import AllDebrid as debrid_function
 	debrid_function().add_uncached_torrent(url, pack=pack)
 
 elif action == 'random':
 	rtype = params.get('rtype')
-
 	if rtype == 'movie':
 		from resources.lib.menus import movies
 		rlist = movies.Movies().get(url, idx=False)
@@ -769,29 +777,19 @@ elif action == 'random':
 		rand = randint(1,len(rlist))-1
 		for p in ['title', 'year', 'imdb', 'tvdb', 'season', 'episode', 'tvshowtitle', 'premiered', 'select']:
 			if rtype == "show" and p == "tvshowtitle":
-				try:
-					r += '&'+p+'='+quote_plus(rlist[rand]['title'])
-				except:
-					pass
+				try: r += '&'+p+'='+quote_plus(rlist[rand]['title'])
+				except: pass
 			else:
-				try:
-					r += '&'+p+'='+quote_plus(rlist[rand][p])
-				except:
-					pass
-		try:
-			r += '&meta='+quote_plus(json.dumps(rlist[rand]))
-		except:
-			r += '&meta='+quote_plus("{}")
+				try: r += '&'+p+'='+quote_plus(rlist[rand][p])
+				except: pass
+		try: r += '&meta='+quote_plus(json.dumps(rlist[rand]))
+		except: r += '&meta='+quote_plus("{}")
 		if rtype == "movie":
-			try:
-				control.notification(title=32536, message=rlist[rand]['title'], icon='default', sound=(control.setting('notification.sound') == 'true'))
-			except:
-				pass
+			try: control.notification(title=32536, message=rlist[rand]['title'], icon='default', sound=(control.setting('notification.sound') == 'true'))
+			except: pass
 		elif rtype == "episode":
-			try:
-				control.notification(title=32536, message=rlist[rand]['tvshowtitle']+" - Season "+rlist[rand]['season']+" - "+rlist[rand]['title'], icon='default', sound=(control.setting('notification.sound') == 'true'))
-			except:
-				pass
+			try: control.notification(title=32536, message=rlist[rand]['tvshowtitle']+" - Season "+rlist[rand]['season']+" - "+rlist[rand]['title'], icon='default', sound=(control.setting('notification.sound') == 'true'))
+			except: pass
 		control.execute('RunPlugin(%s)' % r)
 	except:
 		control.notification(title='default', message=32537, icon='default', sound=(control.setting('notification.sound') == 'true'))
@@ -804,6 +802,7 @@ if action and action.startswith('playlist_'):
 	if action == 'playlist_Manager':
 		from resources.lib.modules import playlist
 		art = params.get('art')
+		meta = params.get('meta')
 		playlist.playlistManager(name, url, meta, art)
 
 	elif action == 'playlist_Show':
@@ -825,18 +824,18 @@ if action and action.startswith('playlist_'):
 ####################################################
 #---Playcount
 ####################################################
-# if action and action.startswith('playcount_'):
-if action == 'moviePlaycount':
-	from resources.lib.modules import playcount
-	playcount.movies(name, imdb, query)
+if action and action.startswith('playcount_'):
+	if action == 'playcount_Movie':
+		from resources.lib.modules import playcount
+		playcount.movies(name, imdb, query)
 
-elif action == 'episodePlaycount':
-	from resources.lib.modules import playcount
-	playcount.episodes(name, imdb, tvdb, season, episode, query)
+	elif action == 'playcount_Episode':
+		from resources.lib.modules import playcount
+		playcount.episodes(name, imdb, tvdb, season, episode, query)
 
-elif action == 'tvPlaycount':
-	from resources.lib.modules import playcount
-	playcount.tvshows(name, imdb, tvdb, season, query)
+	elif action == 'playcount_TVShow':
+		from resources.lib.modules import playcount
+		playcount.tvshows(name, imdb, tvdb, season, query)
 
 
 ####################################################
@@ -909,32 +908,22 @@ if action and action.startswith('cache_'):
 	elif action == 'cache_clearAll':
 		from resources.lib.menus import navigator
 		navigator.Navigator().clearCacheAll()
-		if params.get('opensettings') == 'true':
-			control.openSettings(query, 'plugin.video.venom')
 
 	elif action == 'cache_clearSources':
 		from resources.lib.menus import navigator
 		navigator.Navigator().clearCacheProviders()
-		if params.get('opensettings') == 'true':
-			control.openSettings(query, 'plugin.video.venom')
 
 	elif action == 'cache_clearMeta':
 		from resources.lib.menus import navigator
 		navigator.Navigator().clearCacheMeta()
-		if params.get('opensettings') == 'true':
-			control.openSettings(query, 'plugin.video.venom')
 
 	elif action == 'cache_clearCache':
 		from resources.lib.menus import navigator
 		navigator.Navigator().clearCache()
-		if params.get('opensettings') == 'true':
-			control.openSettings(query, 'plugin.video.venom')
 
 	elif action == 'cache_clearSearch':
 		from resources.lib.menus import navigator
 		navigator.Navigator().clearCacheSearch() 
-		if params.get('opensettings') == 'true':
-			control.openSettings(query, 'plugin.video.venom')
 
 	elif action == 'cache_clearSearchPhrase':
 		from resources.lib.menus import navigator
@@ -943,19 +932,11 @@ if action and action.startswith('cache_'):
 	elif action == 'cache_clearBookmarks':
 		from resources.lib.menus import navigator
 		navigator.Navigator().clearBookmarks()
-		if params.get('opensettings') == 'true':
-			control.openSettings(query, 'plugin.video.venom')
 
 	elif action == 'cache_clearBookmark':
 		from resources.lib.menus import navigator
 		navigator.Navigator().clearBookmark(name, year)
-		if params.get('opensettings') == 'true':
-			control.openSettings(query, 'plugin.video.venom')
 
 	elif action == 'cache_clearKodiBookmark': # context.venom action call only
 		from resources.lib.modules import cache
 		cache.clear_local_bookmark(url)
-
-	elif action == 'cache_clearResolveURLcache':
-		if control.condVisibility('System.HasAddon(script.module.resolveurl)'):
-			control.execute('RunPlugin(plugin://script.module.resolveurl/?mode=reset_cache)')

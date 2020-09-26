@@ -356,7 +356,7 @@ msgid "File Size limit (GB)"
 msgstr ""
 
 msgctxt "#32081"
-msgid ""
+msgid "Enable"
 msgstr ""
 
 msgctxt "#32082"
@@ -364,7 +364,7 @@ msgid ""
 msgstr ""
 
 msgctxt "#32083"
-msgid "Clean Settings file: [B]VENOM[/B] and [B]OpenScrapers[/B]"
+msgid "Clean Settings file: [B]VENOM[/B] and [B]FENOMSCRAPERS[/B]"
 msgstr ""
 
 msgctxt "#32084"
@@ -395,7 +395,45 @@ msgctxt "#32090"
 msgid ""
 msgstr ""
 
+msgctxt "#32091"
+msgid ""
+msgstr ""
 
+msgctxt "#32092"
+msgid ""
+msgstr ""
+
+msgctxt "#32093"
+msgid ""
+msgstr ""
+
+msgctxt "#32094"
+msgid ""
+msgstr ""
+
+msgctxt "#32095"
+msgid "Resume Point source:"
+msgstr ""
+
+msgctxt "#32096"
+msgid "Trakt scrobbles"
+msgstr ""
+
+msgctxt "#32097"
+msgid "Enable scrobbling"
+msgstr ""
+
+msgctxt "#32098"
+msgid "NOTE: Do Not enable this if you scrobble through the Trakt add-on.[CR]Also note that only scrobble on Stop currently works."
+msgstr ""
+
+msgctxt "#32099"
+msgid "Show notification on scrobble"
+msgstr ""
+
+msgctxt "#32100"
+msgid ""
+msgstr ""
 
 
 
@@ -814,7 +852,7 @@ msgid "[B]Download[/B]"
 msgstr ""
 
 msgctxt "#32404"
-msgid "Time elapsed: %s seconds"
+msgid "[COLOR cyan]Time elapsed:[/COLOR]  %s seconds"
 msgstr ""
 
 msgctxt "#32405"
@@ -1526,11 +1564,11 @@ msgid "Preparing sources"
 msgstr ""
 
 msgctxt "#32601"
-msgid "Total"
+msgid "[COLOR cyan]Total[/COLOR]"
 msgstr ""
 
 msgctxt "#32602"
-msgid "Waiting for"
+msgid ""
 msgstr ""
 
 msgctxt "#32603"
@@ -1546,11 +1584,11 @@ msgid "Click to clear search history"
 msgstr ""
 
 msgctxt "#32606"
-msgid "[COLOR %s]Paid[/COLOR]"
+msgid ""
 msgstr ""
 
 msgctxt "#32607"
-msgid "[COLOR %s]Free[/COLOR]"
+msgid ""
 msgstr ""
 
 msgctxt "#32608"
@@ -1558,7 +1596,7 @@ msgid "Unaired Season/Episode Color"
 msgstr ""
 
 msgctxt "#32609"
-msgid "[B][COLOR red]ResolveURL[/COLOR][/B] Settings"
+msgid "[B][COLOR red]My Accounts[/COLOR][/B] Settings"
 msgstr ""
 
 msgctxt "#32610"
@@ -1718,7 +1756,7 @@ msgid "Powered by..."
 msgstr ""
 
 msgctxt "#32651"
-msgid "[B][COLOR red]Open Scrapers[/COLOR][/B] Settings"
+msgid "[B][COLOR red]Fenom Scrapers[/COLOR][/B] Settings"
 msgstr ""
 
 msgctxt "#32652"
@@ -1842,15 +1880,15 @@ msgid "Importing TMDb Userlist..."
 msgstr ""
 
 msgctxt "#32682"
-msgid ""
+msgid "IMDb Watchlist"
 msgstr ""
 
 msgctxt "#32683"
-msgid ""
+msgid "Trakt Watchlist"
 msgstr ""
 
 msgctxt "#32684"
-msgid ""
+msgid "Store resolved items in cloud"
 msgstr ""
 
 msgctxt "#32685"
@@ -2705,8 +2743,6 @@ msgstr ""
 
 
 
-
-
 msgctxt "#35308"
 msgid "Finish Watching"
 msgstr ""
@@ -3118,7 +3154,7 @@ msgid "Calendar Sorting"
 msgstr ""
 
 msgctxt "#35574"
-msgid ""
+msgid "Watchlist Sorting"
 msgstr ""
 
 msgctxt "#35575"
@@ -3254,11 +3290,11 @@ msgid ""
 msgstr ""
 
 msgctxt "#40005"
-msgid ""
+msgid "Priority"
 msgstr ""
 
 msgctxt "#40006"
-msgid ""
+msgid "username"
 msgstr ""
 
 msgctxt "#40007"

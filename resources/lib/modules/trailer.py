@@ -35,11 +35,9 @@ class Trailer:
 	def play(self, type='', name='', year='', url='', imdb='', windowedtrailer=0):
 		try:
 			url = self.worker(type, name, year, url, imdb)
-			if not url:
-				return
+			if not url: return
 			title = control.infoLabel('ListItem.Title')
-			if not title:
-				title = control.infoLabel('ListItem.Label')
+			if not title: title = control.infoLabel('ListItem.Label')
 			icon = control.infoLabel('ListItem.Icon')
 			item = control.item(label=title, iconImage=icon, thumbnailImage=icon, path=url)
 			item.setInfo(type="video", infoLabels={'title': title})
@@ -91,8 +89,7 @@ class Trailer:
 				items = [i.get('id', {}).get('videoId') for i in items]
 			for vid_id in items:
 				url = self.resolve(vid_id)
-				if url:
-					return url
+				if url: return url
 		except:
 			log_utils.error()
 			return
@@ -102,10 +99,8 @@ class Trailer:
 		from resources.lib.modules import trakt
 		#check if this needs .replace(' ', '-') between title spaces
 		id = (name.lower() + '-' + year) if imdb == '0' else imdb
-		if type == 'movie':
-			item = trakt.getMovieSummary(id)
-		else:
-			item = trakt.getTVShowSummary(id)
+		if type == 'movie': item = trakt.getMovieSummary(id)
+		else: item = trakt.getTVShowSummary(id)
 		try:
 			trailer_id = item.get('trailer').split('v=')
 			trailer_id = [trailer_id[1]]
@@ -121,10 +116,8 @@ class Trailer:
 			message = client.parseDOM(result, 'div', attrs={'id': 'unavailable-submessage'})
 			message = ''.join(message)
 			alert = client.parseDOM(result, 'div', attrs={'id': 'watch7-notification-area'})
-			if len(alert) > 0:
-				raise Exception()
-			if re.search('[a-zA-Z]', message):
-				raise Exception()
+			if len(alert) > 0: raise Exception()
+			if re.search('[a-zA-Z]', message): raise Exception()
 			url = 'plugin://plugin.video.youtube/play/?video_id=%s' % id
 			return url
 		except:

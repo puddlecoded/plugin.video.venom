@@ -1240,10 +1240,9 @@ class resolver:
 			pass
 
 		try:
+# resolveURL dependency has been removed
 			import resolveurl
-
 			hmf = resolveurl.HostedMediaFile(url=url)
-
 			if hmf.valid_url() is False: raise Exception()
 
 			direct = False ; u = hmf.resolve()

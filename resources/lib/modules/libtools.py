@@ -45,10 +45,8 @@ class lib_tools:
 				from ftplib import FTP
 				ftparg = re.compile('ftp://(.+?):(.+?)@(.+?):?(\d+)?/(.+/?)').findall(folder)
 				ftp = FTP(ftparg[0][2], ftparg[0][0], ftparg[0][1])
-				try:
-					ftp.cwd(ftparg[0][4])
-				except:
-					ftp.mkd(ftparg[0][4])
+				try: ftp.cwd(ftparg[0][4])
+				except: ftp.mkd(ftparg[0][4])
 				ftp.quit()
 			except:
 				log_utils.error()
@@ -225,7 +223,7 @@ class lib_tools:
 			except: return
 
 		try:
-			control.window.setProperty(self.property, last_service)
+			control.homeWindow.setProperty(self.property, last_service)
 		except:
 			log_utils.error()
 			return
@@ -235,7 +233,7 @@ class lib_tools:
 				if control.monitor.waitForAbort(60*15):
 					break
 
-				last_service = control.window.getProperty(self.property)
+				last_service = control.homeWindow.getProperty(self.property)
 				t1 = datetime.timedelta(hours=6)
 				t2 = control.datetime_workaround(str(last_service), '%Y-%m-%d %H:%M:%S.%f', False)
 				t3 = datetime.datetime.now()
@@ -247,7 +245,7 @@ class lib_tools:
 					continue
 
 				last_service = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-				control.window.setProperty(self.property, last_service)
+				control.homeWindow.setProperty(self.property, last_service)
 
 				try:
 					dbcon = database.connect(control.libcacheFile)
@@ -353,6 +351,7 @@ class libmovies:
 					files_added = self.add('%s (%s)' % (i['title'], i['year']), i['title'], i['year'], i['imdb'], i['tmdb'], range=True)
 					if general_notification and files_added > 0:
 						control.notification(title = '%s (%s)' % (i['title'], i['year']), message=32554, icon='default', time=1000, sound=(control.setting('notification.sound') == 'true'))
+					if files_added > 0:
 						total_added += 1
 				except:
 					log_utils.error()
@@ -436,6 +435,7 @@ class libmovies:
 				files_added = self.add('%s (%s)' % (i['title'], i['year']), i['title'], i['year'], i['imdb'], i['tmdb'], range=True)
 				if general_notification and files_added > 0:
 					control.notification(title='%s (%s)' % (i['title'], i['year']), message=32554, icon='default', time=1000, sound=(control.setting('notification.sound') == 'true'))
+				if files_added > 0:
 					total_added += 1
 			except:
 				log_utils.error()
@@ -454,9 +454,7 @@ class libmovies:
 
 	def range(self, url, list_name):
 		control.hide()
-		if not control.yesnoDialog(control.lang(32555), '', ''):
-			return
-
+		if not control.yesnoDialog(control.lang(32555), '', ''): return
 		try:
 			if 'traktcollection' in url:
 				message = 32661
@@ -523,6 +521,7 @@ class libmovies:
 				files_added = self.add('%s (%s)' % (i['title'], i['year']), i['title'], i['year'], i['imdb'], i['tmdb'], range=True)
 				if general_notification and files_added > 0:
 					control.notification(title='%s (%s)' % (i['title'], i['year']), message=32554, icon='default', time=1000, sound=(control.setting('notification.sound') == 'true'))
+				if files_added > 0:
 					total_added += 1
 			except:
 				log_utils.error()
@@ -646,7 +645,7 @@ class libtvshows:
 				log_utils.error()
 				pass
 
-			if items is None or items == []:
+			if not items:
 				continue
 
 			if service_notification and not control.condVisibility('Window.IsVisible(infodialog)') and not control.condVisibility('Player.HasVideo'):
@@ -660,6 +659,7 @@ class libtvshows:
 					files_added = self.add(i['title'], i['year'], i['imdb'], i['tmdb'], i['tvdb'], range=True)
 					if general_notification and files_added > 0:
 						control.notification(title=i['title'], message=32554, icon='default', time=1000, sound=(control.setting('notification.sound') == 'true'))
+					if files_added > 0:
 						total_added += 1
 				except:
 					log_utils.error()
@@ -691,13 +691,9 @@ class libtvshows:
 
 			status = items[0]['status'].lower()
 
-			try:
-				items = [{'title': i['title'], 'year': i['year'], 'imdb': i['imdb'], 'tmdb': i['tmdb'], 'tvdb': i['tvdb'], 'season': i['season'], 'episode': i['episode'], 'tvshowtitle': i['tvshowtitle'], 'premiered': i['premiered']} for i in items]
-			except:
-				items = []
-
-			if items == []:
-				return
+			try: items = [{'title': i['title'], 'year': i['year'], 'imdb': i['imdb'], 'tmdb': i['tmdb'], 'tvdb': i['tvdb'], 'season': i['season'], 'episode': i['episode'], 'tvshowtitle': i['tvshowtitle'], 'premiered': i['premiered']} for i in items]
+			except: items = []
+			if items == []: return
 
 			try:
 				if self.dupe_chk != 'true':
@@ -789,6 +785,7 @@ class libtvshows:
 				files_added = self.add(i['title'], i['year'], i['imdb'], i['tmdb'], i['tvdb'], range=True)
 				if general_notification and files_added > 0:
 					control.notification(title=i['title'], message=32554, icon='default', time=1000, sound=(control.setting('notification.sound') == 'true'))
+				if files_added > 0:
 					total_added += 1
 			except:
 				log_utils.error()
@@ -875,6 +872,7 @@ class libtvshows:
 				files_added = self.add(i['title'], i['year'], i['imdb'], i['tmdb'], i['tvdb'], range=True)
 				if general_notification and files_added > 0:
 					control.notification(title=i['title'], message=32554, icon='default', time=1000, sound=(control.setting('notification.sound') == 'true'))
+				if files_added > 0:
 					total_added += 1
 			except:
 				log_utils.error()
@@ -959,10 +957,8 @@ class libepisodes:
 				return
 
 			for s in show:
-				try:
-					season += [control.joinPath(s, i) for i in control.listDir(s)[0]]
-				except:
-					pass
+				try: season += [control.joinPath(s, i) for i in control.listDir(s)[0]]
+				except: pass
 
 			for s in season:
 				try: episode.append([control.joinPath(s, i) for i in control.listDir(s)[1] if i.endswith('.strm')][-1])
@@ -1048,24 +1044,20 @@ class libepisodes:
 		for item in items:
 			it = None
 			if control.monitor.abortRequested():
-				try:
-					dbcon.close()
-				except:
-					pass
+				try: dbcon.close()
+				except: pass
 				return sys.exit()
 
 			try:
 				dbcur.execute("SELECT * FROM tvshows WHERE id = '%s'" % item['tvdb'])
 				fetch = dbcur.fetchone()
-				if fetch:
-					it = eval(fetch[1].encode('utf-8'))
+				if fetch: it = eval(fetch[1].encode('utf-8'))
 			except:
 				log_utils.error()
 				pass
 
 			try:
-				if it:
-					raise Exception()
+				if it: raise Exception()
 				# it = episodes.Episodes().get(item['tvshowtitle'], item['year'], item['imdb'], item['tmdb'], item['tvdb'], idx=False)
 				it = seasons.Seasons().tvdb_list(item['tvshowtitle'], item['year'], item['imdb'], item['tmdb'], item['tvdb'], control.apiLanguage()['tvdb'], '-1') # fetch new meta (uncached)
 				# log_utils.log('it = %s' % it, log_utils.LOGDEBUG)
@@ -1109,7 +1101,6 @@ class libepisodes:
 						continue
 
 					premiered = i.get('premiered', '0')
-
 					# Show Unaired items.
 					if premiered == '0' and self.include_unknown == 'false':
 						continue

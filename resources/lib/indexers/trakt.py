@@ -22,7 +22,7 @@ from resources.lib.modules import trakt
 from resources.lib.modules import workers
 
 self.trakt_link = 'https://api.trakt.tv'
-self.trakt_user = control.setting('trakt.user').strip()
+# self.trakt_user = control.setting('trakt.user').strip()
 self.lang = control.apiLanguage()['trakt']
 
 self.traktlist_link = 'https://api.trakt.tv/users/%s/lists/%s/items'

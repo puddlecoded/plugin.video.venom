@@ -111,7 +111,7 @@ def getResponse(url, headers, size):
 def done(title, dest, downloaded):
 	try:
 		playing = control.player.isPlaying()
-		text = control.window.getProperty('GEN-DOWNLOADED')
+		text = control.homeWindow.getProperty('GEN-DOWNLOADED')
 
 		if len(text) > 0:
 			text += '[CR]'
@@ -119,11 +119,11 @@ def done(title, dest, downloaded):
 			text += '%s : %s' % (dest.rsplit(os.sep)[-1], '[COLOR forestgreen]Download succeeded[/COLOR]')
 		else:
 			text += '%s : %s' % (dest.rsplit(os.sep)[-1], '[COLOR red]Download failed[/COLOR]')
-		control.window.setProperty('GEN-DOWNLOADED', text)
+		control.homeWindow.setProperty('GEN-DOWNLOADED', text)
 
 		if (not downloaded) or (not playing): 
 			control.okDialog(title, text)
-			control.window.clearProperty('GEN-DOWNLOADED')
+			control.homeWindow.clearProperty('GEN-DOWNLOADED')
 	except:
 		log_utils.error()
 		pass

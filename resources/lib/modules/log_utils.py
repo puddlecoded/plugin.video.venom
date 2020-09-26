@@ -25,7 +25,7 @@ addonName = "Venom"
 
 
 def log(msg, caller=None, level=LOGNOTICE):
-	debug_enabled = control.setting('addon_debug') == 'true'
+	debug_enabled = control.setting('debug.enabled') == 'true'
 	debug_log = control.setting('debug.location')
 
 	print(DEBUGPREFIX + ' Debug Enabled?: ' + str(debug_enabled))

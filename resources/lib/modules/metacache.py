@@ -26,10 +26,8 @@ def fetch(items, lang='en', user=''):
 		dbcur.connection.commit()
 	except:
 		log_utils.error()
-		try:
-			dbcon.close()
-		except:
-			pass
+		try: dbcon.close()
+		except: pass
 		return items
 
 	for i in range(0, len(items)):
@@ -51,26 +49,20 @@ def fetch(items, lang='en', user=''):
 						dbcur.execute("SELECT * FROM meta WHERE (imdb = '%s' and lang = '%s' and user = '%s' and not imdb = '0') OR (tmdb = '%s' and lang = '%s' and user = '%s' and not tmdb = '0') OR (tvdb = '%s' and lang = '%s' and user = '%s' and not tvdb = '0')" % (items[i].get('imdb', '0'), lang, user, items[i].get('tmdb', '0'), lang, user, items[i].get('tvdb', '0'), lang, user))
 						match = dbcur.fetchone()
 						t1 = int(match[6])
-					except:
-						pass
+					except: pass
 
 			if match:
 				update = (abs(t2 - t1) / 3600) >= 720
-				if update:
-					continue
-
+				if update: continue
 				item = eval(match[5].encode('utf-8'))
 				item = dict((k, v) for k, v in item.iteritems() if v != '0')
-
 				items[i].update(item)
 				items[i].update({'metacache': True})
 		except:
 			log_utils.error()
 			pass
-	try:
-		dbcon.close()
-	except:
-		pass
+	try: dbcon.close()
+	except: pass
 	return items
 
 
@@ -83,23 +75,17 @@ def insert(meta):
 		dbcur.execute("CREATE TABLE IF NOT EXISTS meta (""imdb TEXT, ""tmdb TEXT, ""tvdb TEXT, ""lang TEXT, ""user TEXT, ""item TEXT, ""time TEXT, ""UNIQUE(imdb, tmdb, tvdb, lang, user)"");")
 		t = int(time.time())
 		for m in meta:
-			if "user" not in m:
-				m["user"] = ''
-			if "lang" not in m:
-				m["lang"] = 'en'
+			if "user" not in m: m["user"] = ''
+			if "lang" not in m: m["lang"] = 'en'
 			i = repr(m['item'])
-			try:
-				dbcur.execute("INSERT OR REPLACE INTO meta Values (?, ?, ?, ?, ?, ?, ?)", (m.get('imdb', '0'), m.get('tmdb', '0'), m.get('tvdb', '0'), m['lang'], m['user'], i, t))
-			except:
-				pass
+			try: dbcur.execute("INSERT OR REPLACE INTO meta Values (?, ?, ?, ?, ?, ?, ?)", (m.get('imdb', '0'), m.get('tmdb', '0'), m.get('tvdb', '0'), m['lang'], m['user'], i, t))
+			except: pass
 		dbcur.connection.commit()
 	except:
 		log_utils.error()
 		pass
-	try:
-		dbcon.close()
-	except:
-		pass
+	try: dbcon.close()
+	except: pass
 	return
 
 

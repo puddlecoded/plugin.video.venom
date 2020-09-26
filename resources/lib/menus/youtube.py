@@ -66,10 +66,8 @@ class yt_index:  # initializes as musicvids, functions can override based on act
 	def get(self, action, subid):
 		try:
 			self.init_vars(action)
-
 			thisMenuFile = self.submenu % (subid)
 			menuItems = youtube_menu.youtube_menu().processMenuFile(thisMenuFile)
-
 			for name, section, searchid, subid, playlistid, channelid, videoid, iconimage, fanart, description in menuItems:
 				if subid != 'false': # Means this item points to a submenu
 					youtube_menu.youtube_menu().addMenuItem(name, self.action, subid, iconimage, fanart, description, True)

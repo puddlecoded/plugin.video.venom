@@ -11,7 +11,8 @@ from resources.lib.modules import control
 from resources.lib.modules import log_utils
 from resources.lib.modules import trakt
 
-window = control.window
+window = control.homeWindow
+
 
 class CheckSettingsFile():
 	def run(self):
@@ -45,6 +46,13 @@ class SettingsMonitor(xbmc.Monitor):
 		window.clearProperty('venom_settings')
 		xbmc.sleep(50)
 		refreshed = control.make_settings_dict()
+
+
+class SyncMyAccounts:
+	def run(self):
+		xbmc.log('[ plugin.video.venom ] SyncMyAccounts Service Starting...', 2)
+		control.syncMyAccounts(silent=True)
+		return xbmc.log('[ plugin.video.venom ] Finished SyncMyAccounts Service', 2)
 
 
 class ReuseLanguageInvokerCheck:
@@ -85,14 +93,13 @@ class ReuseLanguageInvokerCheck:
 
 class AddonCheckUpdate:
 	def run(self):
+		log_utils.log('Venom checking available updates', log_utils.LOGNOTICE)
 		try:
-			if control.setting('general.checkAddonUpdates') == 'false':
-				return
 			import re
 			import requests
 			repo_xml = requests.get('https://raw.githubusercontent.com/123Venom/zips/master/addons.xml')
 			if not repo_xml.status_code == 200:
-				log_utils.log('Could not connect to repo XML, status: %s' % repo_xml.status_code, log_utils.LOGNOTICE)
+				log_utils.log('Could not connect to Venom repo XML, status: %s' % repo_xml.status_code, log_utils.LOGNOTICE)
 				return
 			repo_version = re.findall(r'<addon id=\"plugin.video.venom\".+version=\"(\d*.\d*.\d*)\"', repo_xml.text)[0]
 			local_version = control.getVenomVersion()
@@ -122,6 +129,7 @@ class SyncTraktWatched:
 xbmc.log('[ plugin.video.venom ] service started', xbmc.LOGNOTICE)
 CheckSettingsFile().run()
 ReuseLanguageInvokerCheck().run()
+SyncMyAccounts().run()
 
 try:
 	AddonVersion = control.addon('plugin.video.venom').getAddonInfo('version')

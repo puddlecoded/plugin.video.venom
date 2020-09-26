@@ -225,12 +225,7 @@ class tvshows:
 		self.tvmaze_link = 'https://www.tvmaze.com'
 		self.tvmaze_info_link = 'https://api.tvmaze.com/shows/%s?embed=cast'
 
-		tvdb_key_list = [
-			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
-			'MUQ2MkYyRjkwMDMwQzQ0NA==',
-			'N1I4U1paWDkwVUE5WU1CVQ==']
-		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
-
+		self.tvdb_key = control.setting('tvdb.api.key')
 		self.imdb_user = control.setting('imdb.user').replace('ur', '')
 		self.user = str(self.imdb_user) + str(self.tvdb_key)
 
@@ -259,8 +254,7 @@ class tvshows:
 
 				last = []
 				last = client.parseDOM(result, 'li', attrs = {'class': 'last disabled'})
-				if last != []:
-					next = ''
+				if last != []: next = ''
 
 			items = [client.parseDOM(i, 'a', ret='href') for i in items]
 			items = [i[0] for i in items if len(i) > 0]
@@ -282,26 +276,21 @@ class tvshows:
 
 				content = item.get('type', '0').lower()
 
-				try:
-					title = (item.get('name')).encode('utf-8')
-				except:
-					title = item.get('name')
+				try: title = (item.get('name')).encode('utf-8')
+				except: title = item.get('name')
 
 				premiered = item.get('premiered', '0')
 
 				year = str(item.get('premiered', '0'))
 				if year is not None and year != 'None' and year != '0':
 					year = re.search(r"(\d{4})", year).group(1)
-				else:
-					year = '0'
+				else: year = '0'
 
 				imdb = item.get('externals').get('imdb', '0')
-				if imdb == '' or imdb is None or imdb == 'None':
-					imdb = '0'
+				if not imdb or imdb == 'None': imdb = '0'
 
 				tvdb = str(item.get('externals').get('thetvdb', '0'))
-				if tvdb == '' or tvdb is None or tvdb == 'None':
-					tvdb = '0'
+				if not tvdb or tvdb == 'None': tvdb = '0'
 
 				# TVMaze does not have tmdb_id in api
 				tmdb = '0'
@@ -319,8 +308,7 @@ class tvshows:
 				rating = str(item.get('rating').get('average', '0'))
 
 				plot = item.get('summary', '0')
-				if plot:
-					plot = re.sub('<.+?>|</.+?>|\n', '', plot)
+				if plot: plot = re.sub('<.+?>|</.+?>|\n', '', plot)
 
 				status = item.get('status', '0')
 
@@ -410,14 +398,12 @@ class tvshows:
 						pass
 #################################
 
-				if tvdb == '0':
-					raise Exception()
+				if tvdb == '0': raise Exception()
 
 				try:
 					url = self.tvdb_info_link % (tvdb, self.lang)
 					item3 = requests.get(url).content
-				except:
-					item3 = None
+				except: item3 = None
 
 				if item3:
 					if poster == '0':
@@ -485,7 +471,6 @@ class tvshows:
 							landscape = item.get('fanart3', '0')
 							item.update({'landscape': landscape})
 						meta.update(item)
-
 
 				item = dict((k,v) for k,v in item.iteritems() if v != '0')
 				self.list.append(item)

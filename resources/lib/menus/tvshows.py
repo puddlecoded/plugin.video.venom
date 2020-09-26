@@ -33,7 +33,7 @@ from resources.lib.indexers import tvdb_v1
 
 
 class TVshows:
-	def __init__(self, type = 'show', notifications = True):
+	def __init__(self, type='show', notifications=True):
 		self.count = int(control.setting('page.item.limit'))
 		self.list = []
 		self.meta = []
@@ -45,11 +45,7 @@ class TVshows:
 		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
 		self.today_date = (self.datetime).strftime('%Y-%m-%d')
 
-		tvdb_key_list = [
-			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
-			'MUQ2MkYyRjkwMDMwQzQ0NA==',
-			'N1I4U1paWDkwVUE5WU1CVQ==']
-		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
+		self.tvdb_key = control.setting('tvdb.api.key')
 
 		self.imdb_user = control.setting('imdb.user').replace('ur', '')
 		self.user = str(self.imdb_user) + str(self.tvdb_key)
@@ -74,7 +70,8 @@ class TVshows:
 		self.language_link = 'https://www.imdb.com/search/title?title_type=tv_series,mini_series&num_votes=100,&production_status=released&primary_language=%s&sort=moviemeter,asc&count=%d&start=1' % ('%s', self.count)
 		self.certification_link = 'https://www.imdb.com/search/title?title_type=tv_series,mini_series&release_date=,date[0]&certificates=%s&sort=moviemeter,asc&count=%d&start=1' % ('%s', self.count)
 
-		self.imdbwatchlist_link = 'https://www.imdb.com/user/ur%s/watchlist?sort=%s' % (self.imdb_user, self.imdb_sort())
+		self.imdbwatchlist_link = 'https://www.imdb.com/user/ur%s/watchlist?sort=date_added,desc' % self.imdb_user # only used to get users watchlist ID
+		self.imdbwatchlist2_link = 'https://www.imdb.com/list/%s/?view=detail&sort=%s&title_type=tvSeries,tvMiniSeries&start=1' % ('%s', self.imdb_sort(type='shows.watchlist'))
 		self.imdblists_link = 'https://www.imdb.com/user/ur%s/lists?tab=all&sort=mdfd&order=desc&filter=titles' % self.imdb_user
 		self.imdblist_link = 'https://www.imdb.com/list/%s/?view=detail&sort=%s&title_type=tvSeries,tvMiniSeries&start=1' % ('%s', self.imdb_sort())
 		self.imdbratings_link = 'https://www.imdb.com/user/ur%s/ratings?sort=your_rating,desc&mode=detail&start=1' % self.imdb_user # IMDb ratings does not take title_type so filter in imdb_list() function
@@ -97,7 +94,7 @@ class TVshows:
 
 		self.tvmaze_link = 'https://www.tvmaze.com'
 
-		self.tmdb_key = control.setting('tm.user')
+		self.tmdb_key = control.setting('tmdb.api.key')
 		if self.tmdb_key == '' or self.tmdb_key is None:
 			self.tmdb_key = '3320855e65a9758297fec4f7c9717698'
 
@@ -141,32 +138,29 @@ class TVshows:
 					self.list = cache.get(self.trakt_list, 720, url, self.trakt_user)
 				except:
 					self.list = cache.get(self.trakt_list, 0, url, self.trakt_user)
-				self.sort()
-				if idx:
-					self.worker()
+
+				if url == self.traktwatchlist_link:
+					self.sort(type='shows.watchlist')
+				else: self.sort()
+				if idx: self.worker()
 
 			elif u in self.trakt_link and self.search_link in url:
 				self.list = cache.get(self.trakt_list, 1, url, self.trakt_user)
-				if idx:
-					self.worker(level = 0)
+				if idx: self.worker(level=0)
 
 			elif u in self.trakt_link:
 				self.list = cache.get(self.trakt_list, 24, url, self.trakt_user)
-				if idx:
-					self.worker()
+				if idx: self.worker()
 
 			elif u in self.imdb_link and ('/user/' in url or '/list/' in url):
 				isRatinglink=True if self.imdbratings_link in url else False
 				self.list = cache.get(self.imdb_list, 0, url, isRatinglink)
-				if idx:
-					self.worker()
-# I switched this to request sorting
-				# self.sort()
+				if idx: self.worker()
+				# self.sort() # I switched this to request sorting for imdb
 
 			elif u in self.imdb_link:
 				self.list = cache.get(self.imdb_list, 168, url)
-				if idx:
-					self.worker()
+				if idx: self.worker()
 
 			if self.list is None:
 				self.list = []
@@ -238,41 +232,36 @@ class TVshows:
 					control.notification(title=32002, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
 
 
-	def sort(self):
+	def sort(self, type='shows'):
 		try:
-			if self.list is None or self.list == []:
-				return
-			attribute = int(control.setting('sort.shows.type'))
-			reverse = int(control.setting('sort.shows.order')) == 1
-			if attribute == 0:
-				reverse = False
+			if not self.list: return
+			attribute = int(control.setting('sort.%s.type' % type))
+			reverse = int(control.setting('sort.%s.order' % type)) == 1
+			if attribute == 0: reverse = False
 			if attribute > 0:
 				if attribute == 1:
-					try:
-						self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['tvshowtitle'].lower()), reverse = reverse)
-					except:
-						self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['title'].lower()), reverse = reverse)
+					try: self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['tvshowtitle'].lower()), reverse=reverse)
+					except: self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['title'].lower()), reverse=reverse)
 				elif attribute == 2:
-					self.list = sorted(self.list, key = lambda k: float(k['rating']), reverse = reverse)
+					self.list = sorted(self.list, key=lambda k: float(k['rating']), reverse=reverse)
 				elif attribute == 3:
-					self.list = sorted(self.list, key = lambda k: int(k['votes'].replace(',', '')), reverse = reverse)
+					self.list = sorted(self.list, key=lambda k: int(k['votes'].replace(',', '')), reverse=reverse)
 				elif attribute == 4:
 					for i in range(len(self.list)):
 						if 'premiered' not in self.list[i]:
 							self.list[i]['premiered'] = ''
-							self.list = sorted(self.list, key = lambda k: k['year'], reverse = reverse)
-						else:
-							self.list = sorted(self.list, key = lambda k: k['premiered'], reverse = reverse)
+							self.list = sorted(self.list, key=lambda k: k['year'], reverse=reverse)
+						else: self.list = sorted(self.list, key=lambda k: k['premiered'], reverse=reverse)
 				elif attribute == 5:
 					for i in range(len(self.list)):
 						if 'added' not in self.list[i]:
 							self.list[i]['added'] = ''
-					self.list = sorted(self.list, key = lambda k: k['added'], reverse = reverse)
+					self.list = sorted(self.list, key=lambda k: k['added'], reverse=reverse)
 				elif attribute == 6:
 					for i in range(len(self.list)):
 						if 'lastplayed' not in self.list[i]:
 							self.list[i]['lastplayed'] = ''
-					self.list = sorted(self.list, key = lambda k: k['lastplayed'], reverse = reverse)
+					self.list = sorted(self.list, key=lambda k: k['lastplayed'], reverse=reverse)
 			elif reverse:
 				self.list = reversed(self.list)
 		except:
@@ -280,8 +269,8 @@ class TVshows:
 			pass
 
 
-	def imdb_sort(self):
-		sort = int(control.setting('sort.shows.type'))
+	def imdb_sort(self, type='shows'):
+		sort = int(control.setting('sort.%s.type' % type))
 		imdb_sort = 'list_order'
 		if sort == 1:
 			imdb_sort = 'alpha'
@@ -291,8 +280,7 @@ class TVshows:
 			imdb_sort = 'release_date'
 		if sort in [5, 6]:
 			imdb_sort = 'date_added'
-
-		imdb_sort_order = ',asc' if int(control.setting('sort.shows.order')) == 0 else ',desc'
+		imdb_sort_order = ',asc' if int(control.setting('sort.%s.order' % type)) == 0 else ',desc'
 		sort_string = imdb_sort + imdb_sort_order
 		return sort_string
 
@@ -769,7 +757,6 @@ class TVshows:
 		list = []
 		items = []
 		dupes = []
-
 		try:
 			for i in re.findall('date\[(\d+)\]', url):
 				url = url.replace('date[%s]' % i, (self.datetime - datetime.timedelta(days = int(i))).strftime('%Y-%m-%d'))
@@ -779,7 +766,7 @@ class TVshows:
 
 			if url == self.imdbwatchlist_link:
 				url = cache.get(imdb_watchlist_id, 8640, url)
-				url = self.imdblist_link % url
+				url = self.imdbwatchlist2_link % url
 
 			result = client.request(url)
 			result = result.replace('\n', ' ')
@@ -794,14 +781,11 @@ class TVshows:
 		try:
 			# HTML syntax error, " directly followed by attribute name. Insert space in between. parseDOM can otherwise not handle it.
 			result = result.replace('"class="lister-page-next', '" class="lister-page-next')
-
 			next = client.parseDOM(result, 'a', ret='href', attrs = {'class': 'lister-page-next.+?'})
-
 			if len(next) == 0:
 				next = client.parseDOM(result, 'div', attrs = {'class': 'pagination'})[0]
 				next = zip(client.parseDOM(next, 'a', ret='href'), client.parseDOM(next, 'a'))
 				next = [i[0] for i in next if 'Next' in i[1]]
-
 			next = url.replace(urlparse(url).query, urlparse(next[0]).query)
 			next = client.replaceHTMLCodes(next)
 			next = next.encode('utf-8')
@@ -812,7 +796,8 @@ class TVshows:
 			try:
 				title = client.parseDOM(item, 'a')[1]
 				title = client.replaceHTMLCodes(title)
-				title = title.encode('utf-8')
+				try: title = title.encode('utf-8')
+				except: pass
 
 				year = client.parseDOM(item, 'span', attrs = {'class': 'lister-item-year.+?'})
 				year += client.parseDOM(item, 'span', attrs = {'class': 'year_type'})
@@ -988,16 +973,12 @@ class TVshows:
 
 	def worker(self, level = 1):
 		try:
-			if not self.list:
-				return
+			if not self.list: return
 			self.meta = []
 			total = len(self.list)
-
 			for i in range(0, total): 
 				self.list[i].update({'metacache': False})
-
 			self.list = metacache.fetch(self.list, self.lang, self.user)
-
 			for r in range(0, total, 40):
 				threads = []
 				for i in range(r, r + 40):
@@ -1005,10 +986,8 @@ class TVshows:
 						threads.append(workers.Thread(self.super_info, i))
 				[i.start() for i in threads]
 				[i.join() for i in threads]
-
 			if self.meta:
 				metacache.insert(self.meta)
-
 			self.list = [i for i in self.list if i['tvdb'] != '0']
 		except:
 			log_utils.error()
@@ -1357,10 +1336,10 @@ class TVshows:
 					watched = overlay == 7
 					if watched:
 						meta.update({'playcount': 1, 'overlay': 7})
-						cm.append((unwatchedMenu, 'RunPlugin(%s?action=tvPlaycount&name=%s&imdb=%s&tvdb=%s&query=6)' % (sysaddon, systitle, imdb, tvdb)))
+						cm.append((unwatchedMenu, 'RunPlugin(%s?action=playcount_TVShow&name=%s&imdb=%s&tvdb=%s&query=6)' % (sysaddon, systitle, imdb, tvdb)))
 					else:
 						meta.update({'playcount': 0, 'overlay': 6})
-						cm.append((watchedMenu, 'RunPlugin(%s?action=tvPlaycount&name=%s&imdb=%s&tvdb=%s&query=7)' % (sysaddon, systitle, imdb, tvdb)))
+						cm.append((watchedMenu, 'RunPlugin(%s?action=playcount_TVShow&name=%s&imdb=%s&tvdb=%s&query=7)' % (sysaddon, systitle, imdb, tvdb)))
 				except:
 					pass
 

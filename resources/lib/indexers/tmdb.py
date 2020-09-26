@@ -15,7 +15,7 @@ from resources.lib.modules import metacache
 from resources.lib.modules import workers
 from resources.lib.modules import log_utils
 
-API_key = control.setting('tm.user')
+API_key = control.setting('tmdb.api.key')
 if API_key == '' or API_key is None:
 	API_key = '3320855e65a9758297fec4f7c9717698'
 
@@ -492,11 +492,7 @@ class TVshows:
 		self.tmdb_info_link = base_link + '/3/tv/%s?api_key=%s&language=%s&append_to_response=credits,content_ratings,external_ids' % ('%s', API_key, self.lang)
 ###                                                                                  other "append_to_response" options                                           alternative_titles,videos,images
 		self.tmdb_art_link = base_link + '/3/tv/%s/images?api_key=%s&include_image_language=en,%s,null' % ('%s', API_key, self.lang)
-		tvdb_key_list = [
-			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
-			'MUQ2MkYyRjkwMDMwQzQ0NA==',
-			'N1I4U1paWDkwVUE5WU1CVQ==']
-		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
+		self.tvdb_key = control.setting('tvdb.api.key')
 
 		self.imdb_user = control.setting('imdb.user').replace('ur', '')
 		self.user = str(self.imdb_user) + str(self.tvdb_key)
@@ -857,7 +853,7 @@ class Auth:
 		try:
 			if control.setting('tmdb.username') == '' or control.setting('tmdb.password') == '':
 				control.notification(title='default', message='TMDb Account info missing', icon='ERROR')
-				raise Exception()
+				return
 			url = self.auth_base_link + '/token/new?api_key=%s' % API_key
 			result = requests.get(url).json()
 			token = result.get('request_token').encode('utf-8')
@@ -871,10 +867,12 @@ class Auth:
 			result3 = requests.post(url3, data=post3).json()
 			if result3.get('success') is True:
 				session_id = result3.get('session_id')
-			if control.yesnoDialog(msg, '', ''):
-				control.notification(title='default', message='TMDb Successfully Authorized', icon='default')
-			else:
-				control.notification(title='default', message='TMDb Authorization FAILED', icon='ERROR')
+				msg = '%s' % ('username =' + username + '[CR]password =' + password + '[CR]token = ' + token + '[CR]confirm?')
+				if control.yesnoDialog(msg, '', ''):
+					control.setSetting('tmdb.session_id', session_id)
+					control.notification(title='default', message='TMDb Successfully Authorized', icon='default')
+				else:
+					control.notification(title='default', message='TMDb Authorization Cancelled', icon='ERROR')
 		except:
 			log_utils.error()
 			pass
@@ -883,7 +881,7 @@ class Auth:
 	def revoke_session_id(self):
 		try:
 			if control.setting('tmdb.session_id') == '':
-				raise Exception()
+				return
 			url = self.auth_base_link + '/session?api_key=%s' % API_key
 			post = {"session_id": "%s" % control.setting('tmdb.session_id')}
 			result = requests.delete(url, data=post).json()

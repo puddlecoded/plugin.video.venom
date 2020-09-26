@@ -46,11 +46,7 @@ class Episodes:
 		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours=5))
 		self.today_date = (self.datetime).strftime('%Y-%m-%d')
 
-		tvdb_key_list = [
-			'MDZjZmYzMDY5MGY5Yjk2MjI5NTcwNDRmMjE1OWZmYWU=',
-			'MUQ2MkYyRjkwMDMwQzQ0NA==',
-			'N1I4U1paWDkwVUE5WU1CVQ==']
-		self.tvdb_key = tvdb_key_list[int(control.setting('tvdb.api.key'))]
+		self.tvdb_key = control.setting('tvdb.api.key')
 
 		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/all/%s.zip' % (self.tvdb_key.decode('base64'), '%s', '%s')
 		self.tvdb_image = 'https://thetvdb.com/banners/'
@@ -140,21 +136,21 @@ class Episodes:
 
 			if self.trakt_link in url and url == self.progress_link:
 				self.list = cache.get(self.trakt_progress_list, 0, url, self.trakt_user, self.lang, direct)
-				self.sort(type = 'progress')
+				self.sort(type='progress')
 
 			elif self.trakt_link in url and url == self.mycalendar_link:
 				self.list = cache.get(self.trakt_episodes_list, 0.3, url, self.trakt_user, self.lang)
-				self.sort(type = 'calendar')
+				self.sort(type='calendar')
 
 			elif self.trakt_link in url and url == self.trakthistory_link:
 				self.list = cache.get(self.trakt_episodes_list, 0.3, url, self.trakt_user, self.lang)
-				self.sort(type = 'progress')
+				self.sort(type='progress')
 
 			elif self.trakt_link in url and '/users/' in url:
 				# self.list = cache.get(self.trakt_list, 0.3, url, self.trakt_user, True)
 				# self.list = self.list[::-1]
 				self.list = cache.get(self.trakt_episodes_list, 0.3, url, self.trakt_user, self.lang)
-				self.sort(type = 'calendar')
+				self.sort(type='calendar')
 
 			elif self.trakt_link in url:
 				self.list = cache.get(self.trakt_list, 1, url, self.trakt_user, True)
@@ -176,16 +172,13 @@ class Episodes:
 
 	def sort(self, type='shows'):
 		try:
+			if not self.list: return
 			attribute = int(control.setting('sort.%s.type' % type))
 			reverse = int(control.setting('sort.%s.order' % type)) == 1
-			if self.list is None:
-				return
 			if attribute > 0:
 				if attribute == 1:
-					try:
-						self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['tvshowtitle'].lower()), reverse=reverse)
-					except:
-						self.list = sorted(self.list, key=lambda k: k['title'].lower(), reverse=reverse)
+					try: self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['tvshowtitle'].lower()), reverse=reverse)
+					except: self.list = sorted(self.list, key=lambda k: k['title'].lower(), reverse=reverse)
 				elif attribute == 2:
 					self.list = sorted(self.list, key=lambda k: float(k['rating']), reverse=reverse)
 				elif attribute == 3:
@@ -1192,26 +1185,17 @@ class Episodes:
 				except:
 					season_poster = poster
 
-				if poster != '0':
-					pass
-				elif fanart != '0':
-					poster = fanart
-				elif banner != '0':
-					poster = banner
+				if poster != '0': pass
+				elif fanart != '0': poster = fanart
+				elif banner != '0': poster = banner
 
-				if banner != '0':
-					pass
-				elif fanart != '0':
-					banner = fanart
-				elif poster != '0':
-					banner = poster
+				if banner != '0': pass
+				elif fanart != '0': banner = fanart
+				elif poster != '0': banner = poster
 
-				if thumb != '0':
-					pass
-				elif fanart != '0':
-					thumb = fanart.replace(self.tvdb_image, self.tvdb_poster)
-				elif poster != '0':
-					thumb = poster
+				if thumb != '0': pass
+				elif fanart != '0': thumb = fanart.replace(self.tvdb_image, self.tvdb_poster)
+				elif poster != '0': thumb = poster
 
 				studio = i['studio'] or client.parseDOM(item2, 'Network')[0]
 
@@ -1333,8 +1317,7 @@ class Episodes:
 			multi = len([x for y, x in enumerate(multi) if x not in multi[:y]])
 			multi = True if multi > 1 else False
 			try:
-				if '/users/me/history/' in items[0]['next']:
-					multi = True
+				if '/users/me/history/' in items[0]['next']: multi = True
 			except: pass
 
 		try: sysaction = items[0]['action']
@@ -1386,25 +1369,21 @@ class Episodes:
 				tvshowtitle, title, imdb, tmdb, tvdb = i.get('tvshowtitle'), i.get('title'), i.get('imdb', '0'), i.get('tmdb', '0'), i.get('tvdb', '0')
 				year, season, episode, premiered = i['year'], i['season'], i['episode'], i['premiered']
 				trailer = i.get('trailer')
+				runtime = i.get('duration')
+
 				tvshowyear = i.get('tvshowyear')
 
-				if 'label' not in i:
-					i['label'] = title
-				if i['label'] == '0':
-					label = '%sx%02d . %s %s' % (season, int(episode), 'Episode', episode)
-				else:
-					label = '%sx%02d . %s' % (season, int(episode), i['label'])
+				if 'label' not in i: i['label'] = title
+				if i['label'] == '0': label = '%sx%02d . %s %s' % (season, int(episode), 'Episode', episode)
+				else: label = '%sx%02d . %s' % (season, int(episode), i['label'])
 
-				if multi:
-					label = '%s - %s' % (tvshowtitle, label)
-				try: labelProgress = label + '[COLOR %s][%s][/COLOR]' % (control.getColor(control.setting('highlight.color')), str(round(float(i['progress'] * 100), 1)) + '%')
+				if multi: label = '%s - %s' % (tvshowtitle, label)
+				try: labelProgress = label + '[COLOR %s]  [%s][/COLOR]' % (control.getColor(control.setting('highlight.color')), str(round(float(i['progress'] * 100), 1)) + '%')
 				except: labelProgress = label
 
 				try:
-					if i['unaired'] == 'true':
-						labelProgress = '[COLOR %s][I]%s[/I][/COLOR]' % (self.unairedcolor, labelProgress)
-				except:
-					pass
+					if i['unaired'] == 'true': labelProgress = '[COLOR %s][I]%s[/I][/COLOR]' % (self.unairedcolor, labelProgress)
+				except: pass
 
 				systitle = quote_plus(title)
 				systvshowtitle = quote_plus(tvshowtitle)
@@ -1422,30 +1401,25 @@ class Episodes:
 				try:
 					plot = meta['plot']
 					index = plot.rfind('See full summary')
-					if index >= 0:
-						plot = plot[:index]
+					if index >= 0: plot = plot[:index]
 					plot = plot.strip()
-					if re.match('[a-zA-Z\d]$', plot):
-						plot += ' ...'
+					if re.match('[a-zA-Z\d]$', plot): plot += ' ...'
 					meta['plot'] = plot
-				except:
-					pass
+				except: pass
 
-				try: meta.update({'duration': str(int(meta['duration']) * 60)})
+				try: meta.update({'duration': str(int(runtime) * 60)})
 				except: pass
 				try: meta.update({'genre': cleangenre.lang(meta['genre'], self.lang)})
 				except: pass
 				try: meta.update({'title': i['label']})
 				except: pass
-				try: 
-					meta.update({'year': re.findall('(\d{4})', premiered)[0]}) #careful, arg year and meta year will be different
+				try: meta.update({'year': re.findall('(\d{4})', premiered)[0]}) #careful, arg year and meta year will be different
 				except: pass
 
 				try:
 					if 'tvshowyear' not in meta:
 						meta.update({'tvshowyear': year}) # Kodi uses the year (the year the show started) as the year for the episode. Change it from the premiered date.
-				except:
-					pass
+				except: pass
 
 				if airEnabled == 'true':
 					air = []
@@ -1543,20 +1517,18 @@ class Episodes:
 					watched = (overlay == 7)
 
 					# # Skip episodes marked as watched for the unfinished and onDeck lists.
-					# try:
-						# if unfinished and watched and not i['progress'] is None: continue
+					# try: if unfinished and watched and not i['progress'] is None: continue
 					# except: pass
 
 					if watched:
 						meta.update({'playcount': 1, 'overlay': 7})
-						cm.append((unwatchedMenu, 'RunPlugin(%s?action=episodePlaycount&name=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&query=6)' % (
+						cm.append((unwatchedMenu, 'RunPlugin(%s?action=playcount_Episode&name=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&query=6)' % (
 												sysaddon, systvshowtitle, imdb, tvdb, season, episode)))
 					else:
 						meta.update({'playcount': 0, 'overlay': 6})
-						cm.append((watchedMenu, 'RunPlugin(%s?action=episodePlaycount&name=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&query=7)' % (
+						cm.append((watchedMenu, 'RunPlugin(%s?action=playcount_Episode&name=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&query=7)' % (
 												sysaddon, systvshowtitle, imdb, tvdb, season, episode)))
-				except:
-					pass
+				except: pass
 
 				sysmeta = quote_plus(json.dumps(meta))
 				sysart = quote_plus(json.dumps(art))
@@ -1604,17 +1576,12 @@ class Episodes:
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
 ####################################
 
-				if trailer != '' and trailer is not None:
-					meta.update({'trailer': trailer})
-				else:
-					meta.update({'trailer': '%s?action=trailer&type=%s&name=%s&year=%s&imdb=%s' % (sysaddon, 'show', quote_plus(label), year, imdb)})
+				if trailer: meta.update({'trailer': trailer})
+				else: meta.update({'trailer': '%s?action=trailer&type=%s&name=%s&year=%s&imdb=%s' % (sysaddon, 'show', quote_plus(label), year, imdb)})
 
 				item = control.item(label=labelProgress)
-				if 'castandart' in i:
-					item.setCast(i['castandart'])
-
-				if 'episodeIDS' in i:
-					item.setUniqueIDs(i['episodeIDS'])
+				if 'castandart' in i: item.setCast(i['castandart'])
+				if 'episodeIDS' in i: item.setUniqueIDs(i['episodeIDS'])
 
 				if multi and multi_unwatchedEnabled:
 					if 'ForceAirEnabled' not in i:
@@ -1623,19 +1590,17 @@ class Episodes:
 							item.setProperty('TotalEpisodes', str(count['total']))
 							item.setProperty('WatchedEpisodes', str(count['watched']))
 							item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
-
 				# if 'total_seasons' in meta:
 					# item.setProperty('TotalSeasons', str(meta.get('total_seasons')))
 
 				item.setArt(art)
 				item.setProperty('IsPlayable', isPlayable)
-				if is_widget:
-					item.setProperty('isVenom_widget', 'true')
+				if is_widget: item.setProperty('isVenom_widget', 'true')
 				item.setProperty('tvshow.tmdb_id', tmdb)
 
 				from resources.lib.modules.player import Bookmarks
 				blabel = tvshowtitle + ' S%02dE%02d' % (int(season), int(episode))
-				resumetime = Bookmarks().get(blabel, str(year), ck=True)
+				resumetime = Bookmarks().get(name=blabel, season=season, episode=episode, imdb=imdb, year=str(year), runtime=runtime, ck=True)
 				# item.setProperty('totaltime', str(meta.get('duration'))) # Adding this property causes the Kodi bookmark CM items to be added
 				item.setProperty('resumetime', str(resumetime))
 				item.setProperty('venom_resumetime', str(resumetime))
@@ -1659,8 +1624,7 @@ class Episodes:
 		if next:
 			try:
 				url = items[0]['next']
-				if url == '':
-					raise Exception()
+				if not url: raise Exception()
 
 				nextMenu = control.lang(32053)
 				url_params = dict(parse_qsl(url))
@@ -1671,7 +1635,6 @@ class Episodes:
 				else:
 					page = url_params.get('page')
 					page = '  [I](%s)[/I]' % page
-
 				nextMenu = '[COLOR skyblue]' + nextMenu + page + '[/COLOR]'
 
 				if '/users/me/history/' in url:
@@ -1711,22 +1674,16 @@ class Episodes:
 			try:
 				name = i['name']
 
-				if i['image'].startswith('http'):
-					thumb = i['image']
-				elif artPath:
-					thumb = control.joinPath(artPath, i['image'])
-				else:
-					thumb = addonThumb
+				if i['image'].startswith('http'): thumb = i['image']
+				elif artPath: thumb = control.joinPath(artPath, i['image'])
+				else: thumb = addonThumb
 
 				icon = i.get('icon', 0)
-				if not icon:
-					icon = 'DefaultFolder.png'
+				if not icon: icon = 'DefaultFolder.png'
 
 				url = '%s?action=%s' % (sysaddon, i['action'])
-				try:
-					url += '&url=%s' % quote_plus(i['url'])
-				except:
-					pass
+				try: url += '&url=%s' % quote_plus(i['url'])
+				except: pass
 
 				cm = []
 				if queue:

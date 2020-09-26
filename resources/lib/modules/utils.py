@@ -27,8 +27,7 @@ def byteify(data, ignore_dicts=False):
 
 def title_key(title):
 	try:
-		if title is None:
-			title = ''
+		if not title: title = ''
 		articles_en = ['the', 'a', 'an']
 		articles_de = ['der', 'die', 'das']
 		articles = articles_en + articles_de

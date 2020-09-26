@@ -9,13 +9,11 @@ import requests
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 
-user = control.setting('fanart.tv.user')
-if user == '' or user is None:
-	user = 'cf0ebcc2f7b824bd04cf3a318f15c17d'
-
 headers = {'api-key': '9f846e7ec1ea94fad5d8a431d1d26b43'}
-if user != '':
-	headers.update({'client-key': user})
+client_key = control.setting('fanart.tv.api.key')
+if not client_key:
+	client_key = 'cf0ebcc2f7b824bd04cf3a318f15c17d'
+headers.update({'client-key': client_key})
 
 base_url = "http://webservice.fanart.tv/v3/%s/%s"
 lang = control.apiLanguage()['trakt']

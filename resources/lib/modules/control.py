@@ -40,7 +40,6 @@ getLangString = xbmcaddon.Addon().getLocalizedString
 item = xbmcgui.ListItem
 listControl = xbmcgui.ControlList
 labelControl = xbmcgui.ControlLabel
-window = xbmcgui.Window(10000)
 homeWindow = xbmcgui.Window(10000)
 
 windowDialog = xbmcgui.WindowDialog()
@@ -89,7 +88,6 @@ makeDirs = xbmcvfs.mkdirs
 openFile = xbmcvfs.File
 transPath = xbmc.translatePath
 
-menus_path = os.path.join(addonPath, 'resources', 'lib', 'menus')
 SETTINGS_PATH = xbmc.translatePath(os.path.join(addonInfo('path'), 'resources', 'settings.xml'))
 
 try:
@@ -109,14 +107,69 @@ cacheFile = os.path.join(dataPath, 'cache.db')  # Used by trakt.py
 trailer = 'plugin://plugin.video.youtube/play/?video_id=%s'
 
 
+def syncMyAccounts(silent=False):
+	import myaccounts
+	all_acct = myaccounts.getAll()
+	trakt_acct = all_acct.get('trakt')
+	if setting('trakt.username') != trakt_acct.get('username'):
+		setSetting('trakt.isauthed', 'true')
+		setSetting('trakt.token', trakt_acct.get('token'))
+		setSetting('trakt.username', trakt_acct.get('username'))
+		setSetting('trakt.refresh', trakt_acct.get('refresh'))
+		setSetting('trakt.expires', trakt_acct.get('expires'))
+
+	ad_acct = all_acct.get('alldebrid')
+	if setting('alldebrid.username') != ad_acct.get('username'):
+		setSetting('alldebrid.token', ad_acct.get('token'))
+		setSetting('alldebrid.username', ad_acct.get('username'))
+
+	pm_acct = all_acct.get('premiumize')
+	if setting('premiumize.username') != pm_acct.get('username'):
+		setSetting('premiumize.token', pm_acct.get('token'))
+		setSetting('premiumize.username', pm_acct.get('username'))
+
+	rd_acct = all_acct.get('realdebrid')
+	if setting('realdebrid.username') != rd_acct.get('username'):
+		setSetting('realdebrid.token', rd_acct.get('token'))
+		setSetting('realdebrid.username', rd_acct.get('username'))
+		setSetting('realdebrid.client_id', rd_acct.get('client_id'))
+		setSetting('realdebrid.refresh', rd_acct.get('refresh'))
+		setSetting('realdebrid.secret', rd_acct.get('secret'))
+
+	fanart_acct = all_acct.get('fanart_tv')
+	if setting('fanart.tv.api.key') != fanart_acct.get('api_key'):
+		setSetting('fanart.tv.api.key', fanart_acct.get('api_key'))
+
+	tmdb_acct = all_acct.get('tmdb')
+	if setting('tmdb.api.key') != tmdb_acct.get('api_key'):
+		setSetting('tmdb.api.key', tmdb_acct.get('api_key'))
+	if setting('tmdb.username') != tmdb_acct.get('username'):
+		setSetting('tmdb.username', tmdb_acct.get('username'))
+	if setting('tmdb.password') != tmdb_acct.get('password'):
+		setSetting('tmdb.password', tmdb_acct.get('password'))
+	if setting('tmdb.session_id') != tmdb_acct.get('session_id'):
+		setSetting('tmdb.session_id', tmdb_acct.get('session_id'))
+
+	tvdb_acct = all_acct.get('tvdb')
+	if setting('tvdb.api.key') != tvdb_acct.get('api_key'):
+		setSetting('tvdb.api.key', tvdb_acct.get('api_key'))
+
+	imdb_acct = all_acct.get('imdb')
+	if setting('imdb.user') != imdb_acct.get('user'):
+		setSetting('imdb.user', imdb_acct.get('user'))
+	if not silent:
+		notification(title='default', message='My Accounts sync complete', icon='default', sound=(setting('notification.sound') == 'true'))
+
+
 def setting(id, fallback=None):
-	try: settings_dict = json.loads(window.getProperty('venom_settings'))
+	try: settings_dict = json.loads(homeWindow.getProperty('venom_settings'))
 	except: settings_dict = make_settings_dict()
 	if settings_dict is None: settings_dict = settings_fallback(id)
 	value = settings_dict.get(id, '')
 	if fallback is None: return value
 	if value == '': return fallback
 	return value
+
 
 def settings_fallback(id):
 	return {id: xbmcaddon.Addon().getSetting(id)}
@@ -133,6 +186,7 @@ def make_settings_dict():
 		profile_dir = xbmc.translatePath('special://profile/addon_data/plugin.video.venom/')
 		settings_xml = os.path.join(profile_dir, 'settings.xml')
 		root = ET.parse(settings_xml).getroot()
+		# root = ET.parse(settingsFile).getroot()
 		settings_dict = {}
 		for item in root:
 			dict_item = {}
@@ -142,7 +196,7 @@ def make_settings_dict():
 			if setting_value is None: setting_value = ''
 			dict_item = {setting_id: setting_value}
 			settings_dict.update(dict_item)
-		window.setProperty('venom_settings', json.dumps(settings_dict))
+		homeWindow.setProperty('venom_settings', json.dumps(settings_dict))
 		return settings_dict
 	except:
 		return None
@@ -203,6 +257,8 @@ def check_version_numbers(current, new):
 	for i in current:
 		if int(new[step]) > int(i):
 			return True
+		if int(i) > int(new[step]):
+			return False
 		if int(i) == int(new[step]):
 			step += 1
 			continue
@@ -242,10 +298,8 @@ def addonName():
 def addonPath(addon):
 	try: addonID = xbmcaddon.Addon(addon)
 	except: addonID = None
-	if addonID is None:
-		return ''
-	else:
-		return xbmc.translatePath(addonID.getAddonInfo('path').decode('utf-8'))
+	if addonID is None: return ''
+	else: return xbmc.translatePath(addonID.getAddonInfo('path').decode('utf-8'))
 
 
 def artPath():
@@ -256,11 +310,6 @@ def artPath():
 def appearance():
 	appearance = setting('appearance.1').lower()
 	return appearance
-
-
-# def artwork():
-	# if condVisibility('System.HasAddon(script.venom.artwork)'):
-		# execute('RunPlugin(plugin://script.venom.artwork)')
 
 
 def addonIcon():
@@ -320,8 +369,7 @@ def addonNext():
 
 
 def metadataClean(metadata):
-	if not metadata:
-		return metadata
+	if not metadata: return metadata
 	allowed = ['genre', 'country', 'year', 'episode', 'season', 'sortepisode', 'sortseason', 'episodeguide', 'showlink',
 					'top250', 'setid', 'tracknumber', 'rating', 'userrating', 'watched', 'playcount', 'overlay', 'cast',
 					'castandrole', 'director', 'mpaa', 'plot', 'plotoutline', 'title', 'originaltitle', 'sorttitle',
@@ -436,8 +484,7 @@ def openSettings(query=None, id=addonInfo('id')):
 	try:
 		hide()
 		execute('Addon.OpenSettings(%s)' % id)
-		if not query:
-			return
+		if not query: return
 		c, f = query.split('.')
 		if getKodiVersion() >= 18:
 			execute('SetFocus(%i)' % (int(c) - 100))
@@ -750,7 +797,7 @@ def clean_settings():
 		content += '\n</settings>'
 		return content
 	kodi_version = getKodiVersion()
-	for addon_id in ('plugin.video.venom', 'script.module.openscrapers'):
+	for addon_id in ('plugin.video.venom', 'script.module.fenomscrapers'):
 		try:
 			removed_settings = []
 			active_settings = []
