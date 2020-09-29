@@ -50,9 +50,9 @@ class SettingsMonitor(xbmc.Monitor):
 
 class SyncMyAccounts:
 	def run(self):
-		xbmc.log('[ plugin.video.venom ] SyncMyAccounts Service Starting...', 2)
+		xbmc.log('[ plugin.video.venom ]  Sync "My Accounts" Service Starting...', 2)
 		control.syncMyAccounts(silent=True)
-		return xbmc.log('[ plugin.video.venom ] Finished SyncMyAccounts Service', 2)
+		return xbmc.log('[ plugin.video.venom ]  Finished Sync "My Accounts" Service', 2)
 
 
 class ReuseLanguageInvokerCheck:
@@ -93,21 +93,21 @@ class ReuseLanguageInvokerCheck:
 
 class AddonCheckUpdate:
 	def run(self):
-		log_utils.log('Venom checking available updates', log_utils.LOGNOTICE)
+		xbmc.log('[ plugin.video.venom ]  Addon checking available updates', xbmc.LOGNOTICE)
 		try:
 			import re
 			import requests
 			repo_xml = requests.get('https://raw.githubusercontent.com/123Venom/zips/master/addons.xml')
 			if not repo_xml.status_code == 200:
-				log_utils.log('Could not connect to Venom repo XML, status: %s' % repo_xml.status_code, log_utils.LOGNOTICE)
+				xbmc.log('[ plugin.video.venom ]  Could not connect to remote repo XML: status code = %s' % repo_xml.status_code, xbmc.LOGNOTICE)
 				return
 			repo_version = re.findall(r'<addon id=\"plugin.video.venom\".+version=\"(\d*.\d*.\d*)\"', repo_xml.text)[0]
 			local_version = control.getVenomVersion()
 			if control.check_version_numbers(local_version, repo_version):
 				while control.condVisibility('Library.IsScanningVideo'):
 					control.sleep(10000)
-				log_utils.log('A newer version of Venom is available. Installed Version: v%s, Repo Version: v%s' % (local_version, repo_version), log_utils.LOGNOTICE)
-				control.notification(title = 'default', message = control.lang(35523) % repo_version, icon = 'default', time=5000, sound=False)
+				xbmc.log('[ plugin.video.venom ]  A newer version is available. Installed Version: v%s, Repo Version: v%s' % (local_version, repo_version), xbmc.LOGNOTICE)
+				control.notification(title='default', message=control.lang(35523) % repo_version, icon='default', time=5000, sound=False)
 		except:
 			log_utils.error()
 			pass
@@ -123,10 +123,9 @@ class SyncTraktWatched:
 	def run(self):
 		control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=cachesyncTVShows&timeout=720')
 		control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=cachesyncMovies&timeout=720')
-		# if control.setting('trakt.general.notifications') == 'true':
-			# control.notification(title='default', message='Trakt Watched Status Sync Complete', icon='default', time=1, sound=False)
 
-xbmc.log('[ plugin.video.venom ] service started', xbmc.LOGNOTICE)
+
+xbmc.log('[ plugin.video.venom ]  service started', xbmc.LOGNOTICE)
 CheckSettingsFile().run()
 ReuseLanguageInvokerCheck().run()
 SyncMyAccounts().run()
@@ -152,15 +151,15 @@ control.execute('RunPlugin(plugin://%s)' % control.get_plugin_url({'action': 'li
 
 if control.setting('general.checkAddonUpdates') == 'true':
 	AddonCheckUpdate().run()
-	xbmc.log('[ plugin.video.venom ] Addon update check complete', xbmc.LOGNOTICE)
+	xbmc.log('[ plugin.video.venom ]  Addon update check complete', xbmc.LOGNOTICE)
 
 if traktCredentials is True:
 	SyncTraktWatched().run()
-	xbmc.log('[ plugin.video.venom ] Trakt watched status sync complete', xbmc.LOGNOTICE)
+	xbmc.log('[ plugin.video.venom ]  Trakt watched status sync complete', xbmc.LOGNOTICE)
 
 if control.setting('autoTraktOnStart') == 'true':
 	SyncTraktLibrary().run()
-	xbmc.log('[ plugin.video.venom ] Trakt Library sync complete', xbmc.LOGNOTICE)
+	xbmc.log('[ plugin.video.venom ]  Trakt Library sync complete', xbmc.LOGNOTICE)
 
 if int(control.setting('schedTraktTime')) > 0:
 	log_utils.log('###############################################################', log_utils.LOGNOTICE)
@@ -169,9 +168,8 @@ if int(control.setting('schedTraktTime')) > 0:
 	timeout = 3600 * int(control.setting('schedTraktTime'))
 	schedTrakt = threading.Timer(timeout, SyncTraktLibrary().run())
 	schedTrakt.start()
-	xbmc.log('[ plugin.video.venom ] Trakt Scheduled Library sync complete', xbmc.LOGNOTICE)
-
+	xbmc.log('[ plugin.video.venom ]  Trakt Scheduled Library sync complete', xbmc.LOGNOTICE)
 
 settings_monitor = SettingsMonitor()
 settings_monitor.waitForAbort()
-xbmc.log('[ plugin.video.venom ] service stopped', xbmc.LOGNOTICE)
+xbmc.log('[ plugin.video.venom ]  service stopped', xbmc.LOGNOTICE)

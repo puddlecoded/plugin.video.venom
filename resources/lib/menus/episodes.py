@@ -1380,6 +1380,7 @@ class Episodes:
 				if multi: label = '%s - %s' % (tvshowtitle, label)
 				try: labelProgress = label + '[COLOR %s]  [%s][/COLOR]' % (control.getColor(control.setting('highlight.color')), str(round(float(i['progress'] * 100), 1)) + '%')
 				except: labelProgress = label
+				log_utils.log('labelProgress = %s' % str(labelProgress), __name__, log_utils.LOGDEBUG)
 
 				try:
 					if i['unaired'] == 'true': labelProgress = '[COLOR %s][I]%s[/I][/COLOR]' % (self.unairedcolor, labelProgress)
@@ -1388,6 +1389,8 @@ class Episodes:
 				systitle = quote_plus(title)
 				systvshowtitle = quote_plus(tvshowtitle)
 				syspremiered = quote_plus(premiered)
+
+				log_utils.log('systvshowtitle = %s' % str(systvshowtitle), __name__, log_utils.LOGDEBUG)
 
 				try: seasoncount = i['seasoncount']
 				except: seasoncount = None

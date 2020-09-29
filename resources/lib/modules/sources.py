@@ -511,7 +511,7 @@ class Sources:
 					line1 = pdiag_format % (source_4k_label, source_1080_label, source_720_label, source_sd_label, str(string4), source_total_label)
 					line2 = string1 % round(time.time() - start_time, 1)
 
-					if len(info) > 12: line3 = string3 % str(len(info))
+					if len(info) > 6: line3 = string3 % str(len(info))
 					elif len(info) > 0: line3 = string3 % (', '.join(info))
 					else: break
 
