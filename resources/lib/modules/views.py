@@ -45,7 +45,7 @@ def clearViews():
 			pass
 		skinName = control.addon(skin).getAddonInfo('name')
 		skinIcon = control.addon(skin).getAddonInfo('icon')
-		control.notification(title=skinName, message='View Types Successfully Cleared!', icon=skinIcon, sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=skinName, message=32087, icon=skinIcon)
 	except:
 		log_utils.error()
 		pass
@@ -66,7 +66,7 @@ def addView(content):
 		viewName = control.infoLabel('Container.Viewmode')
 		skinName = control.addon(skin).getAddonInfo('name')
 		skinIcon = control.addon(skin).getAddonInfo('icon')
-		control.notification(title=skinName, message=viewName, icon=skinIcon, sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=skinName, message=viewName, icon=skinIcon)
 	except:
 		log_utils.error()
 		return

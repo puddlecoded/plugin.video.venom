@@ -158,7 +158,7 @@ def syncMyAccounts(silent=False):
 	if setting('imdb.user') != imdb_acct.get('user'):
 		setSetting('imdb.user', imdb_acct.get('user'))
 	if not silent:
-		notification(title='default', message='My Accounts sync complete', icon='default', sound=(setting('notification.sound') == 'true'))
+		notification(message=32114)
 
 
 def setting(id, fallback=None):
@@ -382,7 +382,7 @@ def metadataClean(metadata):
 ####################################################
 # --- Dialogs
 ####################################################
-def notification(title=None, message=None, icon=None, time=3000, sound=False):
+def notification(title=None, message=None, icon=None, time=3000, sound=(setting('notification.sound') == 'true')):
 	if title == 'default' or title is None:
 		title = addonName()
 	if isinstance(title, (int, long)):
@@ -832,16 +832,16 @@ def clean_settings():
 			nfo_file.write(new_content)
 			nfo_file.close()
 			sleep(200)
-			notification(title=addon_name, message=lang(32084).format(str(len(removed_settings))), icon='default', sound=(setting('notification.sound') == 'true'))
+			notification(title=addon_name, message=lang(32084).format(str(len(removed_settings))))
 		except:
 			import traceback
 			traceback.print_exc()
-			notification(title=addon_name, message='Error Cleaning Settings.xml. Old settings.xml files Restored.', icon='default', sound=(setting('notification.sound') == 'true'))
+			notification(title=addon_name, message=32115)
 
 
 def set_reuselanguageinvoker():
 	if getKodiVersion() < 18:
-		notification(title='default', message='This feature is only supported in kodi 18 and beyond', icon='default', sound=(setting('notification.sound') == 'true'))
+		notification(message=32116)
 		return
 	try:
 		addon = xbmcaddon.Addon(id='plugin.video.venom')

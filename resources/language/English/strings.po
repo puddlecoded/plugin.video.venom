@@ -116,11 +116,11 @@ msgid "Box Office"
 msgstr ""
 
 msgctxt "#32021"
-msgid "Torrent/Hoster (group by Prem.)"
+msgid "group by debrid provider"
 msgstr ""
 
 msgctxt "#32022"
-msgid "Torrent/Hoster (ignore Prem.)"
+msgid "ignore debrid provider"
 msgstr ""
 
 msgctxt "#32023"
@@ -208,7 +208,7 @@ msgid "[B]SETTINGS[/B] : General"
 msgstr ""
 
 msgctxt "#32044"
-msgid "[B]SETTINGS[/B] : Api Keys"
+msgid "[B]SETTINGS[/B] : Accounts"
 msgstr ""
 
 msgctxt "#32045"
@@ -325,7 +325,7 @@ msgstr ""
 
 msgctxt "#32073"
 msgid "[B]TRAKT[/B] : Authorize"
-msgstr "[B]TRAKT[/B]: Authorise"
+msgstr ""
 
 msgctxt "#32074"
 msgid "[B]HELP[/B]"
@@ -372,43 +372,43 @@ msgid "{} Obsolete Settings Entries Removed"
 msgstr ""
 
 msgctxt "#32085"
-msgid ""
+msgid "Updating Library..."
 msgstr ""
 
 msgctxt "#32086"
-msgid ""
+msgid "Libray Update Complete"
 msgstr ""
 
 msgctxt "#32087"
-msgid ""
+msgid "View Types Successfully Cleared!"
 msgstr ""
 
 msgctxt "#32088"
-msgid ""
+msgid "Trakt: Scrobbled"
 msgstr ""
 
 msgctxt "#32089"
-msgid ""
+msgid "All Cache Successfully Cleared!"
 msgstr ""
 
 msgctxt "#32090"
-msgid ""
+msgid "Provider Cache Successfully Cleared!"
 msgstr ""
 
 msgctxt "#32091"
-msgid ""
+msgid "Metadata Cache Successfully Cleared!"
 msgstr ""
 
 msgctxt "#32092"
-msgid ""
+msgid "Cache Successfully Cleared!"
 msgstr ""
 
 msgctxt "#32093"
-msgid ""
+msgid "Search History Successfully Cleared!"
 msgstr ""
 
 msgctxt "#32094"
-msgid ""
+msgid "Search Phrase Successfully Cleared!"
 msgstr ""
 
 msgctxt "#32095"
@@ -432,8 +432,131 @@ msgid "Show notification on scrobble"
 msgstr ""
 
 msgctxt "#32100"
+msgid "Bookmarks Successfully Cleared!"
+msgstr ""
+
+msgctxt "#32101"
+msgid "Bookmarks Successfully Cleared!"
+msgstr ""
+
+msgctxt "#32102"
+msgid "Bookmark Successfully Cleared!"
+msgstr ""
+
+msgctxt "#32103"
+msgid "strm files written but library cannot be updated"
+msgstr ""
+
+msgctxt "#32104"
+msgid "strm file written but library cannot be updated"
+msgstr ""
+
+msgctxt "#32105"
+msgid "Trakt Movies Sync Complete"
+msgstr ""
+
+msgctxt "#32106"
+msgid "Update Service is disabled. Please enable and try again"
+msgstr ""
+
+msgctxt "#32107"
+msgid "Your Library Folders do not exist in Kodi Sources. Please run setup"
+msgstr ""
+
+msgctxt "#32108"
+msgid "No Shows in Addon Folder"
+msgstr ""
+
+msgctxt "#32109"
+msgid "No Episode Updates Found"
+msgstr ""
+
+msgctxt "#32110"
+msgid "Restart Kodi for changes is required"
+msgstr ""
+
+msgctxt "#32111"
+msgid "Folders Failed to add to Kodi Sources"
+msgstr ""
+
+msgctxt "#32112"
+msgid "Library Auto Update Service is now turned off"
+msgstr ""
+
+msgctxt "#32113"
+msgid "No Movie lists imports found"
+msgstr ""
+
+msgctxt "#32114"
+msgid "My Accounts sync complete"
+msgstr ""
+
+msgctxt "#32115"
+msgid "Error Cleaning Settings.xml. Old settings.xml files Restored."
+msgstr ""
+
+msgctxt "#32116"
+msgid "This feature is only supported in kodi 18 and beyond"
+msgstr ""
+
+msgctxt "#32117"
+msgid "Added to Favorites"
+msgstr ""
+
+msgctxt "#32118"
+msgid "Removed From Favorites"
+msgstr ""
+
+msgctxt "#32119"
+msgid "Playlist is empty"
+msgstr ""
+
+msgctxt "#32120"
+msgid "Title already in playlist"
+msgstr ""
+
+msgctxt "#32121"
+msgid "%s Added to playlist"
+msgstr ""
+
+msgctxt "#32122"
+msgid "%s Removed from playlist"
+msgstr ""
+
+msgctxt "#32123"
+msgid "Not found in playlist"
+msgstr ""
+
+msgctxt "#32124"
 msgid ""
 msgstr ""
+
+msgctxt "#32125"
+msgid ""
+msgstr ""
+
+msgctxt "#32126"
+msgid ""
+msgstr ""
+
+msgctxt "#32127"
+msgid ""
+msgstr ""
+
+msgctxt "#32128"
+msgid ""
+msgstr ""
+
+msgctxt "#32129"
+msgid ""
+msgstr ""
+
+msgctxt "#32130"
+msgid ""
+msgstr ""
+
+
+
 
 
 
@@ -604,7 +727,7 @@ msgid "Remove pair/captcha hosts"
 msgstr ""
 
 msgctxt "#32342"
-msgid "Sort by Provider"
+msgid "Sort by Scraper Provider"
 msgstr ""
 
 msgctxt "#32343"
@@ -832,11 +955,11 @@ msgid ""
 msgstr ""
 
 msgctxt "#32399"
-msgid ""
+msgid "Error with Debrid Pack"
 msgstr ""
 
 msgctxt "#32400"
-msgid ""
+msgid "Sources Cancelled"
 msgstr ""
 
 msgctxt "#32401"
@@ -864,11 +987,11 @@ msgid "[COLOR cyan]Remaining providers:[/COLOR] %s"
 msgstr ""
 
 msgctxt "#32407"
-msgid "Are you sure?"
+msgid ""
 msgstr ""
 
 msgctxt "#32408"
-msgid "Process Complete"
+msgid ""
 msgstr ""
 
 msgctxt "#32409"
@@ -1564,7 +1687,7 @@ msgid "Preparing sources"
 msgstr ""
 
 msgctxt "#32601"
-msgid "[COLOR cyan]Total[/COLOR]"
+msgid "[COLOR cyan]Total: [/COLOR]  %s"
 msgstr ""
 
 msgctxt "#32602"

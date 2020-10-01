@@ -110,7 +110,7 @@ class documentary:
 				url = self.getDailyMotionStream(video_id)
 			else:
 				log_utils.log('Play Documentary: Unknown Host: ' + str(url))
-				control.notification(title='default', message='Unknown Host - Report To Developer: ' + str(url), icon='default', sound=(control.setting('notification.sound') == 'true'))
+				control.notification(message='Unknown Host - Report To Developer: ' + str(url))
 			control.execute('PlayMedia(%s)' % url)
 
 			# item = xbmcgui.ListItem(str(docu_title), iconImage='DefaultVideo.png', thumbnailImage='DefaultVideo.png')
@@ -141,10 +141,8 @@ class documentary:
 			xbmc.executebuiltin('XBMC.Notification(Info:,'+ Error +' ,5000)')
 			return
 		else:
-			cc= content['qualities']
-
+			cc = content['qualities']
 			cc = cc.items()
-
 			cc = sorted(cc,key=self.sort_key,reverse=True)
 			m_url = ''
 			other_playable_url = []
@@ -213,7 +211,7 @@ class documentary:
 	def addDirectory(self, items, queue=False, isFolder=True):
 		if items is None or len(items) == 0: 
 			control.hide()
-			control.notification(title=32002, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=32002, message=33049)
 			sys.exit()
 
 		sysaddon = sys.argv[0]

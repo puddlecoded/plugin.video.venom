@@ -30,7 +30,6 @@ episode = params.get('episode')
 tvshowtitle = params.get('tvshowtitle')
 type = params.get('type')
 url = params.get('url')
-# meta = params.get('meta')
 query = params.get('query')
 source = params.get('source')
 
@@ -406,9 +405,9 @@ if action and action.startswith('pm_'):
 		from resources.lib.debrid import premiumize
 		premiumize.Premiumize().account_info_to_dialog()
 
-	elif action == 'pm_Authorize':
-		from resources.lib.debrid import premiumize
-		premiumize.Premiumize().auth()
+	# elif action == 'pm_Authorize':
+		# from resources.lib.debrid import premiumize
+		# premiumize.Premiumize().auth()
 
 	elif action == 'pm_MyFiles':
 		from resources.lib.debrid import premiumize
@@ -443,9 +442,9 @@ if action and action.startswith('rd_'):
 		from resources.lib.debrid import realdebrid
 		realdebrid.RealDebrid().account_info_to_dialog()
 
-	elif action == 'rd_Authorize':
-		from resources.lib.debrid import realdebrid
-		realdebrid.RealDebrid().auth()
+	# elif action == 'rd_Authorize':
+		# from resources.lib.debrid import realdebrid
+		# realdebrid.RealDebrid().auth()
 
 	elif action == 'rd_UserTorrentsToListItem':
 		from resources.lib.debrid import realdebrid
@@ -476,9 +475,9 @@ if action and action.startswith('ad_'):
 		from resources.lib.debrid import alldebrid
 		alldebrid.AllDebrid().account_info_to_dialog()
 
-	elif action == 'ad_Authorize':
-		from resources.lib.debrid import alldebrid
-		alldebrid.AllDebrid().auth()
+	# elif action == 'ad_Authorize':
+		# from resources.lib.debrid import alldebrid
+		# alldebrid.AllDebrid().auth()
 
 	elif action == 'ad_Transfers':
 		from resources.lib.debrid import alldebrid
@@ -655,17 +654,17 @@ elif action == 'contextVenomSettings':
 
 elif action == 'UpNextSettings':
 	control.openSettings('0.0', 'service.upnext')
-	while control.condVisibility('Window.IsVisible(addonsettings)'):
-		control.sleep(500)
+	control.sleep(500)
+	while True:
+		if control.condVisibility('Window.IsVisible(addonsettings)'):
+			control.sleep(500)
+			continue
+		else: break
 	if params.get('opensettings') == 'true':
 		control.openSettings(query, 'plugin.video.venom')
 
 elif action == 'fenomscrapersSettings':
 	control.openSettings('0.0', 'script.module.fenomscrapers')
-	# while control.condVisibility('Window.IsVisible(addonsettings)'):
-		# control.sleep(500)
-	# if params.get('opensettings') == 'true':
-		# control.openSettings(query, 'plugin.video.venom')
 
 elif action == 'widgetRefresh':
 	control.trigger_widget_refresh()
@@ -785,14 +784,14 @@ elif action == 'random':
 		try: r += '&meta='+quote_plus(json.dumps(rlist[rand]))
 		except: r += '&meta='+quote_plus("{}")
 		if rtype == "movie":
-			try: control.notification(title=32536, message=rlist[rand]['title'], icon='default', sound=(control.setting('notification.sound') == 'true'))
+			try: control.notification(title=32536, message=rlist[rand]['title'])
 			except: pass
 		elif rtype == "episode":
-			try: control.notification(title=32536, message=rlist[rand]['tvshowtitle']+" - Season "+rlist[rand]['season']+" - "+rlist[rand]['title'], icon='default', sound=(control.setting('notification.sound') == 'true'))
+			try: control.notification(title=32536, message=rlist[rand]['tvshowtitle']+" - Season "+rlist[rand]['season']+" - "+rlist[rand]['title'])
 			except: pass
 		control.execute('RunPlugin(%s)' % r)
 	except:
-		control.notification(title='default', message=32537, icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(message=32537)
 
 
 ####################################################
@@ -816,9 +815,9 @@ if action and action.startswith('playlist_'):
 	elif action == 'playlist_QueueItem':
 		control.queueItem()
 		if name is None:
-			control.notification(title=35515, message=35519, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=35515, message=35519)
 		else:
-			control.notification(title=name, message=35519, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=name, message=35519)
 
 
 ####################################################
@@ -879,10 +878,19 @@ if action and action.startswith('library_'):
 		libtools.libtvshows().silent(url)
 
 	elif action == 'library_update':
+		control.notification(message=32085)
 		from resources.lib.modules import libtools
 		libtools.libepisodes().update()
 		libtools.libmovies().list_update()
 		libtools.libtvshows().list_update()
+		while True:
+			if control.condVisibility('Library.IsScanningVideo'):
+				control.sleep(3000)
+				continue
+			else:
+				break
+		control.sleep(1000)
+		control.notification(message=32086)
 
 	elif action == 'library_clean':
 		from resources.lib.modules import libtools

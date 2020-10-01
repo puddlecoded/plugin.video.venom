@@ -45,10 +45,10 @@ class AllDebrid:
 					if 'data' in response:
 						response = response['data']
 				elif response.get('status') == 'error' and self.server_notifications:
-					control.notification(title='default', message=response.get('error').get('message'), icon='default')
+					control.notification(message=response.get('error').get('message'))
 					return None
 		except requests.exceptions.ConnectionError:
-			control.notification(title='default', message='Failed to connect to All Debrid', icon=ad_icon)
+			control.notification(message='Failed to connect to All Debrid', icon=ad_icon)
 		except BaseException:
 			log_utils.error()
 			pass
@@ -66,10 +66,10 @@ class AllDebrid:
 					if 'data' in response:
 						response = response['data']
 				elif response.get('status') == 'error' and self.server_notifications:
-					control.notification(title='default', message=response.get('error').get('message'), icon='default')
+					control.notification(message=response.get('error').get('message'))
 					return None
 		except requests.exceptions.ConnectionError:
-			control.notification(title='default', message='Failed to connect to All Debrid', icon=ad_icon)
+			control.notification(message='Failed to connect to All Debrid', icon=ad_icon)
 		except BaseException:
 			log_utils.error()
 			pass
@@ -82,7 +82,7 @@ class AllDebrid:
 		response = response['data']
 		if 'error' in response:
 			self.token = 'failed'
-			return control.notification(title='default', message=40021, icon='default')
+			return control.notification(message=40021)
 		if response['activated']:
 			try:
 				control.progressDialog.close()
@@ -90,7 +90,7 @@ class AllDebrid:
 				control.setSetting('alldebrid.token', self.token)
 			except:
 				self.token = 'failed'
-				return control.notification(title='default', message=40021, icon='default')
+				return control.notification(message=40021)
 		return
 
 
@@ -114,7 +114,7 @@ class AllDebrid:
 			return
 		control.sleep(2000)
 		account_info = self._get('user')
-		control.notification(title='default', message=40010, icon=pm_icon)
+		control.notification(message=40010, icon=pm_icon)
 
 
 	def account_info(self):
@@ -217,7 +217,7 @@ class AllDebrid:
 				return
 			else:
 				if response and 'message' in response:
-					control.notification(title='default', message=response.get('message'), icon='default')
+					control.notification(message=response.get('message'))
 					log_utils.log('%s successfully deleted from the All Debrid cloud' % folder_name, __name__, log_utils.LOGDEBUG)
 					control.execute('Container.Refresh')
 					return
@@ -239,7 +239,7 @@ class AllDebrid:
 				return
 			else:
 				if response and 'message' in response:
-					control.notification(title='default', message=response.get('message'), icon='default')
+					control.notification(message=response.get('message'))
 					control.execute('Container.Refresh')
 					return
 		except:
@@ -257,7 +257,7 @@ class AllDebrid:
 		syshandle = int(sys.argv[1])
 		transfer_files = self.user_cloud()['magnets']
 		if not transfer_files:
-			control.notification(title='default', message='Request Failure-Empty Content', icon='default')
+			control.notification(message='Request Failure-Empty Content')
 			return
 		folder_str, deleteMenu, restartMenu = control.lang(40046).upper(), control.lang(40050), control.lang(40008)
 		for count, item in enumerate(transfer_files, 1):
@@ -602,4 +602,4 @@ class AllDebrid:
 	def revoke_auth(self):
 		control.setSetting('alldebrid.token', '')
 		control.setSetting('alldebrid.username', '')
-		control.okDialog(title=40059, message=control.lang(40009))
+		control.okDialog(title=40059, message=40009)

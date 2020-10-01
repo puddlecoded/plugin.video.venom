@@ -57,7 +57,7 @@ class Premiumize:
 				if response.get('status') == 'success':
 					return response
 				if response.get('status') == 'error' and self.server_notifications:
-					control.notification(title='default', message=response.get('message'), icon='default')
+					control.notification(message=response.get('message'))
 		except:
 			log_utils.error()
 			pass
@@ -71,7 +71,7 @@ class Premiumize:
 				if response.get('status') == 'success':
 					return response
 				if response.get('status') == 'error' and self.server_notifications:
-					control.notification(title='default', message=response.get('message'), icon='default')
+					control.notification(message=response.get('message'))
 		except:
 			log_utils.error()
 			pass
@@ -98,7 +98,7 @@ class Premiumize:
 			token_ttl -= int(token['interval'])
 		progressDialog.close()
 		if success:
-			control.notification(title='default', message=40052, icon=pm_icon)
+			control.notification(message=40052, icon=pm_icon)
 
 
 	def poll_token(self, device_code):
@@ -378,7 +378,7 @@ class Premiumize:
 					if isinstance(response, list):
 						return response[0]
 				if result.get('status') == 'error':
-					control.notification(title='default', message=result.get('message'), icon='default')
+					control.notification(message=result.get('message'))
 		except:
 			log_utils.error()
 			pass
@@ -470,7 +470,7 @@ class Premiumize:
 			extensions = supported_video_extensions()
 			cloud_files = self.my_files(folder_id)
 			if not cloud_files:
-				control.notification(title='default', message='Request Failure-Empty Content', icon='default')
+				control.notification(message='Request Failure-Empty Content')
 				return
 			cloud_files = [i for i in cloud_files if ('link' in i and i['link'].lower().endswith(tuple(extensions))) or i['type'] == 'folder']
 			cloud_files = sorted(cloud_files, key=lambda k: k['name'])
@@ -538,7 +538,7 @@ class Premiumize:
 			extensions = supported_video_extensions()
 			transfer_files = self.user_transfers()
 			if not transfer_files:
-				control.notification(title='default', message='Request Failure-Empty Content', icon='default')
+				control.notification(message='Request Failure-Empty Content')
 				return
 		except:
 			log_utils.error()
@@ -572,7 +572,7 @@ class Premiumize:
 					isFolder = False
 					details = self.item_details(item['file_id'])
 					if not details:
-						control.notification(title='default', message='Request Failure-Empty Content', icon='default')
+						control.notification(message='Request Failure-Empty Content')
 						return
 					url_link = details['link']
 					if url_link.startswith('/'):

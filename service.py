@@ -107,7 +107,7 @@ class AddonCheckUpdate:
 				while control.condVisibility('Library.IsScanningVideo'):
 					control.sleep(10000)
 				xbmc.log('[ plugin.video.venom ]  A newer version is available. Installed Version: v%s, Repo Version: v%s' % (local_version, repo_version), xbmc.LOGNOTICE)
-				control.notification(title='default', message=control.lang(35523) % repo_version, icon='default', time=5000, sound=False)
+				control.notification(message=control.lang(35523) % repo_version)
 		except:
 			log_utils.error()
 			pass

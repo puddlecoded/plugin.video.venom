@@ -724,7 +724,7 @@ class Seasons:
 	def seasonDirectory(self, items):
 		if not items:
 			control.hide()
-			control.notification(title=32054, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=32054, message=33049)
 			sys.exit()
 
 		sysaddon = sys.argv[0]

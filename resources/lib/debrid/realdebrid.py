@@ -101,7 +101,7 @@ class RealDebrid:
 			response = self._post(original_url, data)
 		elif 'error' in response:
 			response = json.loads(response)
-			control.notification(title='default', message=response.get('error'), icon='default')
+			control.notification(message=response.get('error'))
 			return None
 		try:
 			return json.loads(response)
@@ -115,7 +115,7 @@ class RealDebrid:
 		url = oauth_base_url + credentials_url % url
 		response = json.loads(requests.get(url).text)
 		if 'error' in response:
-			return control.okDialog(title='default', message=control.lang(40019))
+			return control.okDialog(title='default', message=40019)
 		else:
 			try:
 				control.progressDialog.close()
@@ -123,7 +123,7 @@ class RealDebrid:
 				self.secret = response['client_secret']
 			except:
 				log_utils.error()
-				control.okDialog(title='default', message=control.lang(40019))
+				control.okDialog(title='default', message=40019)
 			return
 
 
@@ -240,7 +240,7 @@ class RealDebrid:
 				except: pass
 			pack_info = sorted(file_info, key=lambda k: k['path'])
 		except:
-			return control.notification(title='default', message=33586, icon='default')
+			return control.notification(message=33586)
 
 		file_str, downloadMenu, renameMenu, deleteMenu, clearFinishedMenu = \
 				control.lang(40047).upper(), control.lang(40048), control.lang(40049), control.lang(40050), control.lang(40051)

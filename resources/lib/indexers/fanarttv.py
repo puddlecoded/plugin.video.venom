@@ -27,7 +27,7 @@ def get_request(url):
 		except requests.exceptions.SSLError:
 			result = requests.get(url, headers=headers, verify=False)
 	except requests.exceptions.ConnectionError:
-		control.notification(title='default', message='FANART.TV server Problems')
+		control.notification(message='FANART.TV server Problems')
 		log_utils.error()
 		return None
 

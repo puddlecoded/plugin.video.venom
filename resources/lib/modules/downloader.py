@@ -177,7 +177,7 @@ def doDownload(url, dest, title, image, headers):
 			downloaded += len(c)
 		percent = min(100 * downloaded / content, 100)
 		if percent >= notify:
-			control.notification(title=title + ' - Download Progress - ' + str(percent)+'%', message=dest, icon=image, time=10000, sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=title + ' - Download Progress - ' + str(percent)+'%', message=dest, icon=image, time=10000)
 			notify += 10
 		chunk = None
 		error = False

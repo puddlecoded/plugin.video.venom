@@ -1072,7 +1072,7 @@ class resolver:
 			url = self.process(url)
 			control.execute('Dialog.Close(busydialog)')
 			if url is None:
-				return control.notification(title='default', message=30705, icon='default', sound=(control.setting('notification.sound') == 'true'))
+				return control.notification(message=30705)
 			return url
 		except:
 			pass
@@ -1262,20 +1262,14 @@ class player(xbmc.Player):
 	def play(self, url, content=None):
 		try:
 			base = url
-
 			url = resolver().get(url)
-			if url is False:
-				return
+			if not url: return
 
 			control.execute('ActivateWindow(busydialog)')
 			url = resolver().process(url)
 			control.execute('Dialog.Close(busydialog)')
 
-			if url is None:
-				return control.notification(title='default', message=30705, icon='default', sound=(control.setting('notification.sound') == 'true'))
-
-			if url is False:
-				return
+			if not url: return control.notification(message=30705)
 
 			meta = {}
 			for i in ['title', 'originaltitle', 'tvshowtitle', 'year', 'season', 'episode', 'genre', 'rating', 'votes', 'director', 'writer', 'plot', 'tagline']:
@@ -1286,9 +1280,7 @@ class player(xbmc.Player):
 			icon = control.infoLabel('listitem.icon')
 
 			self.name = meta['title'] ; self.year = meta['year'] if 'year' in meta else '0'
-
 			self.getbookmark = True if (content == 'movies' or content == 'episodes') else False
-
 			self.offset = bookmarks().get(self.name, self.year)
 
 			f4m = resolver().f4m(url, self.name)

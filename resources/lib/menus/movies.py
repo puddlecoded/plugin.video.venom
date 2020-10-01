@@ -214,7 +214,7 @@ class Movies:
 			if not self.list:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32001, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
+					control.notification(title=32001, message=33049)
 
 
 	def getTMDb(self, url, idx=True, cached=True):
@@ -247,7 +247,7 @@ class Movies:
 			if not self.list:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32001, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
+					control.notification(title=32001, message=33049)
 
 
 	def unfinished(self, url, idx=True):
@@ -280,7 +280,7 @@ class Movies:
 			if not self.list:
 				control.hide()
 				if self.notifications:
-					control.notification(title=32001, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
+					control.notification(title=32001, message=33049)
 
 
 	def newMovies(self):
@@ -491,7 +491,7 @@ class Movies:
 		else: self.list = cache.get(self.imdb_person_list, 1, url)
 		if len(self.list) == 0:
 			control.hide()
-			control.notification(title=32010, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=32010, message=33049)
 		for i in range(0, len(self.list)):
 			self.list[i].update({'icon': 'DefaultActor.png', 'action': 'movies'})
 		self.addDirectory(self.list)
@@ -1161,7 +1161,7 @@ class Movies:
 	def movieDirectory(self, items, unfinished=False, next=True):
 		if not items:
 			control.hide()
-			control.notification(title=32001, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=32001, message=33049)
 			sys.exit()
 
 		sysaddon = sys.argv[0]
@@ -1382,7 +1382,7 @@ class Movies:
 	def addDirectory(self, items, queue=False):
 		if not items:
 			control.hide()
-			control.notification(title=32001, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=32001, message=33049)
 			sys.exit()
 
 		sysaddon = sys.argv[0]

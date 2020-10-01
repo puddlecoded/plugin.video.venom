@@ -117,6 +117,7 @@ def getTraktAsJson(url, post=None, authentication=None):
 		if isinstance(r, tuple) and len(r) == 2:
 			res_headers = r[1]
 			r = r[0]
+		if not r:	return
 		r = utils.json_loads_as_str(r)
 		res_headers = dict((k.lower(), v) for k, v in res_headers.iteritems())
 		if 'x-sort-by' in res_headers and 'x-sort-how' in res_headers:
@@ -132,7 +133,7 @@ def _error(url, post, timestamp, message):
 	try:
 		_cache(url=url, post=post, timestamp=timestamp)
 		if control.setting('trakt.server.notifications') == 'true':
-			control.notification(title=32315, message=message, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=32315, message=message)
 		control.hide()
 		return None
 	except:
@@ -332,7 +333,7 @@ def watch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
 			name = '%s-Season%s...' % (name, season)
 		if season and episode:
 			name = '%s-S%sxE%02d...' % (name, season, int(episode))
-		control.notification(title=32315, message=control.lang(35502) % name, icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=32315, message=control.lang(35502) % name)
 
 
 def unwatch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
@@ -359,7 +360,7 @@ def unwatch(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 			name = '%s-Season%s...' % (name, season)
 		if season and episode:
 			name = '%s-S%sxE%02d...' % (name, season, int(episode))
-		control.notification(title=32315, message=control.lang(35503) % name, icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=32315, message=control.lang(35503) % name)
 
 
 def rate(imdb=None, tvdb=None, season=None, episode=None):
@@ -404,7 +405,7 @@ def _rating(action, imdb=None, tvdb=None, season=None, episode=None):
 			data = {'action': 'manualRating', 'ratingData': data}
 			sqlitequeue.SqliteQueue().append(data)
 		else:
-			control.notification(title=32315, message=33659, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=32315, message=33659)
 	except:
 		log_utils.error()
 		pass
@@ -423,7 +424,7 @@ def hideItem(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True
 		control.refresh()
 	control.trigger_widget_refresh()
 	if control.setting('trakt.general.notifications') == 'true':
-		control.notification(title=32315, message=control.lang(33053) % (name, sections_display[selection]), icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=32315, message=control.lang(33053) % (name, sections_display[selection]))
 
 
 def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
@@ -519,7 +520,7 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 					control.refresh()
 				control.trigger_widget_refresh()
 				if control.setting('trakt.general.notifications') == 'true':
-					control.notification(title=name, message=message, icon='default', sound=(control.setting('notification.sound') == 'true'))
+					control.notification(title=name, message=message)
 	except:
 		log_utils.error()
 		control.hide()
@@ -534,10 +535,10 @@ def listAdd(successNotification=True):
 	try:
 		slug = json.loads(result)['ids']['slug']
 		if successNotification:
-			control.notification(title=32070, message=33661, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=32070, message=33661)
 		return slug
 	except:
-		control.notification(title=32070, message=33584, icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=32070, message=33584)
 		return None
 
 

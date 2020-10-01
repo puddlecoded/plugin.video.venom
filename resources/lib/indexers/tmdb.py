@@ -33,7 +33,7 @@ def get_request(url):
 		except requests.exceptions.SSLError:
 			response = requests.get(url, verify=False)
 	except requests.exceptions.ConnectionError:
-		control.notification(title='default', message=32024, icon='default')
+		control.notification(message=32024)
 		return
 
 	if '200' in str(response):
@@ -41,7 +41,7 @@ def get_request(url):
 	elif 'Retry-After' in response.headers:
 		# API REQUESTS ARE BEING THROTTLED, INTRODUCE WAIT TIME (removed 12-6-20)
 		throttleTime = response.headers['Retry-After']
-		control.notification(title='default', message='TMDB Throttling Applied, Sleeping for %s seconds' % throttleTime, icon='default')
+		control.notification(message='TMDB Throttling Applied, Sleeping for %s seconds' % throttleTime)
 		# sleep(int(throttleTime) + 1)
 		control.sleep((int(throttleTime) + 1) * 1000)
 		return get_request(url)
@@ -852,7 +852,7 @@ class Auth:
 	def create_session_id(self):
 		try:
 			if control.setting('tmdb.username') == '' or control.setting('tmdb.password') == '':
-				control.notification(title='default', message='TMDb Account info missing', icon='ERROR')
+				control.notification(message='TMDb Account info missing', icon='ERROR')
 				return
 			url = self.auth_base_link + '/token/new?api_key=%s' % API_key
 			result = requests.get(url).json()
@@ -870,9 +870,9 @@ class Auth:
 				msg = '%s' % ('username =' + username + '[CR]password =' + password + '[CR]token = ' + token + '[CR]confirm?')
 				if control.yesnoDialog(msg, '', ''):
 					control.setSetting('tmdb.session_id', session_id)
-					control.notification(title='default', message='TMDb Successfully Authorized', icon='default')
+					control.notification(message='TMDb Successfully Authorized')
 				else:
-					control.notification(title='default', message='TMDb Authorization Cancelled', icon='ERROR')
+					control.notification(message='TMDb Authorization Cancelled')
 		except:
 			log_utils.error()
 			pass
@@ -887,9 +887,9 @@ class Auth:
 			result = requests.delete(url, data=post).json()
 			if result.get('success') is True:
 				control.setSetting('tmdb.session_id', '')
-				control.notification(title='default', message='TMDb session_id successfully deleted', icon='default')
+				control.notification(message='TMDb session_id successfully deleted')
 			else:
-				control.notification(title='default', message='TMDb session_id deletion FAILED', icon='ERROR')
+				control.notification(message='TMDb session_id deletion FAILED', icon='ERROR')
 		except:
 			log_utils.error()
 			pass

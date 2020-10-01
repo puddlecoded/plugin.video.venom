@@ -24,8 +24,7 @@ LOCALNEWS = os.path.join(THISADDONPATH, 'newsinfo.txt')
 
 def news():
 	message = open_news_url(NEWSFILE)
-	r = open(LOCALNEWS)
-	compfile = r.read()
+	compfile = open(LOCALNEWS).read()
 	if len(message) > 1:
 		if compfile == message: pass
 		else:
@@ -46,24 +45,10 @@ def open_news_url(url):
 
 
 def news_local():
-	r = open(LOCALNEWS)
-	compfile = r.read()
-	showText('[B]Updates and Information[/B]', compfile)
+	compfile = open(LOCALNEWS).read()
+	showText('[B]News and Info[/B]', compfile)
 
 
 def showText(heading, text):
-	id = 10147
-	xbmc.executebuiltin('ActivateWindow(%d)' % id)
-	xbmc.sleep(500)
-	win = xbmcgui.Window(id)
-	retry = 50
-	while (retry > 0):
-		try:
-			xbmc.sleep(10)
-			retry -= 1
-			win.getControl(1).setLabel(heading)
-			win.getControl(5).setText(text)
-			quit()
-			return
-		except:
-			pass
+	return xbmcgui.Dialog().textviewer(heading, text)
+

@@ -79,7 +79,7 @@ def addFavourite(meta, content):
 		dbcon.close()
 
 		control.refresh()
-		control.notification(title=title, message='Added to Favorites', icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=title, message=32117)
 	except:
 		return
 
@@ -124,7 +124,7 @@ def addEpisodes(meta, content):
 		dbcon.close()
 
 		control.refresh()
-		control.notification(title=title, message='Added to Favorites', icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=title, message=32117)
 	except:
 		return
 
@@ -146,7 +146,7 @@ def deleteFavourite(meta, content):
 		dbcon.close()
 
 		control.refresh()
-		control.notification(title=title, message='Removed From Favorites', icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=title, message=32118)
 	except:
 		return
 

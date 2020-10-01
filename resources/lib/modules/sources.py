@@ -447,7 +447,7 @@ class Sources:
 		string1 = control.lang(32404) # msgid "[COLOR cyan]Time elapsed:[/COLOR]  %s seconds"
 		string2 = control.lang(32405) # msgid "%s seconds"
 		string3 = control.lang(32406) # msgid "[COLOR cyan]Remaining providers:[/COLOR] %s"
-		string4 = control.lang(32601) # msgid "[COLOR cyan]Total[/COLOR]"
+		string4 = control.lang(32601) # msgid "[COLOR cyan]Total:[/COLOR]"
 
 		try: timeout = int(control.setting('scrapers.timeout.1'))
 		except: pass
@@ -462,7 +462,7 @@ class Sources:
 		pre_emp_res = str(control.setting('preemptive.res'))
 		source_4k = source_1080 = source_720 = source_sd = total = 0
 		total_format = '[COLOR %s][B]%s[/B][/COLOR]'
-		pdiag_format = '4K:  %s  |  1080p:  %s  |  720p:  %s  |  SD:  %s[CR]%s:  %s '
+		pdiag_format = '4K:  %s  |  1080p:  %s  |  720p:  %s  |  SD:  %s'
 
 		for i in list(range(0, 2 * timeout)):
 			try:
@@ -508,10 +508,10 @@ class Sources:
 
 				try:
 					info = [sourcelabelDict[x.getName()] for x in threads if x.is_alive()]
-					line1 = pdiag_format % (source_4k_label, source_1080_label, source_720_label, source_sd_label, str(string4), source_total_label)
-					line2 = string1 % round(time.time() - start_time, 1)
+					line1 = pdiag_format % (source_4k_label, source_1080_label, source_720_label, source_sd_label)
+					line2 = string4 % source_total_label + '     ' + string1 % round(time.time() - start_time, 1)
 
-					if len(info) > 6: line3 = string3 % str(len(info))
+					if len(info) > 8: line3 = string3 % str(len(info))
 					elif len(info) > 0: line3 = string3 % (', '.join(info))
 					else: break
 
@@ -896,14 +896,12 @@ class Sources:
 					try:
 						pmTorrent_List = copy.deepcopy(self.sources)
 						pmTorrent_List = [i for i in pmTorrent_List if 'magnet:' in i['url']]
-						if pmTorrent_List == []:
-							raise Exception()
+						if pmTorrent_List == []: raise Exception()
 						pmCached = self.pm_cache_chk_list(pmTorrent_List, d)
 						# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if re.match(r'^uncached.*torrent', i['source'])]
 						if control.setting('pm.remove.uncached') == 'true':
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if re.match(r'^cached.*torrent', i['source'])]
-						else:
-							filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if 'magnet:' in i['url']]
+						else: filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if 'magnet:' in i['url']]
 					except:
 						log_utils.error()
 						pass
@@ -916,14 +914,12 @@ class Sources:
 					try:
 						rdTorrent_List = copy.deepcopy(self.sources)
 						rdTorrent_List = [i for i in rdTorrent_List if 'magnet:' in i['url']]
-						if rdTorrent_List == []:
-							raise Exception()
+						if rdTorrent_List == []: raise Exception()
 						rdCached = self.rd_cache_chk_list(rdTorrent_List, d)
 						# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if re.match(r'^uncached.*torrent', i['source'])]
 						if control.setting('rd.remove.uncached') == 'true':
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if re.match(r'^cached.*torrent', i['source'])]
-						else:
-							filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if 'magnet:' in i['url']]
+						else: filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if 'magnet:' in i['url']]
 					except:
 						log_utils.error()
 						pass
@@ -936,15 +932,13 @@ class Sources:
 					try:
 						adTorrent_List = copy.deepcopy(self.sources)
 						adTorrent_List = [i for i in adTorrent_List if 'magnet:' in i['url']]
-						if adTorrent_List == []:
-							raise Exception()
+						if adTorrent_List == []: raise Exception()
 						adCached = self.ad_cache_chk_list(adTorrent_List, d)
 						if not adCached: raise Exception
 						# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in adCached if re.match(r'^uncached.*torrent', i['source'])]
 						if control.setting('ad.remove.uncached') == 'true':
 							filter += [dict(i.items() + [('debrid', d.name)]) for i in adCached if re.match(r'^cached.*torrent', i['source'])]
-						else:
-							filter += [dict(i.items() + [('debrid', d.name)]) for i in adCached if 'magnet:' in i['url']]
+						else: filter += [dict(i.items() + [('debrid', d.name)]) for i in adCached if 'magnet:' in i['url']]
 					except:
 						log_utils.error()
 						pass
@@ -1093,22 +1087,22 @@ class Sources:
 			if direct:
 				self.url = url
 				return url
-			try:
-				if debrid_provider == 'Real-Debrid':
-					from resources.lib.debrid.realdebrid import RealDebrid as debrid_function
-				elif debrid_provider == 'Premiumize.me':
-					from resources.lib.debrid.premiumize import Premiumize as debrid_function
-				elif debrid_provider == 'AllDebrid':
-					from resources.lib.debrid.alldebrid import AllDebrid as debrid_function
-
-				call = [i[1] for i in self.sourceDict if i[0] == item['provider']][0]
-				u = url = call.resolve(url)
-				url = debrid_function().unrestrict_link(url)
-				self.url = url
-				return url
-			except:
-				log_utils.error()
-				return
+			else:
+				try:
+					if debrid_provider == 'Real-Debrid':
+						from resources.lib.debrid.realdebrid import RealDebrid as debrid_function
+					elif debrid_provider == 'Premiumize.me':
+						from resources.lib.debrid.premiumize import Premiumize as debrid_function
+					elif debrid_provider == 'AllDebrid':
+						from resources.lib.debrid.alldebrid import AllDebrid as debrid_function
+					call = [i[1] for i in self.sourceDict if i[0] == item['provider']][0]
+					u = url = call.resolve(url)
+					url = debrid_function().unrestrict_link(url)
+					self.url = url
+					return url
+				except:
+					log_utils.error()
+					return
 
 
 	# @timeIt
@@ -1155,10 +1149,10 @@ class Sources:
 					for x in range(3600):
 						try:
 							if control.monitor.abortRequested():
-								control.notification(title='default', message='Sources Cancelled', icon='default', sound=(control.setting('notification.sound') == 'true'))
+								control.notification(message=32400)
 								return sys.exit()
 							if progressDialog.iscanceled():
-								control.notification(title='default', message='Sources Cancelled', icon='default', sound=(control.setting('notification.sound') == 'true'))
+								control.notification(message=32400)
 								return progressDialog.close()
 						except: pass
 
@@ -1173,10 +1167,10 @@ class Sources:
 					for x in range(30):
 						try:
 							if control.monitor.abortRequested():
-								control.notification(title='default', message='Sources Cancelled', icon='default', sound=(control.setting('notification.sound') == 'true'))
+								control.notification(message=32400)
 								return sys.exit()
 							if progressDialog.iscanceled():
-								control.notification(title='default', message='Sources Cancelled', icon='default', sound=(control.setting('notification.sound') == 'true'))
+								control.notification(message=32400)
 								return progressDialog.close()
 						except:
 							log_utils.error()
@@ -1267,7 +1261,7 @@ class Sources:
 			except: pass
 			if not debrid_files:
 				control.hide()
-				return control.notification(message='Error with Debrid Pack')
+				return control.notification(message=32399)
 			debrid_files = sorted(debrid_files, key=lambda k: k['filename'].lower())
 			display_list = ['%02d | [B]%.2f GB[/B] | [I]%s[/I]' % \
 							(count, i['size'], i['filename'].upper()) for count, i in enumerate(debrid_files, 1)]
@@ -1310,9 +1304,9 @@ class Sources:
 			control.sleep(200) # added 5/14
 			control.hide()
 			if self.url == 'close://':
-				control.notification(title='default', message='Sources Cancelled', icon='default', sound=(control.setting('notification.sound') == 'true'))
+				control.notification(message=32400)
 			else:
-				control.notification(title='default', message=32401, icon='default', sound=(control.setting('notification.sound') == 'true'))
+				control.notification(message=32401)
 			control.cancelPlayback()
 		except:
 			log_utils.error()
@@ -1322,7 +1316,6 @@ class Sources:
 		lang = 'en'
 		try:
 			t = trakt.getMovieAliases(imdb) if content == 'movie' else trakt.getTVShowAliases(imdb)
-			# log_utils.log('t = %s' % t, __name__, log_utils.LOGDEBUG)
 			if not t: return []
 			t = [i for i in t if i.get('country', '').lower() in [lang, '', 'us']]
 			# log_utils.log('t = %s' % t, __name__, log_utils.LOGDEBUG)

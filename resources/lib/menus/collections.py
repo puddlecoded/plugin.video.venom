@@ -1120,7 +1120,7 @@ class Collections:
 	def movieDirectory(self, items, next=True):
 		if not items: 
 			control.hide()
-			control.notification(title=32000, message=33049, icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=32000, message=33049)
 			sys.exit()
 
 		sysaddon = sys.argv[0]

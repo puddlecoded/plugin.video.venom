@@ -58,13 +58,13 @@ def playlistShow():
 		control.execute('ActivateWindow(%d)' % videoplaylistID)
 	else:
 		if notification:
-			control.notification(title=35522, message='Playlist is empty', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=35522, message=32119)
 
 
 def playlistClear():
 	playlist().clear()
 	if notification:
-		control.notification(title=35522, message=35521,  icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=35522, message=35521)
 
 
 def playListItems():
@@ -89,7 +89,7 @@ def playlistAdd(name, url, meta, art):
 	# if not name is None: name.encode('utf-8')
 	labelPosition = position(label = name)
 	if labelPosition >= 0:
-		return control.notification(title=35522, message='Title already in playlist', icon='default', sound=(control.setting('notification.sound') == 'true'))
+		return control.notification(title=35522, message=32120)
 	if isinstance(meta, basestring):
 		meta = json.loads(meta)
 	if isinstance(art, basestring):
@@ -104,7 +104,7 @@ def playlistAdd(name, url, meta, art):
 	item.addContextMenuItems(cm)
 	playlist().add(url=url, listitem=item)
 	if notification:
-		control.notification(title=35522, message=str(name) + ' Added to playlist', icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(title=35522, message=control.lang(32121) % str(name))
 
 
 def playlistRemove(name):
@@ -113,8 +113,8 @@ def playlistRemove(name):
 		rpc = '{"jsonrpc": "2.0", "method": "Playlist.Remove", "params": {"playlistid": %s, "position": %s}, "id": 1 }' % (Id, labelPosition)
 		control.jsonrpc(rpc)
 		if notification:
-			control.notification(title=35522, message=str(name) + ' Removed from playlist', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=35522, message=control.lang(32122) % str(name))
 	if labelPosition == -1:
 		if notification:
-			control.notification(title=35522, message='Not found in playlist', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=35522, message=32123)
 	# control.refresh()

@@ -153,7 +153,7 @@ def cache_clean(duration = 1209600):
 def cache_version_check():
 	if _find_cache_version():
 		cache_clear_all()
-		control.notification(title='default', message=32057, icon='default', sound=(control.setting('notification.sound') == 'true'))
+		control.notification(message=32057)
 
 
 def cache_clear_all():

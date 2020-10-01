@@ -265,4 +265,4 @@ class Database(object):
 				message = self._addon().getLocalizedString(33043).encode('utf-8')
 				icon = xbmc.translatePath(xbmcaddon.Addon('script.gaia.resources').getAddonInfo('path').decode('utf-8'))
 				icon = os.path.join(icon, 'resources', 'media', 'notifications', 'information.png')
-				xbmcgui.Dialog().notification(title, message, icon = icon)
+				xbmcgui.Dialog().notification(title, message, icon=icon)

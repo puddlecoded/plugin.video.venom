@@ -676,7 +676,7 @@ class Bookmarks:
 			hours, minutes = divmod(minutes, 60)
 			label = ('%02d:%02d:%02d' % (hours, minutes, seconds)).encode('utf-8')
 			message = control.lang(32660)
-			control.notification(title=name, message=message + '(' + label + ')', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=name, message=message + '(' + label + ')')
 		dbcur.connection.commit()
 		dbcon.close()
 
@@ -689,6 +689,6 @@ class Bookmarks:
 			if seekable or percent == 100:
 				trakt.scrobbleMovie(imdb, percent) if media_type == 'movie' else trakt.scrobbleEpisode(tvdb, season, episode, percent)
 				if control.setting('trakt.scrobble.notify') == 'true':
-					control.notification(message='Trakt: Scrobbled', sound=(control.setting('notification.sound') == 'true'))
+					control.notification(message=32088)
 		except:
 			log_utils.error()

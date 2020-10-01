@@ -246,7 +246,7 @@ class Navigator:
 		self.addDirectoryItem(32362, 'openSettings&query=1.1', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		#-- Playback - 3
 		self.addDirectoryItem(32045, 'openSettings&query=3.1', 'tools.png', 'DefaultAddonService.png', isFolder=False)
-		#-- Api-keys - 8
+		#-- Accounts - 8
 		self.addDirectoryItem(32044, 'openSettings&query=8.0', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		#-- Downloads - 10
 		self.addDirectoryItem(32048, 'openSettings&query=10.0', 'tools.png', 'DefaultAddonService.png', isFolder=False)
@@ -255,7 +255,6 @@ class Navigator:
 		self.addDirectoryItem(32556, 'library_Navigator', 'tools.png', 'DefaultAddonService.png', isFolder=True)
 		self.addDirectoryItem(32049, 'viewsNavigator', 'tools.png', 'DefaultAddonService.png', isFolder=True)
 		self.addDirectoryItem(32361, 'resetViewTypes', 'tools.png', 'DefaultAddonService.png', isFolder=False)
-		# self.addDirectoryItem(32073, 'authTrakt&opensettings=false', 'trakt.png', 'DefaultAddonService.png', isFolder=False) # Uses My Accounts now
 		self.endDirectory()
 
 
@@ -312,27 +311,9 @@ class Navigator:
 
 
 	def premium_services(self):
+		self.addDirectoryItem(40059, 'ad_ServiceNavigator', 'alldebrid.png', 'DefaultAddonService.png')
 		self.addDirectoryItem(40057, 'pm_ServiceNavigator', 'premiumize.png', 'DefaultAddonService.png')
 		self.addDirectoryItem(40058, 'rd_ServiceNavigator', 'realdebrid.png', 'DefaultAddonService.png')
-		self.addDirectoryItem(40059, 'ad_ServiceNavigator', 'alldebrid.png', 'DefaultAddonService.png')
-		self.endDirectory()
-
-
-	def premiumize_service(self):
-		if control.setting('premiumize.token'):
-			self.addDirectoryItem('Premiumize: My Files', 'pm_MyFiles', 'premiumize.png', 'DefaultAddonService.png')
-			self.addDirectoryItem('Premiumize: Transfers', 'pm_Transfers', 'premiumize.png', 'DefaultAddonService.png')
-			self.addDirectoryItem('Premiumize: Account Info', 'pm_AccountInfo', 'premiumize.png', 'DefaultAddonService.png', isFolder=False)
-		self.addDirectoryItem('Premiumize: (Re)Authorize', 'pm_Authorize&opensettings=false', 'premiumize.png', 'DefaultAddonService.png', isFolder=False)
-		self.endDirectory()
-
-
-	def realdebrid_service(self):
-		if control.setting('realdebrid.token'):
-			self.addDirectoryItem('Real-Debrid: Torrent Transfers', 'rd_UserTorrentsToListItem', 'realdebrid.png', 'DefaultAddonService.png')
-			self.addDirectoryItem('Real-Debrid: My Downloads', 'rd_MyDownloads&query=1', 'realdebrid.png', 'DefaultAddonService.png')
-			self.addDirectoryItem('Real-Debrid: Account Info', 'rd_AccountInfo', 'realdebrid.png', 'DefaultAddonService.png',isFolder=False )
-		self.addDirectoryItem('Real-Debrid: (Re)Authorize', 'rd_Authorize', 'realdebrid.png', 'DefaultAddonService.png',isFolder=False )
 		self.endDirectory()
 
 
@@ -341,7 +322,28 @@ class Navigator:
 			self.addDirectoryItem('All-Debrid: Cloud Storage', 'ad_CloudStorage', 'alldebrid.png', 'DefaultAddonService.png')
 			self.addDirectoryItem('All-Debrid: Transfers', 'ad_Transfers', 'alldebrid.png', 'DefaultAddonService.png')
 			self.addDirectoryItem('All-Debrid: Account Info', 'ad_AccountInfo', 'alldebrid.png', 'DefaultAddonService.png', isFolder=False)
-		self.addDirectoryItem('All-Debrid: (Re)Authorize', 'ad_Authorize', 'alldebrid.png', 'DefaultAddonService.png', isFolder=False)
+		else:
+			self.addDirectoryItem('[I]Please visit My Accounts for setup[/I]', 'openMyAccount&amp;query=1.4', 'alldebrid.png', 'DefaultAddonService.png', isFolder=False)
+		self.endDirectory()
+
+
+	def premiumize_service(self):
+		if control.setting('premiumize.token'):
+			self.addDirectoryItem('Premiumize: My Files', 'pm_MyFiles', 'premiumize.png', 'DefaultAddonService.png')
+			self.addDirectoryItem('Premiumize: Transfers', 'pm_Transfers', 'premiumize.png', 'DefaultAddonService.png')
+			self.addDirectoryItem('Premiumize: Account Info', 'pm_AccountInfo', 'premiumize.png', 'DefaultAddonService.png', isFolder=False)
+		else:
+			self.addDirectoryItem('[I]Please visit My Accounts for setup[/I]', 'openMyAccount&amp;query=1.11', 'premiumize.png', 'DefaultAddonService.png', isFolder=False)
+		self.endDirectory()
+
+
+	def realdebrid_service(self):
+		if control.setting('realdebrid.token'):
+			self.addDirectoryItem('Real-Debrid: Torrent Transfers', 'rd_UserTorrentsToListItem', 'realdebrid.png', 'DefaultAddonService.png')
+			self.addDirectoryItem('Real-Debrid: My Downloads', 'rd_MyDownloads&query=1', 'realdebrid.png', 'DefaultAddonService.png')
+			self.addDirectoryItem('Real-Debrid: Account Info', 'rd_AccountInfo', 'realdebrid.png', 'DefaultAddonService.png',isFolder=False )
+		else:
+			self.addDirectoryItem('[I]Please visit My Accounts for setup[/I]', 'openMyAccount&amp;query=1.18', 'realdebrid.png', 'DefaultAddonService.png', isFolder=False)
 		self.endDirectory()
 
 
@@ -381,13 +383,13 @@ class Navigator:
 	def accountCheck(self):
 		if not traktCredentials and not imdbCredentials:
 			control.hide()
-			control.notification(title='default', message=32042, icon='WARNING', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(message=32042, icon='WARNING')
 			sys.exit()
 
 
 	def infoCheck(self, version):
 		try:
-			control.notification(title='default', message=32074, icon='WARNING',  time=5000, sound=(control.setting('notification.sound') == 'true'))
+			control.notification(message=32074, icon='WARNING')
 			return '1'
 		except:
 			return '1'
@@ -400,7 +402,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_all()
-			control.notification(title='default', message='All Cache Successfully Cleared!', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(message=32089)
 		except:
 			log_utils.error()
 			pass
@@ -413,7 +415,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_providers()
-			control.notification(title='default', message='Provider Cache Successfully Cleared!', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(message=32090)
 		except:
 			log_utils.error()
 			pass
@@ -426,7 +428,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_meta()
-			control.notification(title='default', message='Metadata Cache Successfully Cleared!', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(message=32091)
 		except:
 			log_utils.error()
 			pass
@@ -439,7 +441,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear()
-			control.notification(title='default', message='Cache Successfully Cleared!', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(message=32092)
 		except:
 			log_utils.error()
 			pass
@@ -452,7 +454,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_search()
-			control.notification(title='default', message='Search History Successfully Cleared!', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(message=32093)
 		except:
 			log_utils.error()
 			pass
@@ -465,7 +467,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_SearchPhrase(table, name)
-			control.notification(title='default', message='Search Phrase Successfully Cleared!', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(message=32094)
 		except:
 			log_utils.error()
 			pass
@@ -478,7 +480,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_bookmarks()
-			control.notification(title='default', message='Bookmarks Successfully Cleared!', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(message=32100)
 		except:
 			log_utils.error()
 			pass
@@ -491,7 +493,7 @@ class Navigator:
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_bookmark(name, year)
-			control.notification(title=name, message='Bookmark Successfully Cleared!', icon='default', sound=(control.setting('notification.sound') == 'true'))
+			control.notification(title=name, message=32102)
 		except:
 			log_utils.error()
 			pass
