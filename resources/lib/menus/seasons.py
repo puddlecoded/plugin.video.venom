@@ -238,8 +238,7 @@ class Seasons:
 				pass
 #############################
 
-		if tvdb == '0':
-			return None
+		if tvdb == '0': return None
 		try:
 			url = self.tvdb_info_link % (tvdb, 'en')
 			data = requests.get(url).content # sometimes one api key pulls empty xml while another does not
@@ -850,7 +849,7 @@ class Seasons:
 ####-Context Menu and Overlays-####
 				cm = []
 				if self.traktCredentials:
-					cm.append((traktManagerMenu, 'RunPlugin(%s?action=traktManager&name=%s&imdb=%s&tvdb=%s&season=%s)' % (sysaddon, systitle, imdb, tvdb, season)))
+					cm.append((traktManagerMenu, 'RunPlugin(%s?action=tools_traktManager&name=%s&imdb=%s&tvdb=%s&season=%s)' % (sysaddon, systitle, imdb, tvdb, season)))
 
 				try:
 					overlay = int(playcount.getSeasonOverlay(indicators, imdb, tvdb, season))
@@ -879,7 +878,7 @@ class Seasons:
 
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=library_tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (sysaddon, systitle, year, imdb, tmdb, tvdb)))
-				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
+				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 ####################################
 
 				if not i.get('trailer'):

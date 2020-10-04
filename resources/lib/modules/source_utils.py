@@ -82,8 +82,6 @@ def seas_ep_filter(season, episode, release_title, split=False):
 		return None
 
 
-
-
 def episode_extras_filter():
 	return ['extra', 'extras', 'deleted', 'unused', 'footage', 'inside', 'blooper', 'bloopers', 'making of', 'feature', 'sample']
 

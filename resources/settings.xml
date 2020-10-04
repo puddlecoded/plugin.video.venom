@@ -13,13 +13,12 @@
 		<setting id="page.item.limit" type="slider" label="32011" default="20" range="10,60" option="int" />
 		<setting id="fanart" type="bool" label="32318" default="true" />
 		<setting id="disable.fanarttv" type="bool" label="32012" default="false" />
-		<setting id="clear.meta" type="action" label="32612" action="RunPlugin(plugin://plugin.video.venom/?action=cache_clearMeta)" />
-		<setting id="disable.fanarttv.help" type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=disableFanartTV)" />
+		<setting type="action" label="32612" action="RunPlugin(plugin://plugin.video.venom/?action=cache_clearMeta)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=disableFanartTV)" />
 		<setting id="disable.player.art" type="bool" label="35525" default="false" enable="!eq(-3,true)" />
 		<setting id="hidecinema" type="bool" label="32571" default="false" />
 		<setting id="hidecinema.rollback" type="slider" label="40063" enable="eq(-1,true)" default="6" range="1,12" option="int" />
 		<setting id="movie.unaired.identify" type="select" label="35526" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="8" />
-		<setting id="newmovies.widget" type="select" label="32320" lvalues="32302|32321|32322|32323|32324|32580" default="5" />
 		<setting id="notification.sound" type="bool" label="35527" default="false" />
 		<setting id="general.checkAddonUpdates" type="bool" label="35524" default="true" />
 		<setting type="lsep" label="32003" />
@@ -88,20 +87,17 @@
 	<!-- TV Shows - 2 -->
 	<category label="32641">
 		<setting id="flatten.tvshows" type="bool" label="32317" default="false" />
-		<setting id="trakt.isauthed" type="text" default="" visible="false" />
-		<setting id="tv.widget" type="enum" label="32325" lvalues="32302|32326" default="1" visible="eq(-1,)" />
-		<setting id="tv.widget.alt" type="select" label="32325" lvalues="32302|32326|32327|32328" default="2" visible="!eq(-2,)" />
 		<setting id="tv.specials" type="bool" label="32649" default="false" />
 		<setting id="showunaired" type="bool" label="32570" default="true" />
 		<setting id="unaired.identify" type="select" label="32608" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="8" enable="eq(-1,true)" />
 		<setting id="tvshows.unwatched.enabled" type="bool" label="33891" default="false" />
 		<setting id="multi.unwatched.enabled" type="bool" label="    allow multi Episodes to Show Unwatched Count" default="false" visible="eq(-1,true)"/>
-		<setting id="multi.unwatched.help" type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=multi.unwatched)" visible="eq(-2,true)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=multi.unwatched)" visible="eq(-2,true)" />
 		<setting id="tvshows.calendar.extended" type="bool" label="32023" default="false" />
 		<setting type="lsep" label="40025" />
-		<setting id="install.upnext" type="action" action="InstallAddon(service.upnext)" label="40027" option="close" visible="!System.HasAddon(service.upnext)" />
+		<setting type="action" action="InstallAddon(service.upnext)" label="40027" option="close" visible="!System.HasAddon(service.upnext)" />
 		<setting id="enable.upnext" type="bool" default="false" label="40028" visible="System.HasAddon(service.upnext)" />
-		<setting id="upnext.help" type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=upnext)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=upnext)" />
 		<setting id="upnext.time" type="slider" enable="eq(-2,true)" visible="eq(-2,true)" default="60" label="40029" option="int" range="10,60" />
 		<setting id="auto.playlistcreate" type="bool" label="40030" default="true" />
 		<setting type="lsep" label="32375" />
@@ -109,7 +105,7 @@
 		<!-- <setting id="tvshows.networks.filter" type="select" label="32379" lvalues="32380|32381|32382|32383|32384|32385" default="4" enable="eq(-1, 1)" /> -->
 		<setting label="32004" type="lsep" />
 		<setting id="tvshows.direct" type="bool" label="35492" default="false" visible="!eq(-17,)" />
-		<setting id="tvshows.direct.help" type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=directProgress)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=directProgress)" />
 		<setting id="sort.shows.type" type="select" label="35191" lvalues="33564|33039|35187|35188|35391|35392|35393" default="0" />
 		<setting id="sort.shows.order" type="enum" label="33679" lvalues="33649|33650" default="0" subsetting="true" enable="!eq(-1,0)" />
 		<setting id="sort.shows.watchlist.type" type="select" label="35574" lvalues="33564|33039|35187|35188|35391|35392|35393" default="5" visible="!eq(-20,)" />
@@ -138,10 +134,10 @@
 
 	<!-- Providers - 4 -->
 	<category label="32345">
-		<setting id="fenomscrapers.opensettings" type="action" label="32651" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=fenomscrapersSettings&amp;opensettings=true&amp;query=4.1)" />
-		<setting id="fenomscrapers.help" type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=Providers)" />
+		<setting type="action" label="32651" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_fenomscrapersSettings&amp;opensettings=true&amp;query=4.1)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=Providers)" />
 		<setting type="lsep" label="40067" />
-		<setting id="cache.clearSources" type="action" label="32611" action="RunPlugin(plugin://plugin.video.venom/?action=cache_clearSources)" />
+		<setting type="action" label="32611" action="RunPlugin(plugin://plugin.video.venom/?action=cache_clearSources)" />
 	</category>
 
 	<!-- Source Options - 5 -->
@@ -167,7 +163,7 @@
 		<setting id="source.enablesizelimit" type="bool" label="32079" default="false" />
 		<setting id="source.sizelimit" type="slider" subsetting="true" label="32080" option="int" range="0,1,300" default="10" visible="eq(-1,true)" />
 		<setting id="hosts.sort.provider" type="bool" label="32342" default="false" />
-		<setting id="hosts.sort.help" type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=DebridSort)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=DebridSort)" />
 		<setting id="remove.duplicates" type="bool" label="32035" default="true" />
 		<setting id="remove.duplicates.logging" type="bool" label="   Do not spam log with removed duplicates" default="true" enable="eq(-1,true)" />
 		<setting id="remove.hevc" type="bool" label="32363" default="false" />
@@ -193,9 +189,11 @@
 	<!-- Trakt - 7 -->
 	<category label ="32315">
 		<setting type="lsep" label="32315" />
-		<setting id="myaccount.opensettings" type="action" label="Open My Accounts Addon" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=openMyAccount&amp;opensettings=true&amp;query=7.1)" />
+		<setting type="action" label="Open My Accounts Addon" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=7.1)" />
+		<setting type="action" label="sync(re) with My Accounts" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_syncMyAccount&amp;opensettings=true&amp;query=7.2)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=myAccountsSync)" />
 		<setting id="trakt.username" type="text" default="" label="40062" enable="false" visible="true" />
-		<setting id="myaccount.trakt" type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=traktAcctMyAccounts)" visible="!eq(-1,)" />
+		<setting type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=tools_traktAcctMyAccounts)" visible="!eq(-1,)" />
 		<setting id="trakt.token" type="text" visible="false" label="" default="" />
 		<setting id="trakt.refresh" type="text" visible="false" label="" default="" />
 		<setting id="trakt.server.notifications" type="bool" label="33051" default="true" visible="!eq(-4,)" />
@@ -213,32 +211,32 @@
 
 	<!-- Accounts - 8 -->
 	<category label="32346">
-		<setting id="myaccount.opensettings2" type="action" label="Open My Accounts Addon" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=openMyAccount&amp;opensettings=true&amp;query=8.0)" />
-		<setting type="action" label="sync(re) with My Accounts" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=syncMyAccount&amp;opensettings=true&amp;query=8.1)" />
-		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=myAccountsSync)" />
+		<setting type="action" label="Open My Accounts Addon" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=8.0)" />
+		<setting type="action" label="sync(re) with My Accounts" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_syncMyAccount&amp;opensettings=true&amp;query=8.1)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=myAccountsSync)" />
 		<setting type="lsep" label="Acount Info from My Accounts" />
 		<setting id="seperator" type="bool" visible="false" /> <!-- trick to ensures that a separator is drawn. -->
 
 		<setting type="lsep" label="All Debrid" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=openMyAccount&amp;opensettings=true&amp;query=1.4)" visible="eq(2,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=1.4)" visible="eq(2,)" />
 		<setting id="alldebrid.enable" type="bool" label="32081" default="true" visible="!eq(2,)" />
 		<setting id="alldebrid.token" label="alldebrid token" type="text" default="" visible="false" />
 		<setting id="alldebrid.username" label="40006" type="text" default="" enable="false" visible="!eq(-1,) + eq(-2,true)" />
 		<setting id="alldebrid.priority" type="slider" label="40005" option="int" range="1,1,10" default="10" visible="!eq(-2,) + eq(-3,true)" />
 		<setting id="alldebrid.saveToCloud" type="bool" label="32684" default="false" enable="eq(-4,true)" visible="!eq(-3,) + eq(-4,true)" />
-		<setting type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=adAcctMyAccounts)" visible="!eq(-4,) + eq(-5,true)" />
+		<setting type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=tools_adAcctMyAccounts)" visible="!eq(-4,) + eq(-5,true)" />
 
 		<setting type="lsep" label="Premiumize.me" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=openMyAccount&amp;opensettings=true&amp;query=1.11)" visible="eq(2,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=1.11)" visible="eq(2,)" />
 		<setting id="premiumize.enable" type="bool" label="32081" default="true" visible="!eq(1,)" />
 		<setting id="premiumize.token" label="premiumize token" type="text" default="" visible="false" />
 		<setting id="premiumize.username" label="40006" type="text" default="" enable="false" visible="!eq(-1,) + eq(-2,true)" />
 		<setting id="premiumize.priority" type="slider" label="40005" option="int" range="1,1,10" default="10" visible="!eq(-2,) + eq(-3,true)" />
 		<setting id="premiumize.saveToCloud" type="bool" label="32684" default="false" visible="!eq(-3,) + eq(-4,true)" />
-		<setting type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=pmAcctMyAccounts)" visible="!eq(-4,) + eq(-5,true)" />
+		<setting type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=tools_pmAcctMyAccounts)" visible="!eq(-4,) + eq(-5,true)" />
 
 		<setting type="lsep" label="Real-Debrid" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=openMyAccount&amp;opensettings=true&amp;query=1.18)" visible="eq(2,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=1.18)" visible="eq(2,)" />
 		<setting id="realdebrid.enable" type="bool" label="32081" default="true" visible="!eq(1,)" />
 		<setting id="realdebrid.token" label="realdebrid token" type="text" default="" visible="false" />
 		<setting id="realdebrid.username" label="40006" type="text" default="" enable="false" visible="!eq(-1,) + eq(-2,true)" />
@@ -247,27 +245,27 @@
 		<setting id="realdebrid.secret" label="realdebrid secret" type = "text" default="" visible="false" />
 		<setting id="realdebrid.priority" type="slider" label="40005" option="int" range="1,1,10" default="10" visible="!eq(-5,) + eq(-6,true)" />
 		<setting id="realdebrid.saveToCloud" type="bool" label="32684" default="false" visible="!eq(-6,) +eq(-7,true)" />
-		<setting type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=rdAcctMyAccounts)" visible="!eq(-7,) + eq(-8,true)" />
+		<setting type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=tools_rdAcctMyAccounts)" visible="!eq(-7,) + eq(-8,true)" />
 
 		<setting type="lsep" label="FANART.TV" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=openMyAccount&amp;opensettings=true&amp;query=2.1)" visible="eq(1,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=2.1)" visible="eq(1,)" />
 		<setting id="fanart.tv.api.key" type="text" label="Fanart API" default="" enable="false"/>
 
 		<setting type="lsep" label="TMDb" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=openMyAccount&amp;opensettings=true&amp;query=2.4)" visible="eq(1,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=2.4)" visible="eq(1,)" />
 		<setting id="tmdb.api.key" type="text" option="hidden" label="TMDb API" default="" enable="false"/>
 		<setting id="tmdb.username" type="text" label="TMDb username" default="" enable="false" />
 		<setting id="tmdb.password" type="text" label="TMDb password" default="" enable="false" />
-		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=tmdbUser)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=tmdbUser)" />
 		<setting id="tmdb.session_id" type="text" default="" label="session_id" enable="false" />
 
 		<setting type="lsep" label="TVDb" />
 		<setting id="tvdb.api.key" type="text" option = 'hidden' label="TVDb API key (legacy)" default="" enable="false"/>
-		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=tvdbApiKey)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=tvdbApiKey)" />
 		<setting id="tvdb.jw" type="text" default="" visible="false" />
 
 		<setting type="lsep" label="IMDb" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=openMyAccount&amp;opensettings=true&amp;query=2.18)" visible="eq(1,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=2.18)" visible="eq(1,)" />
 		<setting id="imdb.user" type="text" label="32303" default="" enable="false"/>
 	</category>
 
@@ -323,9 +321,9 @@
 		<setting id="debug.location" type="enum" label="32617" lvalues="32618|32619" default="1" enable="eq(-1,true)" />
 		<setting type="sep" />
 		<setting id="dev.mode.enable" type="bool" label="Developer mode" default="false" />
-		<setting type="action" label="[COLOR FFA0C12C] -- Dev Mode Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=devMode)" />
-		<setting type="action" label="Flip reuselanguageinvoker" action="RunPlugin(plugin://plugin.video.venom/?action=setReuseLanguageInvoker)" visible="eq(-2,true)" />
-		<setting type="action" label="[COLOR FFA0C12C] -- reuselanguageinvoker Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=ShowHelp&amp;name=langinvoker)" visible="eq(-3,true)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Dev Mode Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=devMode)" />
+		<setting type="action" label="Flip reuselanguageinvoker" action="RunPlugin(plugin://plugin.video.venom/?action=tools_LanguageInvoker)" visible="eq(-2,true)" />
+		<setting type="action" label="[COLOR FFA0C12C] -- reuselanguageinvoker Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=langinvoker)" visible="eq(-3,true)" />
 		<setting id="dev.disable.single" type="bool" label="Disable single episode scraping" default="false" visible="eq(-4,true)" />
 <!-- 		<setting id="dev.disable.single.filter" type="bool" label="    Disable single scraper filter" default="false" visible="eq(-5,true)" enable="eq(-1,false)" /> -->
 		<setting id="dev.disable.season.packs" type="bool" label="Disable season pack scraping" default="false" visible="eq(-5,true)" />
@@ -342,6 +340,6 @@
 		<setting type="action" label="32613" action="RunPlugin(plugin://plugin.video.venom/?action=cache_clearCache)" />
 		<setting type="action" label="32614" action="RunPlugin(plugin://plugin.video.venom/?action=cache_clearSearch)" />
 		<setting type="action" label="32615" action="RunPlugin(plugin://plugin.video.venom/?action=cache_clearBookmarks)" />
-		<setting type="action" label="32505" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=UpNextSettings&amp;opensettings=true&amp;query=13.7)" />
+		<setting type="action" label="32505" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_UpNextSettings&amp;opensettings=true&amp;query=13.7)" />
 	</category>
 </settings>

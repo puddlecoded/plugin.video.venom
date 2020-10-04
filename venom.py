@@ -50,35 +50,12 @@ if action is None:
 	if cache._find_cache_version():
 		run = 'true'
 	if run == 'true':
-		control.execute('RunPlugin(plugin://plugin.video.venom/?action=cleanSettings)')
+		control.execute('RunPlugin(plugin://plugin.video.venom/?action=tools_cleanSettings)')
 		from resources.lib.modules import changelog
 		changelog.get()
 		control.setSetting(id='first.info', value='false')
 	cache.cache_version_check()
 	navigator.Navigator().root()
-
-
-####################################################
-#---News, Updates, and Help
-####################################################
-elif action == 'infoCheck':
-	from resources.lib.menus import navigator
-	navigator.Navigator().infoCheck('')
-
-elif action == 'ShowNews':
-	from resources.lib.modules import newsinfo
-	newsinfo.news()
-
-elif action == 'ShowChangelog':
-	from resources.lib.modules import changelog
-	changelog.get()
-
-elif action == 'ShowHelp':
-	from resources.help import help
-	help.get(name)
-
-elif action == 'setReuseLanguageInvoker':
-	control.set_reuselanguageinvoker()
 
 
 ####################################################
@@ -115,10 +92,6 @@ elif action == 'tmdbmovies':
 elif action == 'tmdbmoviePage':
 	from resources.lib.menus import movies
 	movies.Movies().getTMDb(url)
-
-elif action == 'newMovies':
-	from resources.lib.menus import movies
-	movies.Movies().newMovies()
 
 elif action == 'movieSearch':
 	from resources.lib.menus import movies
@@ -368,10 +341,6 @@ elif action == 'episodesPage':
 	from resources.lib.menus import episodes
 	episodes.Episodes().get(tvshowtitle, year, imdb, tmdb, tvdb, season, episode)
 
-elif action == 'tvWidget':
-	from resources.lib.menus import episodes
-	episodes.Episodes().widget()
-
 elif action == 'calendar':
 	from resources.lib.menus import episodes
 	episodes.Episodes().calendar(url)
@@ -589,103 +558,111 @@ if action and action.startswith('download'):
 ####################################################
 #---Tools
 ####################################################
-if action == 'toolNavigator':
-	from resources.lib.menus import navigator
-	navigator.Navigator().tools()
+if action and action.startswith('tools_'):
+	if action == 'tools_ShowNews':
+		from resources.lib.modules import newsinfo
+		newsinfo.news()
 
-elif action == 'searchNavigator':
-	from resources.lib.menus import navigator
-	navigator.Navigator().search()
+	elif action == 'tools_ShowChangelog':
+		from resources.lib.modules import changelog
+		changelog.get()
 
-elif action == 'viewsNavigator':
-	from resources.lib.menus import navigator
-	navigator.Navigator().views()
+	elif action == 'tools_ShowHelp':
+		from resources.help import help
+		help.get(name)
 
-elif action == 'addView':
-	from resources.lib.modules import views
-	content = params.get('content')
-	views.addView(content)
+	elif action == 'tools_LanguageInvoker':
+		control.set_reuselanguageinvoker()
 
-elif action == 'resetViewTypes':
-	from resources.lib.modules import views
-	views.clearViews()
+	elif action == 'tools_toolNavigator':
+		from resources.lib.menus import navigator
+		navigator.Navigator().tools()
 
-elif action == 'cleanSettings':
-	control.clean_settings()
+	elif action == 'tools_searchNavigator':
+		from resources.lib.menus import navigator
+		navigator.Navigator().search()
 
-elif action == 'openMyAccount':
-	control.openSettings(query, 'script.module.myaccounts')
-	control.sleep(500)
-	while True:
-		if control.condVisibility('Window.IsVisible(addonsettings)'):
+	elif action == 'tools_viewsNavigator':
+		from resources.lib.menus import navigator
+		navigator.Navigator().views()
+
+	elif action == 'tools_addView':
+		from resources.lib.modules import views
+		content = params.get('content')
+		views.addView(content)
+
+	elif action == 'tools_resetViewTypes':
+		from resources.lib.modules import views
+		views.clearViews()
+
+	elif action == 'tools_cleanSettings':
+		control.clean_settings()
+
+	elif action == 'tools_openMyAccount':
+		from myaccounts import openMASettings
+		openMASettings(query)
+		control.sleep(500)
+		while control.condVisibility('Window.IsVisible(addonsettings)') or control.homeWindow.getProperty('myaccounts.active') == 'true':
 			control.sleep(500)
-			continue
-		else: break
-	control.syncMyAccounts()
-	if params.get('opensettings') == 'true':
-		control.openSettings('8.0', 'plugin.video.venom')
+		control.sleep(100)
+		control.syncMyAccounts()
+		control.sleep(100)
+		if params.get('opensettings') == 'true':
+			control.openSettings('8.0', 'plugin.video.venom')
 
-elif action == 'syncMyAccount':
-	control.syncMyAccounts()
-	if params.get('opensettings') == 'true':
-		control.openSettings(query, 'plugin.video.venom')
+	elif action == 'tools_syncMyAccount':
+		control.syncMyAccounts()
+		if params.get('opensettings') == 'true':
+			control.openSettings(query, 'plugin.video.venom')
 
-elif action == 'traktAcctMyAccounts':
-	control.execute('RunScript(script.module.myaccounts, action=traktAcct)')
+	elif action == 'tools_traktAcctMyAccounts':
+		control.execute('RunScript(script.module.myaccounts, action=traktAcct)')
 
-elif action == 'adAcctMyAccounts':
-	control.execute('RunScript(script.module.myaccounts, action=alldebridAcct)')
+	elif action == 'tools_adAcctMyAccounts':
+		control.execute('RunScript(script.module.myaccounts, action=alldebridAcct)')
 
-elif action == 'pmAcctMyAccounts':
-	control.execute('RunScript(script.module.myaccounts, action=premiumizeAcct)')
+	elif action == 'tools_pmAcctMyAccounts':
+		control.execute('RunScript(script.module.myaccounts, action=premiumizeAcct)')
 
-elif action == 'rdAcctMyAccounts':
-	control.execute('RunScript(script.module.myaccounts, action=realdebridAcct)')
+	elif action == 'tools_rdAcctMyAccounts':
+		control.execute('RunScript(script.module.myaccounts, action=realdebridAcct)')
 
-elif action == 'openSettings':
-	control.openSettings(query)
+	elif action == 'tools_openSettings':
+		control.openSettings(query)
 
-elif action == 'open.Settings.CacheProviders':
-	control.openSettings(query)
+	elif action == 'tools_contextVenomSettings':
+		control.openSettings('0.0', 'context.venom')
+		control.trigger_widget_refresh()
 
-elif action == 'contextVenomSettings':
-	control.openSettings('0.0', 'context.venom')
-	control.trigger_widget_refresh()
-
-elif action == 'UpNextSettings':
-	control.openSettings('0.0', 'service.upnext')
-	control.sleep(500)
-	while True:
-		if control.condVisibility('Window.IsVisible(addonsettings)'):
+	elif action == 'tools_UpNextSettings':
+		control.openSettings('0.0', 'service.upnext')
+		control.sleep(500)
+		while control.condVisibility('Window.IsVisible(addonsettings)'):
 			control.sleep(500)
-			continue
-		else: break
-	if params.get('opensettings') == 'true':
-		control.openSettings(query, 'plugin.video.venom')
+		control.sleep(100)
+		if params.get('opensettings') == 'true':
+			control.openSettings(query, 'plugin.video.venom')
 
-elif action == 'fenomscrapersSettings':
-	control.openSettings('0.0', 'script.module.fenomscrapers')
+	elif action == 'tools_fenomscrapersSettings':
+		control.openSettings('0.0', 'script.module.fenomscrapers')
 
-elif action == 'widgetRefresh':
-	control.trigger_widget_refresh()
+	elif action == 'tools_traktManager':
+		from resources.lib.modules import trakt
+		trakt.manager(name, imdb, tvdb, season, episode)
 
-elif action == 'traktManager':
-	from resources.lib.modules import trakt
-	trakt.manager(name, imdb, tvdb, season, episode)
+	elif action == 'tools_cachesyncMovies':
+		from resources.lib.modules import trakt
+		trakt.cachesyncMovies(int(params.get('timeout')))
 
-elif action == 'cachesyncMovies':
-	from resources.lib.modules import trakt
-	trakt.cachesyncMovies(int(params.get('timeout')))
-
-elif action == 'cachesyncTVShows':
-	from resources.lib.modules import trakt
-	trakt.cachesyncTVShows(int(params.get('timeout')))
+	elif action == 'tools_cachesyncTVShows':
+		from resources.lib.modules import trakt
+		trakt.cachesyncTVShows(int(params.get('timeout')))
 
 
 ####################################################
 #---Play
 ####################################################
-elif action == 'play':
+if action == 'play':
 	# control.player. playselected(1)
 	# control.player.playnext()
 	# control.player2().play(control.playlist)

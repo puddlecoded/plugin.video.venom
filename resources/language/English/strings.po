@@ -328,7 +328,7 @@ msgid "[B]TRAKT[/B] : Authorize"
 msgstr ""
 
 msgctxt "#32074"
-msgid "[B]HELP[/B]"
+msgid ""
 msgstr ""
 
 msgctxt "#32075"
@@ -567,7 +567,7 @@ msgid "Enabled"
 msgstr ""
 
 msgctxt "#32302"
-msgid "Disabled"
+msgid ""
 msgstr ""
 
 msgctxt "#32303"
@@ -639,7 +639,7 @@ msgid "Menu"
 msgstr ""
 
 msgctxt "#32320"
-msgid "New Movies"
+msgid ""
 msgstr ""
 
 msgctxt "#32321"
@@ -659,7 +659,7 @@ msgid "In Theaters"
 msgstr ""
 
 msgctxt "#32325"
-msgid "New Episodes"
+msgid ""
 msgstr ""
 
 msgctxt "#32326"
@@ -667,11 +667,11 @@ msgid "Episodes"
 msgstr ""
 
 msgctxt "#32327"
-msgid "Trakt Progress"
+msgid ""
 msgstr ""
 
 msgctxt "#32328"
-msgid "Trakt Episodes"
+msgid ""
 msgstr ""
 
 msgctxt "#32329"
@@ -1451,7 +1451,7 @@ msgid "Remove from [B]%s[/B]"
 msgstr ""
 
 msgctxt "#32531"
-msgid "An account already exists."
+msgid ""
 msgstr ""
 
 msgctxt "#32532"
@@ -1599,7 +1599,7 @@ msgid "Hide movies in cinema"
 msgstr ""
 
 msgctxt "#32572"
-msgid "Protected Link. Please enter account credentials in the settings."
+msgid ""
 msgstr ""
 
 msgctxt "#32580"
@@ -1815,15 +1815,15 @@ msgid "Torrent Source Identifier Color"
 msgstr ""
 
 msgctxt "#32635"
-msgid "Torrent Support (Requires Debrid account)"
+msgid ""
 msgstr ""
 
 msgctxt "#32636"
-msgid "Enable Torrent Scrapers"
+msgid ""
 msgstr ""
 
 msgctxt "#32637"
-msgid "Real-Debrid Torrent Settings"
+msgid ""
 msgstr ""
 
 msgctxt "#32638"
@@ -1835,7 +1835,7 @@ msgid "Sort By Torrent/Premium"
 msgstr ""
 
 msgctxt "#32640"
-msgid "Premiumize.me Torrent Settings"
+msgid ""
 msgstr ""
 
 msgctxt "#32641"
@@ -2034,23 +2034,23 @@ msgstr ""
 
 
 msgctxt "#33000"
-msgid "Favourites"
+msgid ""
 msgstr ""
 
 msgctxt "#33001"
-msgid "Categories"
+msgid ""
 msgstr ""
 
 msgctxt "#33002"
-msgid "Lists"
+msgid ""
 msgstr ""
 
 msgctxt "#33003"
-msgid "Browse"
+msgid ""
 msgstr ""
 
 msgctxt "#33004"
-msgid "New Releases"
+msgid ""
 msgstr ""
 
 msgctxt "#33005"
@@ -2146,11 +2146,11 @@ msgid ""
 msgstr ""
 
 msgctxt "#33028"
-msgid "Episode"
+msgid ""
 msgstr ""
 
 msgctxt "#33029"
-msgid "All"
+msgid ""
 msgstr ""
 
 msgctxt "#33030"
@@ -2170,23 +2170,23 @@ msgid ""
 msgstr ""
 
 msgctxt "#33034"
-msgid ""
+msgid "No Debrid Account setup, account is required!"
 msgstr ""
 
 msgctxt "#33035"
-msgid "item"
+msgid ""
 msgstr ""
 
 msgctxt "#33036"
-msgid "link"
+msgid ""
 msgstr ""
 
 msgctxt "#33037"
-msgid "Splash"
+msgid ""
 msgstr ""
 
 msgctxt "#33038"
-msgid "Recent"
+msgid ""
 msgstr ""
 
 msgctxt "#33039"
@@ -2202,27 +2202,27 @@ msgid "Searches"
 msgstr ""
 
 msgctxt "#33042"
-msgid ""
+msgid "Search Movies..."
 msgstr ""
 
 msgctxt "#33043"
-msgid ""
+msgid "Search Shows..."
 msgstr ""
 
 msgctxt "#33044"
-msgid ""
+msgid "Search Movies By Actor..."
 msgstr ""
 
 msgctxt "#33045"
-msgid ""
+msgid "Search Shows By Actor..."
 msgstr ""
 
 msgctxt "#33046"
-msgid ""
+msgid "Discover Movies"
 msgstr ""
 
 msgctxt "#33047"
-msgid ""
+msgid "Discover TV Shows"
 msgstr ""
 
 msgctxt "#33048"

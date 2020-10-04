@@ -20,53 +20,28 @@ iconLogos = control.setting('icon.logos') != 'Traditional'
 
 class Navigator:
 	def root(self):
-		self.addDirectoryItem(32001, 'movieNavigator', 'movies.png', 'DefaultMovies.png')
-		self.addDirectoryItem(32002, 'tvNavigator', 'tvshows.png', 'DefaultTVShows.png')
+		self.addDirectoryItem(33046, 'movieNavigator', 'movies.png', 'DefaultMovies.png')
+		self.addDirectoryItem(33047, 'tvNavigator', 'tvshows.png', 'DefaultTVShows.png')
 		if control.getMenuEnabled('navi.anime'):
 			self.addDirectoryItem('Anime', 'anime_Navigator', 'boxsets.png', 'DefaultFolder.png')
 		if control.getMenuEnabled('mylists.widget'):
 			self.addDirectoryItem(32003, 'mymovieNavigator', 'mymovies.png','DefaultVideoPlaylists.png')
 			self.addDirectoryItem(32004, 'mytvNavigator', 'mytvshows.png', 'DefaultVideoPlaylists.png')
-
-		if control.setting('newmovies.widget') != '0':
-			indexer = 32478
-			indexer_icon = 'imdb.png'
-			setting = control.setting('newmovies.widget')
-			if setting == '2':
-				indexer = 32479
-				indexer_icon = 'trakt.png'
-			self.addDirectoryItem(indexer if indexLabels else 32477, 'newMovies', indexer_icon if iconLogos else 'latest-movies.png', 'DefaultRecentlyAddedMovies.png')
-
-		if (traktCredentials and control.setting('tv.widget.alt') != '0') or (not traktCredentials and control.setting('tv.widget') != '0'):
-			indexer = 32481
-			indexer_icon = 'tvmaze.png'
-			setting = control.setting('tv.widget.alt')
-			if setting == '2' or setting == '3':
-				indexer = 32482
-				indexer_icon = 'trakt.png'
-			self.addDirectoryItem(indexer if indexLabels else 32480, 'tvWidget', indexer_icon if iconLogos else 'latest-episodes.png', 'DefaultRecentlyAddedEpisodes.png')
-			self.addDirectoryItem(32484 if indexLabels else 32483, 'calendar&url=added', 'tvmaze.png' if iconLogos else 'latest-episodes.png', 'DefaultTVShows.png', queue=True)
-
 		if control.setting('furk.api') != '':
 			self.addDirectoryItem('Furk.net', 'furkNavigator', 'movies.png',  'DefaultMovies.png')
-
 		if control.getMenuEnabled('navi.youtube'):
 			self.addDirectoryItem('You Tube Videos', 'youtube', 'youtube.png', 'youtube.png')
-
-		self.addDirectoryItem(32010, 'searchNavigator', 'search.png', 'DefaultAddonsSearch.png')
-		self.addDirectoryItem(32008, 'toolNavigator', 'tools.png', 'DefaultAddonService.png')
-
+		self.addDirectoryItem(32010, 'tools_searchNavigator', 'search.png', 'DefaultAddonsSearch.png')
+		self.addDirectoryItem(32008, 'tools_toolNavigator', 'tools.png', 'DefaultAddonService.png')
 		downloads = True if control.setting('downloads') == 'true' and (len(control.listDir(control.setting('movie.download.path'))[0]) > 0 or len(control.listDir(control.setting('tv.download.path'))[0]) > 0) else False
 		if downloads:
 			self.addDirectoryItem(32009, 'downloadNavigator', 'downloads.png', 'DefaultFolder.png')
-
 		if control.getMenuEnabled('navi.prem.services'):
 			self.addDirectoryItem('Premium Services', 'premiumNavigator', 'premium.png', 'DefaultFolder.png')
-
 		if control.getMenuEnabled('navi.news'):
-			self.addDirectoryItem(32013, 'ShowNews', 'icon.png', 'DefaultAddonHelper.png', isFolder=False)
+			self.addDirectoryItem(32013, 'tools_ShowNews', 'icon.png', 'DefaultAddonHelper.png', isFolder=False)
 		if control.getMenuEnabled('navi.changelog'):
-			self.addDirectoryItem(32014, 'ShowChangelog', 'icon.png', 'DefaultAddonsUpdates.png', isFolder=False)
+			self.addDirectoryItem(32014, 'tools_ShowChangelog', 'icon.png', 'DefaultAddonsUpdates.png', isFolder=False)
 		self.endDirectory()
 
 
@@ -107,8 +82,6 @@ class Navigator:
 			self.addDirectoryItem(32445 if indexLabels else 32444, 'movies&url=traktrecommendations', 'trakt.png' if iconLogos else 'highly-rated.png', 'DefaultMovies.png')
 		if control.getMenuEnabled('navi.movie.imdb.featured'):
 			self.addDirectoryItem(32447 if indexLabels else 32446, 'movies&url=featured', 'imdb.png' if iconLogos else 'movies.png', 'DefaultMovies.png')
-		if control.setting('newmovies.widget') != '0':
-			self.addDirectoryItem(32478 if indexLabels else 32477, 'newMovies', 'imdb.png' if iconLogos else 'movies.png', 'DefaultRecentlyAddedMovies.png')
 		if control.getMenuEnabled('navi.movie.collections'):
 			self.addDirectoryItem(32000, 'collections_Navigator', 'boxsets.png', 'DefaultSets.png')
 		if control.getMenuEnabled('navi.movie.imdb.oscarwinners'):
@@ -125,12 +98,11 @@ class Navigator:
 			self.addDirectoryItem(32462 if indexLabels else 32461, 'movieLanguages', 'imdb.png' if iconLogos else 'languages.png', 'DefaultAddonLanguage.png')
 		if control.getMenuEnabled('navi.movie.imdb.certificates'):
 			self.addDirectoryItem(32464 if indexLabels else 32463, 'movieCertificates', 'imdb.png' if iconLogos else 'certificates.png', 'DefaultMovies.png')
-
 		if not lite:
 			if control.getMenuEnabled('mylists.widget'):
 				self.addDirectoryItem(32003, 'mymovieliteNavigator', 'mymovies.png', 'DefaultMovies.png')
-			self.addDirectoryItem(32028, 'moviePerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
-			self.addDirectoryItem(32010, 'movieSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
+			self.addDirectoryItem(33044, 'moviePerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
+			self.addDirectoryItem(33042, 'movieSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
 		self.endDirectory()
 
 
@@ -147,8 +119,8 @@ class Navigator:
 			self.addDirectoryItem(32682, 'movies&url=imdbwatchlist', 'imdb.png', 'DefaultVideoPlaylists.png', queue=True)
 		if not lite:
 			self.addDirectoryItem(32031, 'movieliteNavigator', 'movies.png', 'DefaultMovies.png')
-			self.addDirectoryItem(32029, 'moviePerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
-			self.addDirectoryItem(32010, 'movieSearch', 'search.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
+			self.addDirectoryItem(33044, 'moviePerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
+			self.addDirectoryItem(33042, 'movieSearch', 'search.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
 		self.endDirectory()
 
 
@@ -191,16 +163,11 @@ class Navigator:
 			self.addDirectoryItem(32476 if indexLabels else 32475, 'tvshows&url=premiere', 'imdb.png' if iconLogos else 'new-tvshows.png', 'DefaultRecentlyAddedEpisodes.png')
 		if control.getMenuEnabled('navi.tv.tvmaze.calendar'):
 			self.addDirectoryItem(32450 if indexLabels else 32027, 'calendars', 'tvmaze.png' if iconLogos else 'calendar.png', 'DefaultYear.png')
-
-		if (traktCredentials and control.setting('tv.widget.alt') != '0') or (not traktCredentials and control.setting('tv.widget') != '0'):
-			self.addDirectoryItem(32006, 'tvWidget', 'latest-episodes.png', 'DefaultRecentlyAddedEpisodes.png')
-
 		if not lite:
 			if control.getMenuEnabled('mylists.widget'):
 				self.addDirectoryItem(32004, 'mytvliteNavigator', 'mytvshows.png', 'DefaultTVShows.png')
-
-			self.addDirectoryItem(32028, 'tvPerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
-			self.addDirectoryItem(32010, 'tvSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
+			self.addDirectoryItem(33045, 'tvPerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
+			self.addDirectoryItem(33043, 'tvSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
 		self.endDirectory()
 
 
@@ -220,8 +187,8 @@ class Navigator:
 			self.addDirectoryItem(32682, 'tvshows&url=imdbwatchlist', 'imdb.png', 'DefaultVideoPlaylists.png')
 		if not lite:
 			self.addDirectoryItem(32031, 'tvliteNavigator', 'tvshows.png', 'DefaultTVShows.png')
-			self.addDirectoryItem(32030, 'tvPerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
-			self.addDirectoryItem(32010, 'tvSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
+			self.addDirectoryItem(33045, 'tvPerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
+			self.addDirectoryItem(33043, 'tvSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
 		self.endDirectory()
 
 
@@ -233,28 +200,28 @@ class Navigator:
 
 	def tools(self):
 		self.addDirectoryItem(32510, 'cache_Navigator', 'tools.png', 'DefaultAddonService.png', isFolder=True)
-		self.addDirectoryItem(32609, 'openMyAccount', 'MyAccounts.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32609, 'tools_openMyAccount', 'MyAccounts.png', 'DefaultAddonService.png', isFolder=False)
 		if control.condVisibility('System.HasAddon(service.upnext)'):
-			self.addDirectoryItem(32505, 'UpNextSettings', 'UpNext.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem(32506, 'contextVenomSettings', 'icon.png', 'DefaultAddonProgram.png', isFolder=False)
+			self.addDirectoryItem(32505, 'tools_UpNextSettings', 'UpNext.png', 'DefaultAddonProgram.png', isFolder=False)
+		self.addDirectoryItem(32506, 'tools_contextVenomSettings', 'icon.png', 'DefaultAddonProgram.png', isFolder=False)
 		#-- Providers - 4
-		self.addDirectoryItem(32651, 'fenomscrapersSettings', 'fenomscrapers.png', 'DefaultAddonService.png', isFolder=False)
-		self.addDirectoryItem(32083, 'cleanSettings', 'tools.png', 'DefaultAddonProgram.png', isFolder=False)
+		self.addDirectoryItem(32651, 'tools_fenomscrapersSettings', 'fenomscrapers.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32083, 'tools_cleanSettings', 'tools.png', 'DefaultAddonProgram.png', isFolder=False)
 		#-- General - 0
-		self.addDirectoryItem(32043, 'openSettings&query=0.0', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32043, 'tools_openSettings&query=0.0', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		#-- Navigation - 1
-		self.addDirectoryItem(32362, 'openSettings&query=1.1', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32362, 'tools_openSettings&query=1.1', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		#-- Playback - 3
-		self.addDirectoryItem(32045, 'openSettings&query=3.1', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32045, 'tools_openSettings&query=3.1', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		#-- Accounts - 8
-		self.addDirectoryItem(32044, 'openSettings&query=8.0', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32044, 'tools_openSettings&query=8.0', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		#-- Downloads - 10
-		self.addDirectoryItem(32048, 'openSettings&query=10.0', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32048, 'tools_openSettings&query=10.0', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		#-- Subtitles - 11
-		self.addDirectoryItem(32046, 'openSettings&query=11.0', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32046, 'tools_openSettings&query=11.0', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		self.addDirectoryItem(32556, 'library_Navigator', 'tools.png', 'DefaultAddonService.png', isFolder=True)
-		self.addDirectoryItem(32049, 'viewsNavigator', 'tools.png', 'DefaultAddonService.png', isFolder=True)
-		self.addDirectoryItem(32361, 'resetViewTypes', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32049, 'tools_viewsNavigator', 'tools.png', 'DefaultAddonService.png', isFolder=True)
+		self.addDirectoryItem(32361, 'tools_resetViewTypes', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		self.endDirectory()
 
 
@@ -270,29 +237,25 @@ class Navigator:
 
 	def library(self):
 	# -- Library - 9
-		self.addDirectoryItem(32557, 'openSettings&query=9.0', 'tools.png', 'DefaultAddonProgram.png', isFolder=False)
+		self.addDirectoryItem(32557, 'tools_openSettings&query=9.0', 'tools.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem(32558, 'library_update', 'library_update.png', 'DefaultAddonLibrary.png', isFolder=False)
 		self.addDirectoryItem(32676, 'library_clean', 'library_update.png', 'DefaultAddonLibrary.png', isFolder=False)
 		self.addDirectoryItem(32559, control.setting('library.movie'), 'movies.png', 'DefaultMovies.png', isAction=False)
 		self.addDirectoryItem(32560, control.setting('library.tv'), 'tvshows.png', 'DefaultTVShows.png', isAction=False)
-
 		if traktCredentials:
 			self.addDirectoryItem(32561, 'library_moviesToLibrary&url=traktcollection&name=traktcollection', 'trakt.png', 'DefaultMovies.png', isFolder=False)
 			self.addDirectoryItem(32562, 'library_moviesToLibrary&url=traktwatchlist&name=traktwatchlist', 'trakt.png', 'DefaultMovies.png', isFolder=False)
 			self.addDirectoryItem(32672, 'library_moviesListToLibrary&url=traktlists', 'trakt.png', 'DefaultMovies.png', isFolder=False)
 			self.addDirectoryItem(32673, 'library_moviesListToLibrary&url=traktlikedlists', 'trakt.png', 'DefaultMovies.png', isFolder=False)
-
 		if tmdbSessionID:
 			self.addDirectoryItem('TMDb: Import Movie Watchlist...', 'library_moviesToLibrary&url=tmdb_watchlist&name=tmdb_watchlist', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
 			self.addDirectoryItem('TMDb: Import Movie Favorites...', 'library_moviesToLibrary&url=tmdb_favorites&name=tmdb_favorites', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
 			self.addDirectoryItem('TMDb: Import Movie User list...', 'library_moviesListToLibrary&url=tmdb_userlists', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
-
 		if traktCredentials:
 			self.addDirectoryItem(32563, 'library_tvshowsToLibrary&url=traktcollection&name=traktcollection', 'trakt.png', 'DefaultTVShows.png', isFolder=False)
 			self.addDirectoryItem(32564, 'library_tvshowsToLibrary&url=traktwatchlist&name=traktwatchlist', 'trakt.png', 'DefaultTVShows.png', isFolder=False)
 			self.addDirectoryItem(32674, 'library_tvshowsListToLibrary&url=traktlists', 'trakt.png', 'DefaultMovies.png', isFolder=False)
 			self.addDirectoryItem(32675, 'library_tvshowsListToLibrary&url=traktlikedlists', 'trakt.png', 'DefaultMovies.png', isFolder=False)
-
 		if tmdbSessionID:
 			self.addDirectoryItem('TMDb: Import TV Watchlist...', 'library_tvshowsToLibrary&url=tmdb_watchlist&name=tmdb_watchlist', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
 			self.addDirectoryItem('TMDb: Import TV Favorites...', 'library_tvshowsToLibrary&url=tmdb_favorites&name=tmdb_favorites', 'tmdb.png', 'DefaultMovies.png', isFolder=False)
@@ -323,7 +286,7 @@ class Navigator:
 			self.addDirectoryItem('All-Debrid: Transfers', 'ad_Transfers', 'alldebrid.png', 'DefaultAddonService.png')
 			self.addDirectoryItem('All-Debrid: Account Info', 'ad_AccountInfo', 'alldebrid.png', 'DefaultAddonService.png', isFolder=False)
 		else:
-			self.addDirectoryItem('[I]Please visit My Accounts for setup[/I]', 'openMyAccount&amp;query=1.4', 'alldebrid.png', 'DefaultAddonService.png', isFolder=False)
+			self.addDirectoryItem('[I]Please visit My Accounts for setup[/I]', 'tools_openMyAccount&amp;query=1.4', 'alldebrid.png', 'DefaultAddonService.png', isFolder=False)
 		self.endDirectory()
 
 
@@ -333,7 +296,7 @@ class Navigator:
 			self.addDirectoryItem('Premiumize: Transfers', 'pm_Transfers', 'premiumize.png', 'DefaultAddonService.png')
 			self.addDirectoryItem('Premiumize: Account Info', 'pm_AccountInfo', 'premiumize.png', 'DefaultAddonService.png', isFolder=False)
 		else:
-			self.addDirectoryItem('[I]Please visit My Accounts for setup[/I]', 'openMyAccount&amp;query=1.11', 'premiumize.png', 'DefaultAddonService.png', isFolder=False)
+			self.addDirectoryItem('[I]Please visit My Accounts for setup[/I]', 'tools_openMyAccount&amp;query=1.11', 'premiumize.png', 'DefaultAddonService.png', isFolder=False)
 		self.endDirectory()
 
 
@@ -343,15 +306,15 @@ class Navigator:
 			self.addDirectoryItem('Real-Debrid: My Downloads', 'rd_MyDownloads&query=1', 'realdebrid.png', 'DefaultAddonService.png')
 			self.addDirectoryItem('Real-Debrid: Account Info', 'rd_AccountInfo', 'realdebrid.png', 'DefaultAddonService.png',isFolder=False )
 		else:
-			self.addDirectoryItem('[I]Please visit My Accounts for setup[/I]', 'openMyAccount&amp;query=1.18', 'realdebrid.png', 'DefaultAddonService.png', isFolder=False)
+			self.addDirectoryItem('[I]Please visit My Accounts for setup[/I]', 'tools_openMyAccount&amp;query=1.18', 'realdebrid.png', 'DefaultAddonService.png', isFolder=False)
 		self.endDirectory()
 
 
 	def search(self):
-		self.addDirectoryItem(32001, 'movieSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
-		self.addDirectoryItem(32002, 'tvSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
-		self.addDirectoryItem(32029, 'moviePerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
-		self.addDirectoryItem(32030, 'tvPerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
+		self.addDirectoryItem(33042, 'movieSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
+		self.addDirectoryItem(33043, 'tvSearch', 'trakt.png' if iconLogos else 'search.png', 'DefaultAddonsSearch.png')
+		self.addDirectoryItem(33044, 'moviePerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
+		self.addDirectoryItem(33045, 'tvPerson', 'imdb.png' if iconLogos else 'people-search.png', 'DefaultAddonsSearch.png')
 		self.endDirectory()
 
 
@@ -364,7 +327,7 @@ class Navigator:
 			if select == -1: return
 			content = items[select][1]
 			title = control.lang(32059)
-			url = '%s?action=addView&content=%s' % (sys.argv[0], content)
+			url = '%s?action=tools_addView&content=%s' % (sys.argv[0], content)
 			poster, banner, fanart = control.addonPoster(), control.addonBanner(), control.addonFanart()
 			item = control.item(label=title)
 			item.setInfo(type='video', infoLabels = {'title': title})
@@ -385,14 +348,6 @@ class Navigator:
 			control.hide()
 			control.notification(message=32042, icon='WARNING')
 			sys.exit()
-
-
-	def infoCheck(self, version):
-		try:
-			control.notification(message=32074, icon='WARNING')
-			return '1'
-		except:
-			return '1'
 
 
 	def clearCacheAll(self):
@@ -522,7 +477,7 @@ class Navigator:
 			try: from urllib import quote_plus
 			except: from urllib.parse import quote_plus
 			cm.append(('Clear Search Phrase', 'RunPlugin(%s?action=cache_clearSearchPhrase&source=%s&name=%s)' % (sysaddon, table, quote_plus(name))))
-		cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
+		cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 		item = control.item(label=name)
 		item.addContextMenuItems(cm)
 		if isPlayable: item.setProperty('IsPlayable', 'true')

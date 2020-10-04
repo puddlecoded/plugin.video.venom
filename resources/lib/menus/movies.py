@@ -283,20 +283,6 @@ class Movies:
 					control.notification(title=32001, message=33049)
 
 
-	def newMovies(self):
-		setting = control.setting('newmovies.widget')
-		if setting == '2':
-			self.get(self.trakttrending_link)
-		elif setting == '3':
-			self.get(self.mostpopular_link)
-		elif setting == '4':
-			self.get(self.theaters_link)
-		elif setting == '5':
-			self.get(self.added_link)
-		else:
-			self.get(self.featured_link)
-
-
 	def sort(self, type='movies'):
 		try:
 			if not self.list: return
@@ -1273,7 +1259,7 @@ class Movies:
 ####-Context Menu and Overlays-####
 				cm = []
 				if self.traktCredentials:
-					cm.append((traktManagerMenu, 'RunPlugin(%s?action=traktManager&name=%s&imdb=%s)' % (sysaddon, sysname, imdb)))
+					cm.append((traktManagerMenu, 'RunPlugin(%s?action=tools_traktManager&name=%s&imdb=%s)' % (sysaddon, sysname, imdb)))
 
 				try:
 					overlay = int(playcount.getMovieOverlay(indicators, imdb))
@@ -1312,7 +1298,7 @@ class Movies:
 					cm.append((addToLibrary, 'RunPlugin(%s?action=library_movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
 				cm.append(('Find similar', 'ActivateWindow(10025,%s?action=movies&url=https://api.trakt.tv/movies/%s/related,return)' % (sysaddon, imdb)))
 				cm.append((control.lang(32611), 'RunPlugin(%s?action=cache_clearSources&opensettings=false)' % sysaddon))
-				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
+				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 ####################################
 
 				if trailer: meta.update({'trailer': trailer})
@@ -1421,7 +1407,7 @@ class Movies:
 					if control.setting('library.service.update') == 'true':
 						cm.append((addToLibrary, 'RunPlugin(%s?action=library_moviesToLibrary&url=%s&name=%s)' % (sysaddon, quote_plus(i['context']), name)))
 				except: pass
-				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
+				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 
 				item = control.item(label=name)
 				item.setProperty('IsPlayable', 'false')

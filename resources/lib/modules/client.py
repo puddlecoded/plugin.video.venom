@@ -335,11 +335,9 @@ class cfcookie:
 
 	def get(self, netloc, ua, timeout):
 		threads = []
-
 		for i in range(0, 15):
 			threads.append(workers.Thread(self.get_cookie, netloc, ua, timeout))
 		[i.start() for i in threads]
-
 		for i in range(0, 30):
 			if self.cookie is not None:
 				return self.cookie

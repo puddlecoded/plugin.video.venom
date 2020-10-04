@@ -27,10 +27,8 @@ def download(name, image, url, meta_name=None):
 		if not url:
 			control.hide()
 			return
-		try:
-			headers = dict(parse_qsl(url.rsplit('|', 1)[1]))
-		except:
-			headers = dict('')
+		try: headers = dict(parse_qsl(url.rsplit('|', 1)[1]))
+		except: headers = dict('')
 
 		url = url.split('|')[0]
 
@@ -136,15 +134,11 @@ def doDownload(url, dest, title, image, headers):
 		control.hide()
 		control.okDialog(title, dest + 'Download failed: No response from server')
 		return
-	try:
-		content = int(resp.headers['Content-Length'])
-	except:
-		content = 0
+	try: content = int(resp.headers['Content-Length'])
+	except: content = 0
 
-	try:
-		resumable = 'bytes' in resp.headers['Accept-Ranges'].lower()
-	except:
-		resumable = False
+	try: resumable = 'bytes' in resp.headers['Accept-Ranges'].lower()
+	except: resumable = False
 
 	if content < 1:
 		control.hide()
@@ -194,7 +188,6 @@ def doDownload(url, dest, title, image, headers):
 					f.close()
 					return done(title, dest, True)
 		except Exception as e:
-			# print(str(e))
 			log_utils.log('DOWNNLOADER EXCEPTION | %s' % str(e), __name__, log_utils.LOGDEBUG)
 			error = True
 			sleep = 10
@@ -230,14 +223,11 @@ def doDownload(url, dest, title, image, headers):
 				return done(title, dest, False)
 			resume += 1
 			errors  = 0
-
 			if resumable:
 				chunks  = []
 				#create new response
-				# print('Download resumed (%d) %s' % (resume, dest))
 				resp = getResponse(url, headers, total)
 			else:
-				#use existing response
 				pass
 
 

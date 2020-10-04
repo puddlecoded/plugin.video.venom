@@ -339,8 +339,8 @@ msgid "Enabled"
 msgstr "Włączone"
 
 msgctxt "#32302"
-msgid "Disabled"
-msgstr "Wyłączone"
+msgid ""
+msgstr ""
 
 msgctxt "#32303"
 msgid "User"
@@ -411,7 +411,7 @@ msgid "Menu"
 msgstr "Menu"
 
 msgctxt "#32320"
-msgid "New Movies"
+msgid ""
 msgstr "Nowe Filmy"
 
 msgctxt "#32321"
@@ -431,20 +431,20 @@ msgid "In Theaters"
 msgstr "W kinach"
 
 msgctxt "#32325"
-msgid "New Episodes"
-msgstr "Nowe Odcinki"
+msgid ""
+msgstr ""
 
 msgctxt "#32326"
 msgid "Episodes"
 msgstr "Odcinki"
 
 msgctxt "#32327"
-msgid "Trakt Progress"
-msgstr "Trakt Progres"
+msgid ""
+msgstr ""
 
 msgctxt "#32328"
-msgid "Trakt Episodes"
-msgstr "Trakt Odcinki"
+msgid ""
+msgstr ""
 
 msgctxt "#32329"
 msgid "My Lists"

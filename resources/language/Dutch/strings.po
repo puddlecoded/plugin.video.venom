@@ -336,8 +336,8 @@ msgid "Enabled"
 msgstr "Ingeschakeld"
 
 msgctxt "#32302"
-msgid "Disabled"
-msgstr "Uitgeschakeld"
+msgid ""
+msgstr ""
 
 msgctxt "#32303"
 msgid "User"
@@ -408,8 +408,8 @@ msgid "Menu"
 msgstr "Menu"
 
 msgctxt "#32320"
-msgid "New Movies"
-msgstr "Nieuwe Films"
+msgid ""
+msgstr ""
 
 msgctxt "#32321"
 msgid "Featured"
@@ -428,20 +428,20 @@ msgid "In Theaters"
 msgstr "In de Bioscoop"
 
 msgctxt "#32325"
-msgid "New Episodes"
-msgstr "Nieuwe Afleveringen"
+msgid ""
+msgstr ""
 
 msgctxt "#32326"
 msgid "Episodes"
 msgstr "Afleveringen"
 
 msgctxt "#32327"
-msgid "Trakt Progress"
-msgstr "Trakt Voortgang"
+msgid ""
+msgstr ""
 
 msgctxt "#32328"
-msgid "Trakt Episodes"
-msgstr "Trakt Afleveringen"
+msgid ""
+msgstr ""
 
 msgctxt "#32329"
 msgid "My Lists"

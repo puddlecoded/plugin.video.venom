@@ -118,6 +118,7 @@ def getTraktAsJson(url, post=None, authentication=None):
 			res_headers = r[1]
 			r = r[0]
 		if not r:	return
+		# log_utils.log('r = %s' % str(r), __name__, log_utils.LOGDEBUG)
 		r = utils.json_loads_as_str(r)
 		res_headers = dict((k.lower(), v) for k, v in res_headers.iteritems())
 		if 'x-sort-by' in res_headers and 'x-sort-how' in res_headers:

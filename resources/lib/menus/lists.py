@@ -998,13 +998,13 @@ class indexer:
 					except: pass
 
 				if mode == 'movies':
-					cm.append((control.lang(30711), 'RunPlugin(%s?action=addView&content=movies)' % sysaddon))
+					cm.append((control.lang(30711), 'RunPlugin(%s?action=tools_addView&content=movies)' % sysaddon))
 				elif mode == 'tvshows':
-					cm.append((control.lang(30712), 'RunPlugin(%s?action=addView&content=tvshows)' % sysaddon))
+					cm.append((control.lang(30712), 'RunPlugin(%s?action=tools_addView&content=tvshows)' % sysaddon))
 				elif mode == 'seasons':
-					cm.append((control.lang(30713), 'RunPlugin(%s?action=addView&content=seasons)' % sysaddon))
+					cm.append((control.lang(30713), 'RunPlugin(%s?action=tools_addView&content=seasons)' % sysaddon))
 				elif mode == 'episodes':
-					cm.append((control.lang(30714), 'RunPlugin(%s?action=addView&content=episodes)' % sysaddon))
+					cm.append((control.lang(30714), 'RunPlugin(%s?action=tools_addView&content=episodes)' % sysaddon))
 
 				if devmode is True:
 					try: cm.append(('Open in browser', 'RunPlugin(%s?action=browser&url=%s)' % (sysaddon, quote_plus(i['url']))))

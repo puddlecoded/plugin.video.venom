@@ -42,13 +42,10 @@ def google(url, ref=None):
 		headers = {'User-Agent': client.agent()}
 		result = client.request(url, output='extended', headers=headers)
 
-		try:
-			headers['Cookie'] = result[2]['Set-Cookie']
-		except:
-			pass
+		try: headers['Cookie'] = result[2]['Set-Cookie']
+		except: pass
 
 		result = result[0]
-
 		if netloc == 'docs' or netloc == 'drive':
 			result = re.compile('"fmt_stream_map",(".+?")').findall(result)[0]
 			result = json.loads(result)
@@ -90,18 +87,14 @@ def google(url, ref=None):
 		url = []
 
 		for q in ['4K', '1440p', '1080p', 'HD', 'SD']:
-			try:
-				url += [[i for i in result if i.get('quality') == q][0]]
-			except:
-				pass
+			try: url += [[i for i in result if i.get('quality') == q][0]]
+			except: pass
 
 		for i in url:
 			i.pop('height', None)
 			i.update({'url': i['url'] + '|%s' % urlencode(headers)})
-
 		if not url:
 			return
-
 		return url
 	except:
 		return
@@ -111,10 +104,8 @@ def googletag(url, append_height=False):
 	quality = re.compile('itag=(\d*)').findall(url)
 	quality += re.compile('=m(\d*)$').findall(url)
 
-	try:
-		quality = quality[0]
-	except:
-		return []
+	try: quality = quality[0]
+	except: return []
 
 	itag_map = {'151': {'quality': 'SD', 'height': 72}, '212': {'quality': 'SD', 'height': 480}, '313': {'quality': '4K', 'height': 2160},
 					'242': {'quality': 'SD', 'height': 240}, '315': {'quality': '4K', 'height': 2160}, '219': {'quality': 'SD', 'height': 480},
@@ -140,7 +131,6 @@ def googletag(url, append_height=False):
 
 	if quality in itag_map:
 		quality = itag_map[quality]
-
 		if append_height:
 			return [{'quality': quality['quality'], 'height': quality['height'], 'url': url}]
 		else:
@@ -151,10 +141,8 @@ def googletag(url, append_height=False):
 
 def googlepass(url):
 	try:
-		try:
-			headers = dict(parse_qsl(url.rsplit('|', 1)[1]))
-		except:
-			headers = None
+		try: headers = dict(parse_qsl(url.rsplit('|', 1)[1]))
+		except: headers = None
 		url = url.split('|')[0].replace('\\', '')
 		url = client.request(url, headers=headers, output='geturl')
 		if 'requiressl=yes' in url:
@@ -183,30 +171,18 @@ def vk(url):
 		sources = [(i[0], i[1].replace('\\', '')) for i in sources]
 		sources = dict(sources)
 		url = []
-		try:
-			url += [{'quality': 'HD', 'url': sources['720']}]
-		except:
-			pass
-		try:
-			url += [{'quality': 'SD', 'url': sources['540']}]
-		except:
-			pass
-		try:
-			url += [{'quality': 'SD', 'url': sources['480']}]
-		except:
-			pass
-		if not url == []:
-			return url
-		try:
-			url += [{'quality': 'SD', 'url': sources['360']}]
-		except:
-			pass
-		if not url == []:
-			return url
-		try:
-			url += [{'quality': 'SD', 'url': sources['240']}]
-		except:
-			pass
+		try: url += [{'quality': 'HD', 'url': sources['720']}]
+		except: pass
+		try: url += [{'quality': 'SD', 'url': sources['540']}]
+		except: pass
+		try: url += [{'quality': 'SD', 'url': sources['480']}]
+		except: pass
+		if url: return url
+		try: url += [{'quality': 'SD', 'url': sources['360']}]
+		except: pass
+		if url: return url
+		try: url += [{'quality': 'SD', 'url': sources['240']}]
+		except: pass
 		if not url == []: return url
 	except:
 		return

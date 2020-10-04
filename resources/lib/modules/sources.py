@@ -90,6 +90,11 @@ class Sources:
 
 
 	def play(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=None):
+		if not self.debrid_resolvers:
+			control.sleep(200)
+			control.hide()
+			control.notification(message=33034)
+			return
 		control.busy()
 		try:
 			control.homeWindow.clearProperty(self.metaProperty)

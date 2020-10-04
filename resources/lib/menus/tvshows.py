@@ -403,12 +403,9 @@ class TVshows:
 	def networks(self):
 		if control.setting('tvshows.networks.view') == '0':
 			from resources.lib.indexers.tvmaze import networks_this_season as networks
-
 		if control.setting('tvshows.networks.view') == '1':
 			from resources.lib.indexers.tvmaze import networks_view_all as networks
-
 		networks = sorted(networks, key=lambda x: x[0])
-
 		for i in networks:
 			self.list.append({'name': i[0], 'url': self.tvmaze_link + i[1], 'image': i[2], 'icon': 'DefaultNetwork.png', 'action': 'tvmazeTvshows'})
 		self.addDirectory(self.list)
@@ -418,12 +415,9 @@ class TVshows:
 	def originals(self):
 		if control.setting('tvshows.networks.view') == '0':
 			from resources.lib.indexers.tvmaze import originals_this_season as originals
-
 		if control.setting('tvshows.networks.view') == '1':
 			from resources.lib.indexers.tvmaze import originals_view_all as originals
-
 		originals = sorted(originals, key=lambda x: x[0])
-
 		for i in originals:
 			self.list.append({'name': i[0], 'url': self.tvmaze_link + i[1], 'image': i[2], 'icon': 'DefaultNetwork.png', 'action': 'tvmazeTvshows'})
 		self.addDirectory(self.list)
@@ -481,30 +475,21 @@ class TVshows:
 	def tvshowsListToLibrary(self, url):
 		url = getattr(self, url + '_link')
 		u = urlparse(url).netloc.lower()
-
 		try:
 			control.hide()
 			if u in self.tmdb_link:
 				from resources.lib.indexers import tmdb
 				items = tmdb.userlists(url)
-
 			elif u in self.trakt_link:
 				items = self.trakt_user_list(url, self.trakt_user)
-
 			items = [(i['name'], i['url']) for i in items]
-
 			message = 32663
 			if 'themoviedb' in url: message = 32681
-
 			select = control.selectDialog([i[0] for i in items], control.lang(message))
 			list_name = items[select][0]
-
-			if select == -1:
-				return
-
+			if select == -1: return
 			link = items[select][1]
 			link = link.split('&sort_by')[0]
-
 			from resources.lib.modules import libtools
 			libtools.libtvshows().range(link, list_name)
 		except:
@@ -520,14 +505,12 @@ class TVshows:
 			activity = trakt.getActivity()
 			self.list = []
 			lists = []
-
 			try:
 				if activity > cache.timeout(self.trakt_user_list, self.traktlists_link, self.trakt_user):
 					raise Exception()
 				lists += cache.get(self.trakt_user_list, 720, self.traktlists_link, self.trakt_user)
 			except:
 				lists += cache.get(self.trakt_user_list, 0, self.traktlists_link, self.trakt_user)
-
 			for i in range(len(lists)):
 				lists[i].update({'image': 'trakt.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
 			userlists += lists
@@ -658,11 +641,8 @@ class TVshows:
 
 		for item in items:
 			try:
-				try:
-					title = item['title'].encode('utf-8')
-				except:
-					title = item['title']
-
+				try: title = item['title'].encode('utf-8')
+				except: title = item['title']
 				listed_at = item.get('listed_at', '0')
 
 				year = str(item.get('year', '0'))
@@ -729,26 +709,18 @@ class TVshows:
 
 		for item in items:
 			try:
-				try:
-					name = item['list']['name']
-				except:
-					name = item['name']
+				try: name = item['list']['name']
+				except: name = item['name']
 				name = client.replaceHTMLCodes(name)
 				name = name.encode('utf-8')
-
-				try:
-					url = (trakt.slug(item['list']['user']['username']), item['list']['ids']['slug'])
-				except:
-					url = ('me', item['ids']['slug'])
-
+				try: url = (trakt.slug(item['list']['user']['username']), item['list']['ids']['slug'])
+				except: url = ('me', item['ids']['slug'])
 				url = self.traktlist_link % url
 				url = url.encode('utf-8')
-
 				list.append({'name': name, 'url': url, 'context': url})
 			except:
 				log_utils.error()
 				pass
-
 		list = sorted(list, key=lambda k: re.sub('(^the |^a |^an )', '', k['name'].lower()))
 		return list
 
@@ -1329,7 +1301,7 @@ class TVshows:
 ####-Context Menu and Overlays-####
 				cm = []
 				if self.traktCredentials:
-					cm.append((traktManagerMenu, 'RunPlugin(%s?action=traktManager&name=%s&imdb=%s&tvdb=%s)' % (sysaddon, systitle, imdb, tvdb)))
+					cm.append((traktManagerMenu, 'RunPlugin(%s?action=tools_traktManager&name=%s&imdb=%s&tvdb=%s)' % (sysaddon, systitle, imdb, tvdb)))
 
 				try:
 					overlay = int(playcount.getTVShowOverlay(indicators, imdb, tvdb))
@@ -1352,7 +1324,7 @@ class TVshows:
 				cm.append((clearPlaylistMenu, 'RunPlugin(%s?action=playlist_Clear)' % sysaddon))
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=library_tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (sysaddon, systitle, year, imdb, tmdb, tvdb)))
-				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
+				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 ####################################
 
 				if not i.get('trailer'):
@@ -1445,7 +1417,6 @@ class TVshows:
 		for i in items:
 			try:
 				name = i['name']
-
 				if i['image'].startswith('http'):
 					thumb = i['image']
 				elif artPath:
@@ -1458,10 +1429,8 @@ class TVshows:
 					icon = 'DefaultFolder.png'
 
 				url = '%s?action=%s' % (sysaddon, i['action'])
-				try:
-					url += '&url=%s' % quote_plus(i['url'])
-				except:
-					pass
+				try: url += '&url=%s' % quote_plus(i['url'])
+				except: pass
 
 				cm = []
 				cm.append((playRandom, 'RunPlugin(%s?action=random&rtype=show&url=%s)' % (sysaddon, quote_plus(i['url']))))
@@ -1471,7 +1440,7 @@ class TVshows:
 					if control.setting('library.service.update') == 'true':
 						cm.append((addToLibrary, 'RunPlugin(%s?action=library_tvshowsToLibrary&url=%s&name=%s)' % (sysaddon, quote_plus(i['context']), name)))
 				except: pass
-				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
+				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 
 				item = control.item(label=name)
 				item.setProperty('IsPlayable', 'false')

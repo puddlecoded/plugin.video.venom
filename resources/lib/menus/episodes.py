@@ -226,19 +226,6 @@ class Episodes:
 			log_utils.error()
 
 
-	def widget(self):
-		if trakt.getTraktIndicatorsInfo():
-			setting = control.setting('tv.widget.alt')
-		else:
-			setting = control.setting('tv.widget')
-		if setting == '2':
-			self.calendar(self.progress_link)
-		elif setting == '3':
-			self.calendar(self.mycalendar_link)
-		else:
-			self.calendar(self.added_link)
-
-
 	def calendars(self, idx=True):
 		m = control.lang(32060).split('|')
 		try:
@@ -262,10 +249,8 @@ class Episodes:
 					name = name.replace(m[1], m[0])
 				for d in days:
 					name = name.replace(d[1], d[0])
-				try:
-					name = name.encode('utf-8')
-				except:
-					pass
+				try: name = name.encode('utf-8')
+				except: pass
 				url = self.calendar_link % (self.datetime - datetime.timedelta(days=i)).strftime('%Y-%m-%d')
 				self.list.append({'name': name, 'url': url, 'image': 'calendar.png', 'icon': 'DefaultYear.png', 'action': 'calendar'})
 			except:
@@ -284,8 +269,7 @@ class Episodes:
 		except:
 			pass
 		try:
-			if not self.traktCredentials:
-				raise Exception()
+			if not self.traktCredentials: raise Exception()
 			self.list = []
 			try:
 				if activity > cache.timeout(self.trakt_user_list, self.traktlists_link, self.trakt_user):
@@ -1370,7 +1354,6 @@ class Episodes:
 				year, season, episode, premiered = i['year'], i['season'], i['episode'], i['premiered']
 				trailer = i.get('trailer')
 				runtime = i.get('duration')
-
 				tvshowyear = i.get('tvshowyear')
 
 				if 'label' not in i: i['label'] = title
@@ -1511,7 +1494,7 @@ class Episodes:
 ####-Context Menu and Overlays-####
 				cm = []
 				if self.traktCredentials:
-					cm.append((traktManagerMenu, 'RunPlugin(%s?action=traktManager&name=%s&imdb=%s&tvdb=%s&season=%s&episode=%s)' % (
+					cm.append((traktManagerMenu, 'RunPlugin(%s?action=tools_traktManager&name=%s&imdb=%s&tvdb=%s&season=%s&episode=%s)' % (
 										sysaddon, systvshowtitle, imdb, tvdb, season, episode)))
 				try:
 					overlay = int(playcount.getEpisodeOverlay(indicators, imdb, tvdb, season, episode))
@@ -1574,7 +1557,7 @@ class Episodes:
 											sysaddon, systvshowtitle, year, imdb, tmdb, tvdb)))
 				cm.append((control.lang(32611), 'RunPlugin(%s?action=cache_clearSources&opensettings=false)' % sysaddon))
 				cm.append(('PlayAll', 'RunPlugin(%s?action=playAll)' % sysaddon))
-				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
+				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 ####################################
 
 				if trailer: meta.update({'trailer': trailer})
@@ -1689,7 +1672,7 @@ class Episodes:
 				cm = []
 				if queue:
 					cm.append((queueMenu, 'RunPlugin(%s?action=playlist_QueueItem)' % sysaddon))
-				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=openSettings)' % sysaddon))
+				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 
 				item = control.item(label=name)
 				item.setProperty('IsPlayable', 'false')

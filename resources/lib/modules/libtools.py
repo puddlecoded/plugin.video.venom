@@ -749,7 +749,6 @@ class libtvshows:
 					pass
 
 			if files_added == 0 and general_notification:
-				log_utils.log('general_notification = %s' % general_notification, __name__, log_utils.LOGDEBUG)
 				control.notification(title=tvshowtitle, message=32652)
 
 			# if range is True:

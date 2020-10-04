@@ -121,8 +121,8 @@ class SyncTraktLibrary:
 
 class SyncTraktWatched:
 	def run(self):
-		control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=cachesyncTVShows&timeout=720')
-		control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=cachesyncMovies&timeout=720')
+		control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=tools_cachesyncTVShows&timeout=720')
+		control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=tools_cachesyncMovies&timeout=720')
 
 
 xbmc.log('[ plugin.video.venom ]  service started', xbmc.LOGNOTICE)

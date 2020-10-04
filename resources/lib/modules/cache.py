@@ -110,10 +110,8 @@ def cache_get(key):
 		return results
 	except:
 		log_utils.error()
-		try:
-			cursor.close()
-		except:
-			pass
+		try: cursor.close()
+		except: pass
 		return None
 
 
@@ -129,10 +127,8 @@ def cache_insert(key, value):
 		cursor.close()
 	except:
 		log_utils.error()
-		try:
-			cursor.close()
-		except:
-			pass
+		try: cursor.close()
+		except: pass
 
 
 
@@ -251,7 +247,6 @@ def cache_clear_bookmark(name, year='0'):
 	for i in year:
 		idFile.update(str(i))
 	idFile = str(idFile.hexdigest())
-
 	years = [str(year), str(int(year)+1), str(int(year)-1)]
 	try:
 		# cursor.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
