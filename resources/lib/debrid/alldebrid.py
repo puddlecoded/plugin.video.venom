@@ -219,7 +219,7 @@ class AllDebrid:
 				if response and 'message' in response:
 					control.notification(message=response.get('message'))
 					log_utils.log('%s successfully deleted from the All Debrid cloud' % folder_name, __name__, log_utils.LOGDEBUG)
-					control.execute('Container.Refresh')
+					control.refresh()
 					return
 		except:
 			log_utils.error()
@@ -240,7 +240,7 @@ class AllDebrid:
 			else:
 				if response and 'message' in response:
 					control.notification(message=response.get('message'))
-					control.execute('Container.Refresh')
+					control.refresh()
 					return
 		except:
 			log_utils.error()

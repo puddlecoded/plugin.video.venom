@@ -95,7 +95,7 @@
 		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=multi.unwatched)" visible="eq(-2,true)" />
 		<setting id="tvshows.calendar.extended" type="bool" label="32023" default="false" />
 		<setting type="lsep" label="40025" />
-		<setting type="action" action="InstallAddon(service.upnext)" label="40027" option="close" visible="!System.HasAddon(service.upnext)" />
+		<setting type="action" label="40027" action="InstallAddon(service.upnext)" option="close" visible="!System.HasAddon(service.upnext)" />
 		<setting id="enable.upnext" type="bool" default="false" label="40028" visible="System.HasAddon(service.upnext)" />
 		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=upnext)" />
 		<setting id="upnext.time" type="slider" enable="eq(-2,true)" visible="eq(-2,true)" default="60" label="40029" option="int" range="10,60" />
@@ -143,7 +143,6 @@
 	<!-- Source Options - 5 -->
 	<category label="Source Options">
 		<setting id="cf.disable" type="bool" label="32364" default="false" />
-		<setting id="enable.season.packs" type="bool" label="Enable Pack scraping" default="true" />
 		<setting id="scrapers.timeout.1" type="slider" label="32312" default="30" range="10,60" option="int" />
 		<setting id="preemptive.termination" type="bool" label="32654" default="false" />
 		<setting id="preemptive.limit" type="slider" label="32655" default="25" range="1,50" option="int" visible="eq(-1,true)" />
@@ -178,12 +177,9 @@
 		<setting id="torrent.min.seeders" type="slider" label="32638" default="1" range="1,100" option="int" visible="false" /> <!-- Hard coded to 1 by Fenomscrapers so not visible for now-->
 		<setting id="torrent.group.sort" type="select" label="Torent/Hoster sorting method" lvalues="32021|32022" default="1" visible = "true" />
 		<setting id="torrent.size.sort" type="bool" label="Sort torrents by size" default="true" />
-		<setting id="pm.chk.cached" type="bool" label="PM cached torrent check" default="true" />
-		<setting id="pm.remove.uncached" type="bool" label="   PM remove uncached torrents" default="true" enable="eq(-1,true)" />
-		<setting id="rd.chk.cached" type="bool" label="RD cached torrent check" default="true" />
-		<setting id="rd.remove.uncached" type="bool" label="   RD remove uncached torrents" default="true" enable="eq(-1,true)" />
-		<setting id="ad.chk.cached" type="bool" label="AD cached torrent check" default="true" />
-		<setting id="ad.remove.uncached" type="bool" label="   AD remove uncached torrents" default="true" enable="eq(-1,true)" />
+		<setting id="ad.remove.uncached" type="bool" label="AD remove uncached torrents" default="true" enable="eq(-1,true)" />
+		<setting id="pm.remove.uncached" type="bool" label="PM remove uncached torrents" default="true" enable="eq(-1,true)" />
+		<setting id="rd.remove.uncached" type="bool" label="RD remove uncached torrents" default="true" enable="eq(-1,true)" />
 	</category>
 
 	<!-- Trakt - 7 -->
@@ -274,7 +270,6 @@
 		<setting id="library.movie" type="folder" label="32543" default="special://userdata/addon_data/plugin.video.venom/Movies" />
 		<setting id="library.tv" type="folder" label="32544" default="special://userdata/addon_data/plugin.video.venom/TVShows" />
 		<!-- <setting id="library.tv.scraper" type="select" label="   TV Show scraper" values="TMDb|TVDb" default="TVDb" /> -->
-		<!-- <setting type="action" label="32677" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=library_setup)" /> -->
 		<setting type="action" label="32677" action="RunPlugin(plugin://plugin.video.venom/?action=library_setup)" />
 		<setting type="lsep" label="32542" />
 		<setting id="library.service.update" type="bool" label="32545" default="false" />

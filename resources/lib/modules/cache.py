@@ -211,7 +211,7 @@ def cache_clear_search():
 			log_utils.error()
 			pass
 	cursor.close()
-	control.execute('Container.Refresh')
+	control.refresh()
 
 
 def cache_clear_SearchPhrase(table, key):
@@ -223,7 +223,7 @@ def cache_clear_SearchPhrase(table, key):
 		log_utils.error()
 		pass
 	cursor.close()
-	control.execute('Container.Refresh')
+	control.refresh()
 
 
 def cache_clear_bookmarks():
@@ -252,7 +252,7 @@ def cache_clear_bookmark(name, year='0'):
 		# cursor.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
 		cursor.execute('DELETE FROM bookmark WHERE Name = "%s" AND year IN (%s)' % (name, ','.join(i for i in years)))
 		cursor.connection.commit()
-		control.execute('Container.Refresh')
+		control.refresh()
 		control.trigger_widget_refresh()
 	except:
 		log_utils.error()

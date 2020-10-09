@@ -9,7 +9,7 @@ try:
 except:
 	pass
 
-import copy
+from copy import deepcopy
 import hashlib
 import json
 import sys
@@ -90,7 +90,7 @@ class Player(xbmc.Player):
 				self.user = str(self.tmdb_key)
 			self.lang = control.apiLanguage()['tvdb']
 			items = [{'imdb': imdb, 'tvdb': tvdb}] # need to add tmdb but it's not passed as of now
-			items_ck = copy.deepcopy(items)
+			items_ck = deepcopy(items)
 
 			meta1 = meta
 			meta2 = metacache.fetch(items, self.lang, self.user)[0]
@@ -364,7 +364,6 @@ class Player(xbmc.Player):
 			elif self.media_type == 'episode':
 				rpc = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "playcount": 1 }, "id": 1 }' % str(self.DBID)
 			control.jsonrpc(rpc)
-			control.refresh()
 		except:
 			log_utils.error()
 			pass
@@ -384,7 +383,7 @@ class Player(xbmc.Player):
 			if self.isPlayback():
 				self.av_started = True
 				break
-			else: xbmc.sleep(1000)
+			else: control.sleep(1000)
 		if self.offset != '0' and self.playback_resumed is False:
 			self.seekTime(float(self.offset))
 			self.playback_resumed = True
@@ -395,10 +394,11 @@ class Player(xbmc.Player):
 
 
 	def onPlayBackStarted(self):
+		control.sleep(5000)
 		if self.av_started: return
 		for i in range(0, 500):
 			if self.isPlayback(): break
-			else: xbmc.sleep(1000)
+			else: control.sleep(1000)
 		if self.offset != '0' and self.playback_resumed is False:
 			self.seekTime(float(self.offset))
 			self.playback_resumed = True
@@ -419,9 +419,9 @@ class Player(xbmc.Player):
 		except:
 			log_utils.error()
 			pass
-		if control.setting('crefresh') == 'true':
-			xbmc.executebuiltin('Container.Refresh')
-			xbmc.sleep(500)
+		# if control.setting('crefresh') == 'true':
+			# # control.refresh()
+			# control.sleep(500)
 		# control.playlist.clear()
 		control.trigger_widget_refresh()
 		xbmc.log('[ plugin.video.venom ] onPlayBackStopped callback', 2)
@@ -430,9 +430,9 @@ class Player(xbmc.Player):
 	def onPlayBackEnded(self):
 		Bookmarks().reset(self.current_time, self.media_length, self.name, self.year)
 		self.libForPlayback()
-		if control.setting('crefresh') == 'true':
-			xbmc.executebuiltin('Container.Refresh')
-			xbmc.sleep(500)
+		# if control.setting('crefresh') == 'true':
+			# # control.refresh()
+			# control.sleep(500)
 		control.trigger_widget_refresh()
 		xbmc.log('[ plugin.video.venom ] onPlayBackEnded callback', 2)
 
@@ -526,7 +526,6 @@ class Subtitles:
 	def get(self, name, imdb, season, episode):
 		import gzip, StringIO, codecs
 		import xmlrpclib, re, base64
-
 		try:
 			langDict = {'Afrikaans': 'afr', 'Albanian': 'alb', 'Arabic': 'ara', 'Armenian': 'arm', 'Basque': 'baq', 'Bengali': 'ben', 'Bosnian': 'bos', 'Breton': 'bre', 'Bulgarian': 'bul', 'Burmese': 'bur', 'Catalan': 'cat', 'Chinese': 'chi', 'Croatian': 'hrv', 'Czech': 'cze', 'Danish': 'dan', 'Dutch': 'dut', 'English': 'eng', 'Esperanto': 'epo', 'Estonian': 'est', 'Finnish': 'fin', 'French': 'fre', 'Galician': 'glg', 'Georgian': 'geo', 'German': 'ger', 'Greek': 'ell', 'Hebrew': 'heb', 'Hindi': 'hin', 'Hungarian': 'hun', 'Icelandic': 'ice', 'Indonesian': 'ind', 'Italian': 'ita', 'Japanese': 'jpn', 'Kazakh': 'kaz', 'Khmer': 'khm', 'Korean': 'kor', 'Latvian': 'lav', 'Lithuanian': 'lit', 'Luxembourgish': 'ltz', 'Macedonian': 'mac', 'Malay': 'may', 'Malayalam': 'mal', 'Manipuri': 'mni', 'Mongolian': 'mon', 'Montenegrin': 'mne', 'Norwegian': 'nor', 'Occitan': 'oci', 'Persian': 'per', 'Polish': 'pol', 'Portuguese': 'por,pob', 'Portuguese(Brazil)': 'pob,por', 'Romanian': 'rum', 'Russian': 'rus', 'Serbian': 'scc', 'Sinhalese': 'sin', 'Slovak': 'slo', 'Slovenian': 'slv', 'Spanish': 'spa', 'Swahili': 'swa', 'Swedish': 'swe', 'Syriac': 'syr', 'Tagalog': 'tgl', 'Tamil': 'tam', 'Telugu': 'tel', 'Thai': 'tha', 'Turkish': 'tur', 'Ukrainian': 'ukr', 'Urdu': 'urd'}
 			codePageDict = {'ara': 'cp1256', 'ar': 'cp1256', 'ell': 'cp1253', 'el': 'cp1253', 'heb': 'cp1255', 'he': 'cp1255', 'tur': 'cp1254', 'tr': 'cp1254', 'rus': 'cp1251', 'ru': 'cp1251'}
@@ -544,7 +543,6 @@ class Subtitles:
 
 			try: subLang = xbmc.Player().getSubtitles()
 			except: subLang = ''
-
 			if subLang == langs[0]: raise Exception()
 
 			server = xmlrpclib.Server('https://api.opensubtitles.org/xml-rpc', verbose=0)

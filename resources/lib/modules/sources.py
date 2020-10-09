@@ -46,9 +46,9 @@ class Sources:
 		self.show_expiry = timedelta(hours=48)
 		self.getConstants()
 		self.sources = []
+		self.scraper_sources = []
 		self.uncached_sources = []
 		self.sourceFile = control.providercacheFile
-		self.enablePacks = control.setting('enable.season.packs') == 'true'
 		self.dev_mode = control.setting('dev.mode.enable') == 'true'
 		self.dev_disable_single = control.setting('dev.disable.single') == 'true'
 		# self.dev_disable_single_filter = control.setting('dev.disable.single.filter') == 'true'
@@ -442,6 +442,7 @@ class Sources:
 			for i in sourceDict:
 				threads.append(workers.Thread(self.getEpisodeSource, title, year, imdb, tvdb, season,
 											episode, tvshowtitle, aliases, premiered, i[0], i[1]))
+
 		s = [i[0] + (i[1],) for i in zip(sourceDict, threads)]
 		s = [(i[3].getName(), i[0], i[2]) for i in s]
 		sourcelabelDict = dict([(i[0], i[1].upper()) for i in s])
@@ -488,23 +489,22 @@ class Sources:
 					else:
 						if (source_sd) >= pre_emp_limit: break
 
-				if len(self.sources) > 0:
+				if len(self.scraper_sources) > 0:
 					if quality == '0':
-						source_4k = len([e for e in self.sources if e['quality'] == '4K'])
-						source_1080 = len([e for e in self.sources if e['quality'] == '1080p'])
-						source_720 = len([e for e in self.sources if e['quality'] in ['720p', 'HD']])
-						source_sd = len([e for e in self.sources if e['quality'] in ['SD', 'SCR', 'CAM']])
+						source_4k = len([e for e in self.scraper_sources if e['quality'] == '4K'])
+						source_1080 = len([e for e in self.scraper_sources if e['quality'] == '1080p'])
+						source_720 = len([e for e in self.scraper_sources if e['quality'] in ['720p', 'HD']])
+						source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
 					elif quality == '1':
-						source_1080 = len([e for e in self.sources if e['quality'] == '1080p'])
-						source_720 = len([e for e in self.sources if e['quality'] in ['720p', 'HD']])
-						source_sd = len([e for e in self.sources if e['quality'] in ['SD', 'SCR', 'CAM']])
+						source_1080 = len([e for e in self.scraper_sources if e['quality'] == '1080p'])
+						source_720 = len([e for e in self.scraper_sources if e['quality'] in ['720p', 'HD']])
+						source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
 					elif quality == '2':
-						source_720 = len([e for e in self.sources if e['quality'] in ['720p', 'HD']])
-						source_sd = len([e for e in self.sources if e['quality'] in ['SD', 'SCR', 'CAM']])
+						source_720 = len([e for e in self.scraper_sources if e['quality'] in ['720p', 'HD']])
+						source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
 					else:
-						source_sd = len([e for e in self.sources if e['quality'] in ['SD', 'SCR', 'CAM']])
+						source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
 					total = source_4k + source_1080 + source_720 + source_sd
-
 				source_4k_label = total_format % ('red', source_4k) if source_4k == 0 else total_format % (pdpc, source_4k)
 				source_1080_label = total_format % ('red', source_1080) if source_1080 == 0 else total_format % (pdpc, source_1080)
 				source_720_label = total_format % ('red', source_720) if source_720 == 0 else total_format % (pdpc, source_720)
@@ -512,18 +512,18 @@ class Sources:
 				source_total_label = total_format % ('red', total) if total == 0 else total_format % (pdpc, total)
 
 				try:
-					info = [sourcelabelDict[x.getName()] for x in threads if x.is_alive()]
+					info = [sourcelabelDict[x.getName()] for x in threads if x.is_alive() == True]
 					line1 = pdiag_format % (source_4k_label, source_1080_label, source_720_label, source_sd_label)
 					line2 = string4 % source_total_label + '     ' + string1 % round(time.time() - start_time, 1)
 
 					if len(info) > 8: line3 = string3 % str(len(info))
 					elif len(info) > 0: line3 = string3 % (', '.join(info))
-					else: break
 
 					percent = int(100 * float(i) / (2 * timeout) + 0.5)
 					if progressDialog != control.progressDialogBG:
 						progressDialog.update(max(1, percent), line1, line2, line3)
 					else: progressDialog.update(max(1, percent), line1 + string3 % str(len(info)))
+					if len(info) == 0: break
 				except:
 					log_utils.error()
 					break
@@ -534,6 +534,12 @@ class Sources:
 		try: progressDialog.close()
 		except: pass
 		del progressDialog
+		del threads[:] # Make sure any remaining providers are stopped.
+
+		# from copy import deepcopy
+		# self.sources = deepcopy(self.scraper_sources)
+		self.sources.extend(self.scraper_sources)
+
 		if len(self.sources) > 0:
 			self.sourcesFilter()
 		return self.sources
@@ -589,7 +595,7 @@ class Sources:
 				db_movie_valid = abs(self.time - timestamp) < self.single_expiry
 				if db_movie_valid:
 					sources = eval(db_movie[4].encode('utf-8'))
-					return self.sources.extend(sources)
+					return self.scraper_sources.extend(sources)
 		except:
 			log_utils.error()
 			pass
@@ -623,7 +629,7 @@ class Sources:
 				sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
 				for i in sources:
 					i.update({'provider': source})
-				self.sources.extend(sources)
+				self.scraper_sources.extend(sources)
 				dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, '', '', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 				dbcur.connection.commit()
 		except:
@@ -634,6 +640,7 @@ class Sources:
 
 	# @timeIt
 	def getEpisodeSource(self, title, year, imdb, tvdb, season, episode, tvshowtitle, aliases, premiered, source, call):
+		# test_start = time.time()
 		try:
 			dbcon = database.connect(self.sourceFile, timeout=60)
 			self.dbcon = dbcon
@@ -681,9 +688,7 @@ class Sources:
 				db_singleEpisodes_valid = abs(self.time - timestamp) < self.single_expiry
 				if db_singleEpisodes_valid:
 					sources = eval(db_singleEpisodes[4].encode('utf-8'))
-					self.sources.extend(sources)
-					if not self.enablePacks:
-						return self.sources
+					self.scraper_sources.extend(sources)
 		except:
 			log_utils.error()
 			pass
@@ -691,8 +696,6 @@ class Sources:
 		try:
 			# seasonPacks db check
 			db_seasonPacks_valid = False
-			if not self.enablePacks:
-				raise Exception()
 			if self.is_airing:
 				raise Exception()
 			if self.dev_mode and self.dev_disable_season_packs:
@@ -707,7 +710,7 @@ class Sources:
 				db_seasonPacks_valid = abs(self.time - timestamp) < self.season_expiry
 				if db_seasonPacks_valid:
 					sources = eval(db_seasonPacks[4].encode('utf-8'))
-					self.sources.extend(sources)
+					self.scraper_sources.extend(sources)
 		except:
 			log_utils.error()
 			pass
@@ -715,8 +718,6 @@ class Sources:
 		try:
 			# # showPacks db check
 			db_showPacks_valid = False
-			if not self.enablePacks:
-				raise Exception()
 			if self.dev_mode and self.dev_disable_show_packs: raise Exception()
 			sources = []
 			dbcur.execute(
@@ -729,9 +730,9 @@ class Sources:
 				if db_showPacks_valid:
 					sources = eval(db_showPacks[4].encode('utf-8'))
 					sources = [i for i in sources if i.get('last_season') >= int(season)] # filter out range items that do not apply to current season
-					self.sources.extend(sources)
+					self.scraper_sources.extend(sources)
 					if db_singleEpisodes_valid and db_seasonPacks_valid:
-						return self.sources
+						return self.scraper_sources
 		except:
 			log_utils.error()
 			pass
@@ -790,7 +791,7 @@ class Sources:
 				sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
 				for i in sources:
 					i.update({'provider': source})
-				self.sources.extend(sources)
+				self.scraper_sources.extend(sources)
 				dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, season, episode, repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 				dbcur.connection.commit()
 		except:
@@ -803,7 +804,7 @@ class Sources:
 				raise Exception()
 			if self.is_airing:
 				raise Exception()
-			if self.enablePacks and source in self.packDict:
+			if source in self.packDict:
 				if db_seasonPacks_valid:
 					raise Exception()
 				sources = []
@@ -812,7 +813,7 @@ class Sources:
 					sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
 					for i in sources:
 						i.update({'provider': source})
-					self.sources.extend(sources)
+					self.scraper_sources.extend(sources)
 					dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, season,'', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 					dbcur.connection.commit()
 		except:
@@ -823,7 +824,7 @@ class Sources:
 		# showPacks scraper call
 			if self.dev_mode and self.dev_disable_show_packs:
 				raise Exception()
-			if self.enablePacks and source in self.packDict:
+			if source in self.packDict:
 				if db_showPacks_valid:
 					raise Exception()
 				sources = []
@@ -833,13 +834,15 @@ class Sources:
 					for i in sources:
 						i.update({'provider': source})
 					sources = [i for i in sources if i.get('last_season') >= int(season)] # filter out range items that do not apply to current season
-					self.sources.extend(sources)
+					self.scraper_sources.extend(sources)
 					dbcur.execute("INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)", (source, imdb, '', '', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 					dbcur.connection.commit()
 		except:
 			log_utils.error()
 			pass
 		dbcon.close()
+		# test_end = time.time()
+		# log_utils.log('source: %s took %s seconds to run' % (source, str(test_end-test_start)), log_utils.LOGDEBUG)
 
 
 	def alterSources(self, url, meta):
@@ -851,6 +854,7 @@ class Sources:
 		except:
 			log_utils.error()
 			pass
+
 
 	# @timeIt
 	def sourcesFilter(self):
@@ -869,7 +873,6 @@ class Sources:
 
 		if control.setting('remove.CamSd.sources') == 'true':
 			if any(i for i in self.sources if any(value in i['quality'] for value in ['4K', '1080p', '720p'])): #only remove CAM and SD if better quality does exist
-				# if pre_emp is enabled it seems as if a threads not terminated and SD sources still get through.
 				self.sources = [i for i in self.sources if not any(value in i['quality'] for value in ['CAM', 'SD'])]
 
 		if control.setting('remove.3D.sources') == 'true':
@@ -892,67 +895,55 @@ class Sources:
 		self.sources = [i for i in self.sources if not i in local]
 
 		filter = []
-		import copy
+		from copy import deepcopy
 		for d in self.debrid_resolvers:
 			valid_hoster = set([i['source'] for i in self.sources])
 			valid_hoster = [i for i in valid_hoster if d.valid_url(i)]
-			if d.name == 'Premiumize.me':
-				if control.setting('pm.chk.cached') == 'true' and control.setting('premiumize.enable') == 'true':
-					try:
-						pmTorrent_List = copy.deepcopy(self.sources)
-						pmTorrent_List = [i for i in pmTorrent_List if 'magnet:' in i['url']]
-						if pmTorrent_List == []: raise Exception()
-						pmCached = self.pm_cache_chk_list(pmTorrent_List, d)
-						# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if re.match(r'^uncached.*torrent', i['source'])]
-						if control.setting('pm.remove.uncached') == 'true':
-							filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if re.match(r'^cached.*torrent', i['source'])]
-						else: filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if 'magnet:' in i['url']]
-					except:
-						log_utils.error()
-						pass
-				else:
-					filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
+
+			if d.name == 'Premiumize.me' and control.setting('premiumize.enable') == 'true':
+				try:
+					pmTorrent_List = deepcopy(self.sources)
+					pmTorrent_List = [i for i in pmTorrent_List if 'magnet:' in i['url']]
+					if pmTorrent_List == []: raise Exception()
+					pmCached = self.pm_cache_chk_list(pmTorrent_List, d)
+					# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if re.match(r'^uncached.*torrent', i['source'])]
+					if control.setting('pm.remove.uncached') == 'true':
+						filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if re.match(r'^cached.*torrent', i['source'])]
+					else: filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if 'magnet:' in i['url']]
+				except:
+					log_utils.error()
+					pass
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 
-			if d.name == 'Real-Debrid':
-				if control.setting('rd.chk.cached') == 'true' and control.setting('realdebrid.enable') == 'true':
-					try:
-						rdTorrent_List = copy.deepcopy(self.sources)
-						rdTorrent_List = [i for i in rdTorrent_List if 'magnet:' in i['url']]
-						if rdTorrent_List == []: raise Exception()
-						rdCached = self.rd_cache_chk_list(rdTorrent_List, d)
-						# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if re.match(r'^uncached.*torrent', i['source'])]
-						if control.setting('rd.remove.uncached') == 'true':
-							filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if re.match(r'^cached.*torrent', i['source'])]
-						else: filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if 'magnet:' in i['url']]
-					except:
-						log_utils.error()
-						pass
-				else:
-					filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
+			if d.name == 'Real-Debrid' and control.setting('realdebrid.enable') == 'true':
+				try:
+					rdTorrent_List = deepcopy(self.sources)
+					rdTorrent_List = [i for i in rdTorrent_List if 'magnet:' in i['url']]
+					if rdTorrent_List == []: raise Exception()
+					rdCached = self.rd_cache_chk_list(rdTorrent_List, d)
+					# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if re.match(r'^uncached.*torrent', i['source'])]
+					if control.setting('rd.remove.uncached') == 'true':
+						filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if re.match(r'^cached.*torrent', i['source'])]
+					else: filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if 'magnet:' in i['url']]
+				except:
+					log_utils.error()
+					pass
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 
-			if d.name == 'AllDebrid':
-				if control.setting('ad.chk.cached') == 'true' and control.setting('alldebrid.enable') == 'true':
-					try:
-						adTorrent_List = copy.deepcopy(self.sources)
-						adTorrent_List = [i for i in adTorrent_List if 'magnet:' in i['url']]
-						if adTorrent_List == []: raise Exception()
-						adCached = self.ad_cache_chk_list(adTorrent_List, d)
-						if not adCached: raise Exception
-						# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in adCached if re.match(r'^uncached.*torrent', i['source'])]
-						if control.setting('ad.remove.uncached') == 'true':
-							filter += [dict(i.items() + [('debrid', d.name)]) for i in adCached if re.match(r'^cached.*torrent', i['source'])]
-						else: filter += [dict(i.items() + [('debrid', d.name)]) for i in adCached if 'magnet:' in i['url']]
-					except:
-						log_utils.error()
-						pass
-				else:
-					filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
-				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
-
-			if d.name != 'Premiumize.me' and d.name != 'Real-Debrid' and d.name != 'AllDebrid':
-				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if 'magnet:' in i['url']]
+			if d.name == 'AllDebrid' and control.setting('alldebrid.enable') == 'true':
+				try:
+					adTorrent_List = deepcopy(self.sources)
+					adTorrent_List = [i for i in adTorrent_List if 'magnet:' in i['url']]
+					if adTorrent_List == []: raise Exception()
+					adCached = self.ad_cache_chk_list(adTorrent_List, d)
+					if not adCached: raise Exception
+					# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in adCached if re.match(r'^uncached.*torrent', i['source'])]
+					if control.setting('ad.remove.uncached') == 'true':
+						filter += [dict(i.items() + [('debrid', d.name)]) for i in adCached if re.match(r'^cached.*torrent', i['source'])]
+					else: filter += [dict(i.items() + [('debrid', d.name)]) for i in adCached if 'magnet:' in i['url']]
+				except:
+					log_utils.error()
+					pass
 				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 
 		filter += [i for i in self.sources if i['direct'] == True]
@@ -1089,8 +1080,9 @@ class Sources:
 					return
 		else:
 			direct = item['direct']
+			call = [i[1] for i in self.sourceDict if i[0] == item['provider']][0]
 			if direct:
-				self.url = url
+				self.url = call.resolve(url)
 				return url
 			else:
 				try:
@@ -1100,7 +1092,6 @@ class Sources:
 						from resources.lib.debrid.premiumize import Premiumize as debrid_function
 					elif debrid_provider == 'AllDebrid':
 						from resources.lib.debrid.alldebrid import AllDebrid as debrid_function
-					call = [i[1] for i in self.sourceDict if i[0] == item['provider']][0]
 					u = url = call.resolve(url)
 					url = debrid_function().unrestrict_link(url)
 					self.url = url
@@ -1351,9 +1342,8 @@ class Sources:
 		from fenomscrapers import pack_sources
 		self.packDict = pack_sources()
 
-		self.hostDict = []
+		self.hostprDict  = []
 		try:
-			self.hostprDict  = []
 			self.debrid_resolvers = debrid.debrid_resolvers()
 			for d in self.debrid_resolvers:
 				hosts = d.get_hosts()[d.name]
@@ -1409,7 +1399,7 @@ class Sources:
 		self.sources = filter
 		return self.sources
 
-
+	# @timeIt
 	def calc_pack_size(self):
 		seasoncount = None
 		counts = None

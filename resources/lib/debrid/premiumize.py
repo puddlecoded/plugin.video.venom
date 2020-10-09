@@ -420,7 +420,7 @@ class Premiumize:
 			if 'status' in response:
 				if response.get('status') == 'success':
 					log_utils.log('Finished transfers successfully cleared from the Premiumize.me cloud', __name__, log_utils.LOGDEBUG)
-					control.execute('Container.Refresh')
+					control.refresh()
 					return
 		except:
 			log_utils.error()
@@ -440,7 +440,7 @@ class Premiumize:
 			if 'status' in response:
 				if response.get('status') == 'success':
 					log_utils.log('Transfer successfully deleted from the Premiumize.me cloud', __name__, log_utils.LOGDEBUG)
-					control.execute('Container.Refresh')
+					control.refresh()
 					return
 		except:
 			log_utils.error()
@@ -633,7 +633,7 @@ class Premiumize:
 				return
 			if 'status' in response:
 				if response.get('status') == 'success':
-					control.execute('Container.Refresh')
+					control.refresh()
 		except:
 			log_utils.error()
 			pass
@@ -654,7 +654,7 @@ class Premiumize:
 				return
 			if 'status' in response:
 				if response.get('status') == 'success':
-					control.execute('Container.Refresh')
+					control.refresh()
 		except:
 			log_utils.error()
 			pass

@@ -288,7 +288,7 @@ class RealDebrid:
 			response = requests.delete(rest_base_url + url).text
 			if not 'error' in response:
 				log_utils.log('Real-Debrid: %s was removed from your active Torrents' % name, __name__, log_utils.LOGDEBUG)
-				control.execute('Container.Refresh')
+				control.refresh()
 				return
 		except Exception as e:
 			log_utils.log('Real-Debrid Error: DELETE TORRENT %s | %s' % (name, e), __name__, log_utils.LOGDEBUG)
@@ -389,7 +389,7 @@ class RealDebrid:
 			response = requests.delete(rest_base_url + url).text
 			if not 'error' in response:
 				log_utils.log('Real-Debrid: %s was removed from your MyDownloads' % name, __name__, log_utils.LOGDEBUG)
-				control.execute('Container.Refresh')
+				control.refresh()
 				return
 		except Exception as e:
 			log_utils.log('Real-Debrid Error: DELETE DOWNLOAD %s | %s' % (name, e), __name__, log_utils.LOGDEBUG)

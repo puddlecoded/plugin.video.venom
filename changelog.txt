@@ -1,3 +1,13 @@
+[B][COLOR red]Update - v4.2.5 – Oct. 09, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Removed cache check setting for AD, PM, and RD,
+    this is now hard coded on to always check cached status.
+    You can still enable/disable showing of uncached torrents.[/I]
+[COLOR yellow]--[/COLOR][I] Removed setting to enable/disable pack scraping.
+    This is now hard coded on.[/I]
+[COLOR yellow]--[/COLOR][I] Fix for random container refresah issues
+    during playback.[/I]
+[COLOR yellow]--[/COLOR][I] Fix for Furk resolve issue.[/I]
+
 [B][COLOR red]Update - v4.2.4 – Oct. 03, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Removed old exo code for configurable "New Movies"
     and "New Episodes".  All items were currently availalbe.[/I]

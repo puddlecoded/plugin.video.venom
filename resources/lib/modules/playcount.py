@@ -15,7 +15,7 @@ def getMovieIndicators(refresh=False):
 			if not refresh: timeout = 720
 			elif trakt.getWatchedActivity() < trakt.timeoutsyncMovies(): timeout = 720
 			else: timeout = 0
-			indicators = trakt.cachesyncMovies(timeout = timeout)
+			indicators = trakt.cachesyncMovies(timeout=timeout)
 			return indicators
 		else:
 			from metahandler import metahandlers
@@ -32,7 +32,7 @@ def getTVShowIndicators(refresh=False):
 			if not refresh: timeout = 720
 			elif trakt.getWatchedActivity() < trakt.timeoutsyncTVShows(): timeout = 720
 			else: timeout = 0
-			indicators = trakt.cachesyncTVShows(timeout = timeout)
+			indicators = trakt.cachesyncTVShows(timeout=timeout)
 			return indicators
 		else:
 			from metahandler import metahandlers
@@ -47,9 +47,9 @@ def getSeasonIndicators(imdb, refresh=False):
 	try:
 		if traktIndicators:
 			if not refresh: timeout = 720
-			elif trakt.getWatchedActivity() < trakt.timeoutsyncSeason(imdb = imdb): timeout = 720
+			elif trakt.getWatchedActivity() < trakt.timeoutsyncSeason(imdb=imdb): timeout = 720
 			else: timeout = 0
-			indicators = trakt.cachesyncSeason(imdb = imdb, timeout = timeout)
+			indicators = trakt.cachesyncSeason(imdb=imdb, timeout=timeout)
 			return indicators
 		else:
 			from metahandler import metahandlers
@@ -254,7 +254,7 @@ def episodes(name, imdb, tvdb, season, episode, watched):
 			metaget.get_meta('tvshow', name=name, imdb_id=imdb)
 			metaget.get_episode_meta('', imdb_id=imdb, season=season, episode=episode)
 			metaget.change_watched('episode', '', imdb_id=imdb, season=season, episode=episode, watched=int(watched))
-			tvshowsUpdate(imdb=imdb, tvdb=tvdb)
+			tvshowsUpdate(imdb=imdb, tvdb=tvdb) # control.refresh() done in this function
 	except:
 		log_utils.error()
 		pass
@@ -268,8 +268,8 @@ def tvshows(tvshowtitle, imdb, tvdb, season, watched):
 	watched = int(watched)
 	try:
 		if traktIndicators:
-			if watched == 7: trakt.watch(name=tvshowtitle, imdb=imdb, tvdb = tvdb, season=season, refresh=True)
-			else: trakt.unwatch(name=tvshowtitle, imdb=imdb, tvdb = tvdb, season=season, refresh=True)
+			if watched == 7: trakt.watch(name=tvshowtitle, imdb=imdb, tvdb=tvdb, season=season, refresh=True)
+			else: trakt.unwatch(name=tvshowtitle, imdb=imdb, tvdb=tvdb, season=season, refresh=True)
 		else:
 			from metahandler import metahandlers
 			from resources.lib.menus import episodes
@@ -339,5 +339,4 @@ def tvshowsUpdate(imdb, tvdb):
 		metaget.change_watched('tvshow', '', imdb_id = imdb, watched = 7 if countSeason == len(seasons.keys()) else 6)
 	except:
 		log_utils.error()
-
 	control.refresh()
