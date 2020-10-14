@@ -177,9 +177,9 @@
 		<setting id="torrent.min.seeders" type="slider" label="32638" default="1" range="1,100" option="int" visible="false" /> <!-- Hard coded to 1 by Fenomscrapers so not visible for now-->
 		<setting id="torrent.group.sort" type="select" label="Torent/Hoster sorting method" lvalues="32021|32022" default="1" visible = "true" />
 		<setting id="torrent.size.sort" type="bool" label="Sort torrents by size" default="true" />
-		<setting id="ad.remove.uncached" type="bool" label="AD remove uncached torrents" default="true" enable="eq(-1,true)" />
-		<setting id="pm.remove.uncached" type="bool" label="PM remove uncached torrents" default="true" enable="eq(-1,true)" />
-		<setting id="rd.remove.uncached" type="bool" label="RD remove uncached torrents" default="true" enable="eq(-1,true)" />
+		<setting id="ad.remove.uncached" type="bool" label="AD remove uncached torrents" default="true" />
+		<setting id="pm.remove.uncached" type="bool" label="PM remove uncached torrents" default="true" />
+		<setting id="rd.remove.uncached" type="bool" label="RD remove uncached torrents" default="true" />
 	</category>
 
 	<!-- Trakt - 7 -->

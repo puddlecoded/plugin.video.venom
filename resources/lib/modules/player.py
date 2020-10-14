@@ -608,6 +608,7 @@ class Bookmarks:
 				scrobbble = 'Trakt Scrobble'
 				type = 'episode' if episode else 'movie' 
 				progress = float(trakt.scrobbleProgress(type=type, imdb=imdb, tvdb=None, season=season, episode=episode))
+				# log_utils.log('progress = %s' % str(progress), log_utils.LOGDEBUG)
 				offset = (float(progress / 100) * int(runtime))
 				seekable = (2 <= progress <= 85)
 				if not seekable: return '0'

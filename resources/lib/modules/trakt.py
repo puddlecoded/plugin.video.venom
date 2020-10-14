@@ -118,7 +118,6 @@ def getTraktAsJson(url, post=None, authentication=None):
 			res_headers = r[1]
 			r = r[0]
 		if not r:	return
-		# log_utils.log('r = %s' % str(r), __name__, log_utils.LOGDEBUG)
 		r = utils.json_loads_as_str(r)
 		res_headers = dict((k.lower(), v) for k, v in res_headers.iteritems())
 		if 'x-sort-by' in res_headers and 'x-sort-how' in res_headers:
@@ -204,7 +203,7 @@ def _cacheProcess():
 
 			data._delete('DELETE FROM %s WHERE id IS %d;' % (databaseTable, result[0]), commit = True)
 			data._unlock()
-			result = getTrakt(url = result[2], post = json.loads(result[3]) if result[3] else None, cache = True, check = False, timestamp = result[1])
+			result = getTrakt(url = result[2], post = json.loads(result[3]) if result[3] else None, cache=True, check=False, timestamp=result[1])
 	except:
 		data._unlock()
 	data._close()
@@ -1081,9 +1080,7 @@ def scrobbleProgress(type, imdb=None, tvdb=None, season=None, episode=None):
 		if imdb: imdb = str(imdb)
 		if tvdb: tvdb = int(tvdb)
 		if episode: episode = int(episode)
-
 		if season: season = int(season)
-
 
 		# link = '/sync/playback/type'
 		link = '/sync/playback/%s' % type + 's'

@@ -713,19 +713,16 @@ class Movies:
 			items = json.loads(result)
 		except:
 			pass
-
 		for item in items:
 			try:
 				try: name = item['list']['name']
 				except: name = item['name']
 				name = client.replaceHTMLCodes(name)
 				name = name.encode('utf-8')
-
 				try: url = (trakt.slug(item['list']['user']['username']), item['list']['ids']['slug'])
 				except: url = ('me', item['ids']['slug'])
 				url = self.traktlist_link % url
 				url = url.encode('utf-8')
-
 				self.list.append({'name': name, 'url': url, 'context': url})
 			except:
 				log_utils.error()
@@ -959,8 +956,7 @@ class Movies:
 
 	def worker(self, level=1):
 		try:
-			if not self.list:
-				return
+			if not self.list: return
 			self.meta = []
 			total = len(self.list)
 
@@ -1310,7 +1306,6 @@ class Movies:
 				item.setArt(art)
 				item.setProperty('IsPlayable', isPlayable)
 				if is_widget: item.setProperty('isVenom_widget', 'true')
-
 				from resources.lib.modules.player import Bookmarks
 				resumetime = Bookmarks().get(name=label, imdb=imdb, year=str(year), runtime=runtime, ck=True)
 				# item.setProperty('totaltime', str(meta['duration'])) # Adding this property causes the Kodi bookmark CM items to be added
@@ -1383,12 +1378,9 @@ class Movies:
 		for i in items:
 			try:
 				name = i['name']
-				if i['image'].startswith('http'):
-					thumb = i['image']
-				elif artPath:
-					thumb = control.joinPath(artPath, i['image'])
-				else:
-					thumb = addonThumb
+				if i['image'].startswith('http'): thumb = i['image']
+				elif artPath: thumb = control.joinPath(artPath, i['image'])
+				else: thumb = addonThumb
 
 				icon = i.get('icon', 0)
 				if not icon: icon = 'DefaultFolder.png'
@@ -1399,10 +1391,8 @@ class Movies:
 
 				cm = []
 				cm.append((playRandom, 'RunPlugin(%s?action=random&rtype=movie&url=%s)' % (sysaddon, quote_plus(i['url']))))
-
 				if queue:
 					cm.append((queueMenu, 'RunPlugin(%s?action=playlist_QueueItem)' % sysaddon))
-
 				try:
 					if control.setting('library.service.update') == 'true':
 						cm.append((addToLibrary, 'RunPlugin(%s?action=library_moviesToLibrary&url=%s&name=%s)' % (sysaddon, quote_plus(i['context']), name)))

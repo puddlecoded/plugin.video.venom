@@ -516,7 +516,7 @@ class Sources:
 					line1 = pdiag_format % (source_4k_label, source_1080_label, source_720_label, source_sd_label)
 					line2 = string4 % source_total_label + '     ' + string1 % round(time.time() - start_time, 1)
 
-					if len(info) > 8: line3 = string3 % str(len(info))
+					if len(info) > 6: line3 = string3 % str(len(info))
 					elif len(info) > 0: line3 = string3 % (', '.join(info))
 
 					percent = int(100 * float(i) / (2 * timeout) + 0.5)
@@ -536,8 +536,6 @@ class Sources:
 		del progressDialog
 		del threads[:] # Make sure any remaining providers are stopped.
 
-		# from copy import deepcopy
-		# self.sources = deepcopy(self.scraper_sources)
 		self.sources.extend(self.scraper_sources)
 
 		if len(self.sources) > 0:
@@ -640,7 +638,6 @@ class Sources:
 
 	# @timeIt
 	def getEpisodeSource(self, title, year, imdb, tvdb, season, episode, tvshowtitle, aliases, premiered, source, call):
-		# test_start = time.time()
 		try:
 			dbcon = database.connect(self.sourceFile, timeout=60)
 			self.dbcon = dbcon
@@ -841,8 +838,6 @@ class Sources:
 			log_utils.error()
 			pass
 		dbcon.close()
-		# test_end = time.time()
-		# log_utils.log('source: %s took %s seconds to run' % (source, str(test_end-test_start)), log_utils.LOGDEBUG)
 
 
 	def alterSources(self, url, meta):
@@ -936,7 +931,6 @@ class Sources:
 					adTorrent_List = [i for i in adTorrent_List if 'magnet:' in i['url']]
 					if adTorrent_List == []: raise Exception()
 					adCached = self.ad_cache_chk_list(adTorrent_List, d)
-					if not adCached: raise Exception
 					# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in adCached if re.match(r'^uncached.*torrent', i['source'])]
 					if control.setting('ad.remove.uncached') == 'true':
 						filter += [dict(i.items() + [('debrid', d.name)]) for i in adCached if re.match(r'^cached.*torrent', i['source'])]
@@ -1489,7 +1483,9 @@ class Sources:
 			cached = cached['magnets']
 			count = 0
 			for i in torrent_List:
-				if 'error' in cached[count]: continue
+				if 'error' in cached[count]:
+					count += 1
+					continue
 				if cached[count]['instant'] is False:
 					if 'package' in i: i.update({'source': 'uncached (pack) torrent'})
 					else: i.update({'source': 'uncached torrent'})

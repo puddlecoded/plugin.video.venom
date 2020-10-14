@@ -1,10 +1,21 @@
+[B][COLOR red]Update - v4.2.6 – Oct. 13, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed settings for remove uncached torrents. Under
+    some conditions an item my be unavailable for AD, PM,
+    or RDd torrents.[/I]
+[COLOR yellow]--[/COLOR][I] Fixed AD cache check when a single item from a
+    list request contained an error the cache check process
+    halted.[/I]
+[COLOR yellow]--[/COLOR][I] Reduced the number of visible named scrapers
+    for the progressDialog.  AuraMod skin had a slight overlap
+    with the progress bar.[/I]
+
 [B][COLOR red]Update - v4.2.5 – Oct. 09, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Removed cache check setting for AD, PM, and RD,
     this is now hard coded on to always check cached status.
     You can still enable/disable showing of uncached torrents.[/I]
 [COLOR yellow]--[/COLOR][I] Removed setting to enable/disable pack scraping.
     This is now hard coded on.[/I]
-[COLOR yellow]--[/COLOR][I] Fix for random container refresah issues
+[COLOR yellow]--[/COLOR][I] Fix for random container refresh issues
     during playback.[/I]
 [COLOR yellow]--[/COLOR][I] Fix for Furk resolve issue.[/I]
 

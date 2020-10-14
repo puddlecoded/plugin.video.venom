@@ -1,5 +1,7 @@
-# -*- coding: UTF-8 -*-
-
+# -*- coding: utf-8 -*-
+"""
+    Venom
+"""
 import re
 import unicodedata
 
@@ -18,6 +20,7 @@ def get(title):
 def geturl(title):
 	if not title: return
 	title = title.lower()
+	# title = title.translate(None, ':*?"\'\.<>|&!,')
 	try:
 		# This gives a weird error saying that translate only takes 1 argument, not 2. However, the Python 2 documentation states 2, but 1 for Python 3.
 		# This has most likley to do with titles being unicode (foreign titles)
