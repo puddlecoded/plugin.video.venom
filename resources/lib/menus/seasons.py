@@ -735,8 +735,7 @@ class Seasons:
 		addonBanner = control.addonBanner()
 
 		try: indicators = playcount.getSeasonIndicators(items[0]['imdb'])
-		except : pass
-
+		except: indicators = None
 		unwatchedEnabled = control.setting('tvshows.unwatched.enabled') == 'true'
 
 		if trakt.getTraktIndicatorsInfo():
@@ -747,7 +746,6 @@ class Seasons:
 			unwatchedMenu = control.lang(32067)
 
 		traktManagerMenu = control.lang(32070)
-		# playlistManagerMenu = control.lang(35522)
 		queueMenu = control.lang(32065)
 		showPlaylistMenu = control.lang(35517)
 		clearPlaylistMenu = control.lang(35516)
@@ -772,7 +770,6 @@ class Seasons:
 				title = i['tvshowtitle']
 				label = '%s %s' % (labelMenu, i['season'])
 
-				# if self.season_special is False and control.setting('tv.specials') == 'true':
 				if not self.season_special and control.setting('tv.specials') == 'true':
 					self.season_special = True if int(season) == 0 else False
 
@@ -863,15 +860,10 @@ class Seasons:
 				except:
 					pass
 
-				# sysmeta = quote_plus(json.dumps(meta))
-				# sysart = quote_plus(json.dumps(art))
 				url = '%s?action=episodes&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s' % (sysaddon, systitle, year, imdb, tmdb, tvdb, season)
-				# sysurl = quote_plus(url)
-
 				cm.append((playRandom, 'RunPlugin(%s?action=random&rtype=episode&tvshowtitle=%s&year=%s&imdb=%s&tvdb=%s&season=%s)' % (
 									sysaddon, systitle, year, imdb, tvdb, season)))
 
-				# cm.append((playlistManagerMenu, 'RunPlugin(%s?action=playlist_Manager&name=%s&url=%s&meta=%s&art=%s)' % (sysaddon, systitle, sysurl, sysmeta, sysart)))
 				cm.append((queueMenu, 'RunPlugin(%s?action=playlist_QueueItem&name=%s)' % (sysaddon, systitle)))
 				cm.append((showPlaylistMenu, 'RunPlugin(%s?action=playlist_Show)' % sysaddon))
 				cm.append((clearPlaylistMenu, 'RunPlugin(%s?action=playlist_Clear)' % sysaddon))
@@ -886,9 +878,7 @@ class Seasons:
 
 				item = control.item(label = label)
 				if 'castandart' in i: item.setCast(i['castandart'])
-
 				if 'episodeIDS' in i: item.setUniqueIDs(i['episodeIDS'])
-
 				if unwatchedEnabled:
 					count = playcount.getSeasonCount(imdb, season, self.season_special)
 					if count:

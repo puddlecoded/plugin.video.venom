@@ -319,16 +319,16 @@ if action == 'playEpisodesList':
 		systitle = quote_plus(title)
 		year = i['year']
 		imdb = i['imdb']
+		tmdb = i['tmdb']
 		tvdb = i['tvdb']
 		season = i['season']
 		episode = i['episode']
 		tvshowtitle = i['tvshowtitle']
 		systvshowtitle = quote_plus(tvshowtitle)
 		premiered = i['premiered']
-
 		sysmeta = quote_plus(json.dumps(i))
-		url = 'plugin://plugin.video.venom/?action=play&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&select="2"' % (
-								systitle, year, imdb, tvdb, season, episode, systvshowtitle, premiered, sysmeta)
+		url = 'plugin://plugin.video.venom/?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&select="2"' % (
+								systitle, year, imdb, tmdb, tvdb, season, episode, systvshowtitle, premiered, sysmeta)
 		item = control.item(label=title)
 		control.playlist.add(url=url, listitem=item)
 	control.player2().play(control.playlist)
@@ -658,6 +658,9 @@ if action and action.startswith('tools_'):
 		from resources.lib.modules import trakt
 		trakt.cachesyncTVShows(int(params.get('timeout')))
 
+	elif action == 'tools_syncTraktProgress':
+		from resources.lib.modules import trakt
+		trakt.sync_progress()
 
 ####################################################
 #---Play
@@ -670,11 +673,11 @@ if action == 'play':
 	# xbmc.executebuiltin('PlayMedia(plugin://plugin.video.venom/?action=playAll)')
 
 	from resources.lib.modules import sources
-	rescrape = params.get('rescrape')
-	select = params.get('select')
 	premiered = params.get('premiered')
 	meta = params.get('meta')
-	sources.Sources().play(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape)
+	select = params.get('select')
+	rescrape = params.get('rescrape')
+	sources.Sources().play(title, year, imdb, tmdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape)
 
 elif action == 'playAll':
 	control.player2().play(control.playlist)

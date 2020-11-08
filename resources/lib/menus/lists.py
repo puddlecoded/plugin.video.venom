@@ -1354,7 +1354,6 @@ class bookmarks:
 				yes = control.dialog.contextmenu([label, control.lang(32501)])
 			except:
 				yes = control.yesnoDialog(label, '', '', str(name), control.lang(32503), control.lang(32501))
-
 			if yes: self.offset = '0'
 
 			return self.offset

@@ -47,7 +47,6 @@ class Episodes:
 		self.today_date = (self.datetime).strftime('%Y-%m-%d')
 
 		self.tvdb_key = control.setting('tvdb.api.key')
-
 		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/all/%s.zip' % (self.tvdb_key.decode('base64'), '%s', '%s')
 		self.tvdb_image = 'https://thetvdb.com/banners/'
 		self.tvdb_poster = 'https://thetvdb.com/banners/_cache/'
@@ -1307,7 +1306,9 @@ class Episodes:
 		try: sysaction = items[0]['action']
 		except: sysaction = ''
 
-		indicators = playcount.getTVShowIndicators()
+		# indicators = playcount.getTVShowIndicators()
+		indicators = playcount.getTVShowIndicators(refresh=True)
+
 		isFolder = False if sysaction != 'episodes' else True
 		isPlayable = 'false'
 		if 'plugin' not in control.infoLabel('Container.PluginName'):
@@ -1363,7 +1364,6 @@ class Episodes:
 				if multi: label = '%s - %s' % (tvshowtitle, label)
 				try: labelProgress = label + '[COLOR %s]  [%s][/COLOR]' % (control.getColor(control.setting('highlight.color')), str(round(float(i['progress'] * 100), 1)) + '%')
 				except: labelProgress = label
-				# log_utils.log('labelProgress = %s' % str(labelProgress), __name__, log_utils.LOGDEBUG)
 
 				try:
 					if i['unaired'] == 'true': labelProgress = '[COLOR %s][I]%s[/I][/COLOR]' % (self.unairedcolor, labelProgress)
@@ -1518,8 +1518,8 @@ class Episodes:
 				sysart = quote_plus(json.dumps(art))
 				syslabelProgress = quote_plus(labelProgress)
 
-				url = '%s?action=play&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s' % (
-										sysaddon, systitle, year, imdb, tvdb, season, episode, systvshowtitle, syspremiered, sysmeta)
+				url = '%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s' % (
+										sysaddon, systitle, year, imdb, tmdb, tvdb, season, episode, systvshowtitle, syspremiered, sysmeta)
 				sysurl = quote_plus(url)
 
 				Folderurl = '%s?action=episodes&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s&episode=%s' % (
@@ -1546,11 +1546,11 @@ class Episodes:
 						cm.append((progressMenu, 'Container.Update(%s)' % Folderurl))
 					cm.append((playbackMenu, 'RunPlugin(%s?action=alterSources&url=%s&meta=%s)' % (sysaddon, sysurl, sysmeta)))
 					if control.setting('hosts.mode') == '1' and control.setting('enable.upnext') != 'true':
-						cm.append(('Rescrape Item', 'RunPlugin(%s?action=play&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&rescrape=true)' % (
-											sysaddon, systitle, year, imdb, tvdb, season, episode, systvshowtitle, syspremiered, sysmeta)))
+						cm.append(('Rescrape Item', 'RunPlugin(%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&rescrape=true)' % (
+											sysaddon, systitle, year, imdb, tmdb, tvdb, season, episode, systvshowtitle, syspremiered, sysmeta)))
 					elif control.setting('hosts.mode') != '1' or control.setting('enable.upnext') == 'true':
-						cm.append(('Rescrape Item', 'PlayMedia(%s?action=play&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&rescrape=true)' % (
-											sysaddon, systitle, year, imdb, tvdb, season, episode, systvshowtitle, syspremiered, sysmeta)))
+						cm.append(('Rescrape Item', 'PlayMedia(%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&rescrape=true)' % (
+											sysaddon, systitle, year, imdb, tmdb, tvdb, season, episode, systvshowtitle, syspremiered, sysmeta)))
 
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=library_tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (
@@ -1584,7 +1584,7 @@ class Episodes:
 
 				from resources.lib.modules.player import Bookmarks
 				blabel = tvshowtitle + ' S%02dE%02d' % (int(season), int(episode))
-				resumetime = Bookmarks().get(name=blabel, season=season, episode=episode, imdb=imdb, year=str(year), runtime=runtime, ck=True)
+				resumetime = Bookmarks().get(name=blabel, imdb=imdb, tmdb=tmdb, tvdb=tvdb, season=season, episode=episode, year=str(year), runtime=runtime, ck=True)
 				# item.setProperty('totaltime', str(meta.get('duration'))) # Adding this property causes the Kodi bookmark CM items to be added
 				item.setProperty('resumetime', str(resumetime))
 				item.setProperty('venom_resumetime', str(resumetime))

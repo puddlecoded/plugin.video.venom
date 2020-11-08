@@ -352,8 +352,7 @@ class Navigator:
 
 	def clearCacheAll(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32077), '', '')
-		if not yes: return
+		if not control.yesnoDialog(control.lang(32077), '', ''): return
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_all()
@@ -365,8 +364,7 @@ class Navigator:
 
 	def clearCacheProviders(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056), '', '')
-		if not yes: return
+		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_providers()
@@ -378,8 +376,7 @@ class Navigator:
 
 	def clearCacheMeta(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32076), '', '')
-		if not yes: return
+		if not control.yesnoDialog(control.lang(32076), '', ''): return
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_meta()
@@ -391,8 +388,7 @@ class Navigator:
 
 	def clearCache(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056), '', '')
-		if not yes: return
+		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear()
@@ -404,8 +400,7 @@ class Navigator:
 
 	def clearCacheSearch(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056), '', '')
-		if not yes: return
+		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_search()
@@ -417,8 +412,7 @@ class Navigator:
 
 	def clearCacheSearchPhrase(self, table, name):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056), '', '')
-		if not yes: return
+		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_SearchPhrase(table, name)
@@ -430,8 +424,7 @@ class Navigator:
 
 	def clearBookmarks(self):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056), '', '')
-		if not yes: return
+		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_bookmarks()
@@ -443,8 +436,7 @@ class Navigator:
 
 	def clearBookmark(self, name, year):
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056), '', '')
-		if not yes: return
+		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
 			cache.cache_clear_bookmark(name, year)

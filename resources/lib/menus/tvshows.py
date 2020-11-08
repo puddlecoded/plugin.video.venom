@@ -75,12 +75,10 @@ class TVshows:
 		self.imdblists_link = 'https://www.imdb.com/user/ur%s/lists?tab=all&sort=mdfd&order=desc&filter=titles' % self.imdb_user
 		self.imdblist_link = 'https://www.imdb.com/list/%s/?view=detail&sort=%s&title_type=tvSeries,tvMiniSeries&start=1' % ('%s', self.imdb_sort())
 		self.imdbratings_link = 'https://www.imdb.com/user/ur%s/ratings?sort=your_rating,desc&mode=detail&start=1' % self.imdb_user # IMDb ratings does not take title_type so filter in imdb_list() function
-
 		self.anime_link = 'https://www.imdb.com/search/keyword?keywords=anime&title_type=tvSeries,miniSeries&sort=moviemeter,asc&count=%d&start=1' % self.count
 
 		self.trakt_user = control.setting('trakt.user').strip()
 		self.traktCredentials = trakt.getTraktCredentialsInfo()
-
 		self.trakt_link = 'https://api.trakt.tv'
 		self.search_link = 'https://api.trakt.tv/search/show?limit=%d&page=1&query=' % self.count
 		self.traktlist_link = 'https://api.trakt.tv/users/%s/lists/%s/items/shows'
@@ -99,7 +97,6 @@ class TVshows:
 			self.tmdb_key = '3320855e65a9758297fec4f7c9717698'
 
 		self.tmdb_session_id = control.setting('tmdb.session_id')
-
 		self.tmdb_link = 'https://api.themoviedb.org'
 		self.tmdb_userlists_link = 'https://api.themoviedb.org/3/account/{account_id}/lists?api_key=%s&language=en-US&session_id=%s&page=1' % ('%s', self.tmdb_session_id)
 		self.tmdb_watchlist_link = 'https://api.themoviedb.org/3/account/{account_id}/watchlist/tv?api_key=%s&session_id=%s&sort_by=created_at.asc&page=1' % ('%s', self.tmdb_session_id)
@@ -403,7 +400,7 @@ class TVshows:
 	def networks(self):
 		if control.setting('tvshows.networks.view') == '0':
 			from resources.lib.indexers.tvmaze import networks_this_season as networks
-		if control.setting('tvshows.networks.view') == '1':
+		elif control.setting('tvshows.networks.view') == '1':
 			from resources.lib.indexers.tvmaze import networks_view_all as networks
 		networks = sorted(networks, key=lambda x: x[0])
 		for i in networks:
@@ -415,7 +412,7 @@ class TVshows:
 	def originals(self):
 		if control.setting('tvshows.networks.view') == '0':
 			from resources.lib.indexers.tvmaze import originals_this_season as originals
-		if control.setting('tvshows.networks.view') == '1':
+		elif control.setting('tvshows.networks.view') == '1':
 			from resources.lib.indexers.tvmaze import originals_view_all as originals
 		originals = sorted(originals, key=lambda x: x[0])
 		for i in originals:
@@ -651,7 +648,6 @@ class TVshows:
 
 				# if int(year) > int((self.datetime).strftime('%Y')): raise Exception()
 
-				# log_utils.log('ids = %s for title = %s' % (item.get('ids'), title), __name__, log_utils.LOGDEBUG)
 				imdb = item.get('ids', {}).get('imdb', '0')
 				if imdb == '' or imdb is None or imdb == 'None':
 					imdb = '0'
@@ -1336,7 +1332,6 @@ class TVshows:
 
 				if unwatchedEnabled:
 					count = playcount.getShowCount(indicators, imdb, tvdb)
-					# log_utils.log('count = %s' % count, __name__, log_utils.LOGDEBUG)
 					if count: # for some reason count at times is 'None' but back up and go back in and count has new value
 						item.setProperty('TotalEpisodes', str(count['total']))
 						item.setProperty('WatchedEpisodes', str(count['watched']))

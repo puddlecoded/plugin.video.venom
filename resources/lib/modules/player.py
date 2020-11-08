@@ -13,17 +13,14 @@ from copy import deepcopy
 import hashlib
 import json
 import sys
-
 try:
 	from sqlite3 import dbapi2 as database
 except:
 	from pysqlite2 import dbapi2 as database
-
 try:
 	from urllib import quote_plus, unquote_plus
 except:
 	from urllib.parse import quote_plus, unquote_plus
-
 import xbmc
 
 from resources.lib.modules import control
@@ -49,7 +46,7 @@ class Player(xbmc.Player):
 		self.av_started = False
 
 
-	def play_source(self, title, year, season, episode, imdb, tvdb, url, meta, select=None):
+	def play_source(self, title, year, season, episode, imdb, tmdb, tvdb, url, meta, select=None):
 		try:
 			if not url:
 				control.cancelPlayback()
@@ -72,8 +69,9 @@ class Player(xbmc.Player):
 			self.name = unquote_plus(self.name) # this looks dumb, quote to only unquote?
 			self.DBID = None
 			self.imdb = imdb if imdb is not None else '0'
+			self.tmdb = tmdb if tmdb is not None else '0'
 			self.tvdb = tvdb if tvdb is not None else '0'
-			self.ids = {'imdb': self.imdb, 'tvdb': self.tvdb}
+			self.ids = {'imdb': self.imdb, 'tmdb': self.tmdb, 'tvdb': self.tvdb}
 			self.ids = dict((k, v) for k, v in self.ids.iteritems() if v != '0')
 
 			item = control.item(path=url)
@@ -89,7 +87,7 @@ class Player(xbmc.Player):
 			else:
 				self.user = str(self.tmdb_key)
 			self.lang = control.apiLanguage()['tvdb']
-			items = [{'imdb': imdb, 'tvdb': tvdb}] # need to add tmdb but it's not passed as of now
+			items = [{'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb}]
 			items_ck = deepcopy(items)
 
 			meta1 = meta
@@ -102,7 +100,7 @@ class Player(xbmc.Player):
 ##################
 
 			runtime = meta.get('duration')
-			self.offset = Bookmarks().get(self.name, season, episode, imdb, self.year, runtime)
+			self.offset = Bookmarks().get(name=self.name, imdb=imdb, tmdb=tmdb, tvdb=tvdb, season=season, episode=episode, year=self.year, runtime=runtime)
 
 			poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta = self.getMeta(meta)
 			if self.media_type == 'episode':
@@ -413,7 +411,7 @@ class Player(xbmc.Player):
 		try:
 			Bookmarks().reset(self.current_time, self.media_length, self.name, self.year)
 			if control.setting('trakt.scrobble') == 'true':
-				Bookmarks().set_scrobble(self.current_time, self.media_length, self.media_type, self.imdb, self.tvdb, self.season, self.episode)
+				Bookmarks().set_scrobble(self.current_time, self.media_length, self.media_type, self.imdb, self.tmdb, self.tvdb, self.season, self.episode)
 			if (self.current_time / self.media_length) > .85:
 				self.libForPlayback()
 		except:
@@ -598,17 +596,15 @@ class Subtitles:
 
 
 class Bookmarks:
-	def get(self, name, season=None, episode=None, imdb=None, year='0', runtime='0', ck=False):
+	def get(self, name, imdb=None, tmdb=None, tvdb=None, season=None, episode=None, year='0', runtime='0', ck=False):
 		offset = '0'
 		scrobbble = 'Local Bookmark'
 		if control.setting('bookmarks') != 'true': return offset
-
 		if control.setting('resume.source') == '1':
 			try:
 				scrobbble = 'Trakt Scrobble'
-				type = 'episode' if episode else 'movie' 
-				progress = float(trakt.scrobbleProgress(type=type, imdb=imdb, tvdb=None, season=season, episode=episode))
-				# log_utils.log('progress = %s' % str(progress), log_utils.LOGDEBUG)
+				from resources.lib.modules import traktsync
+				progress = float(traktsync.fetch_bookmarks(imdb, tmdb, tvdb, season, episode))
 				offset = (float(progress / 100) * int(runtime))
 				seekable = (2 <= progress <= 85)
 				if not seekable: return '0'
@@ -640,8 +636,7 @@ class Bookmarks:
 		label = '%02d:%02d:%02d' % (hours, minutes, seconds)
 		label = control.lang(32502) % label
 		if control.setting('bookmarks.auto') == 'false':
-			yes = control.yesnoDialog(label, scrobbble, '', str(name), control.lang(32503), control.lang(32501))
-			if yes: offset = '0'
+			if control.yesnoDialog(label, scrobbble, '', str(name), control.lang(32503), control.lang(32501)): offset = '0'
 		return offset
 
 
@@ -680,13 +675,13 @@ class Bookmarks:
 		dbcon.close()
 
 
-	def set_scrobble(self, current_time, media_length, media_type, imdb='', tvdb='', season='', episode=''):
+	def set_scrobble(self, current_time, media_length, media_type, imdb='', tmdb='', tvdb='', season='', episode=''):
 		try:
 			percent = float((current_time / media_length)) * 100
 			seekable = (2 <= percent <= 85)
 			if percent > 85: percent = 100
 			if seekable or percent == 100:
-				trakt.scrobbleMovie(imdb, percent) if media_type == 'movie' else trakt.scrobbleEpisode(tvdb, season, episode, percent)
+				trakt.scrobbleMovie(imdb, tmdb, percent) if media_type == 'movie' else trakt.scrobbleEpisode(imdb, tmdb, tvdb, season, episode, percent)
 				if control.setting('trakt.scrobble.notify') == 'true':
 					control.notification(message=32088)
 		except:

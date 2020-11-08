@@ -69,28 +69,9 @@ class Sources:
 		return wrap
 
 
-	def profileIt(func):
-		import cProfile, pstats
-		from io import BytesIO as StringIO
-		def wrapper(*args, **kwargs):
-			LOGPATH = control.transPath('special://logpath/')
-			datafn = func.__name__ + ".profile" # Name the data file sensibly
-			log_file = control.joinPath(LOGPATH, datafn)
-			prof = cProfile.Profile()
-			retval = prof.runcall(func, *args, **kwargs)
-			s = StringIO()
-			# sortby = 'cumulative'
-			sortby = 'tottime'
-			ps = pstats.Stats(prof, stream=s).sort_stats(sortby)
-			ps.print_stats()
-			with open(log_file, 'a') as perf_file:
-				perf_file.write(s.getvalue())
-			return retval
-		return wrapper
-
-
-	def play(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=None):
-		if not self.debrid_resolvers:
+	def play(self, title, year, imdb, tmdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=None):
+		gdriveEnabled = control.addon('script.module.fenomscrapers').getSetting('gdrive.cloudflare_url') != ''
+		if not self.debrid_resolvers and not gdriveEnabled:
 			control.sleep(200)
 			control.hide()
 			control.notification(message=33034)
@@ -107,6 +88,8 @@ class Sources:
 			control.homeWindow.setProperty(self.titleProperty, title)
 			control.homeWindow.clearProperty(self.imdbProperty)
 			control.homeWindow.setProperty(self.imdbProperty, imdb)
+			control.homeWindow.clearProperty(self.tmdbProperty)
+			control.homeWindow.setProperty(self.tmdbProperty, tmdb)
 			control.homeWindow.clearProperty(self.tvdbProperty)
 			control.homeWindow.setProperty(self.tvdbProperty, tvdb)
 
@@ -181,7 +164,7 @@ class Sources:
 			from resources.lib.modules import player
 			control.sleep(200) # added 5/14
 			control.hide()
-			player.Player().play_source(title, year, season, episode, imdb, tvdb, url, meta, select)
+			player.Player().play_source(title, year, season, episode, imdb, tmdb, tvdb, url, meta, select)
 		except:
 			log_utils.error()
 			pass
@@ -300,6 +283,7 @@ class Sources:
 			season = meta['season'] if 'season' in meta else None
 			episode = meta['episode'] if 'episode' in meta else None
 			imdb = meta['imdb'] if 'imdb' in meta else None
+			tmdb = meta['tmdb'] if 'tmdb' in meta else None
 			tvdb = meta['tvdb'] if 'tvdb' in meta else None
 
 			next = [] ; prev = [] ; total = []
@@ -325,7 +309,6 @@ class Sources:
 
 			items = json.loads(source)
 			items = [i for i in items + next + prev][:40]
-			# tot_items = len(items)
 
 			header = control.addonInfo('name') + ': Resolving...'
 			progressDialog = control.progressDialog if control.setting('progress.dialog') == '0' else control.progressDialogBG
@@ -390,8 +373,7 @@ class Sources:
 					from resources.lib.modules import player
 					control.sleep(200) # added 5/14
 					control.hide()
-					player.Player().play_source(title, year, season, episode, imdb, tvdb, self.url, meta, select='1')
-
+					player.Player().play_source(title, year, season, episode, imdb, tmdb, tvdb, self.url, meta, select='1')
 					return self.url
 				except:
 					log_utils.error()
@@ -1042,7 +1024,7 @@ class Sources:
 		# return self.sources, self.uncached_sources
 
 
-	def sourcesResolve(self, item, info=False):
+	def sourcesResolve(self, item):
 		url = item['url']
 		self.url = None
 		debrid_provider = item['debrid']
@@ -1277,11 +1259,12 @@ class Sources:
 			season = meta['season'] if 'season' in meta else None
 			episode = meta['episode'] if 'episode' in meta else None
 			imdb = meta['imdb'] if 'imdb' in meta else None
+			tmdb = meta['tmdb'] if 'tmdb' in meta else None
 			tvdb = meta['tvdb'] if 'tvdb' in meta else None
 			release_title = chosen_result['filename']
 			control.hide()
 			if seas_ep_filter(season, episode, release_title):
-				return player.Player().play_source(title, year, season, episode, imdb, tvdb, self.url, meta, select='1')
+				return player.Player().play_source(title, year, season, episode, imdb, tmdb, tvdb, self.url, meta, select='1')
 			else:
 				return player.Player().play(self.url)
 		except Exception as e:
@@ -1328,6 +1311,7 @@ class Sources:
 		self.episodeProperty = 'plugin.video.venom.container.episode'
 		self.titleProperty = 'plugin.video.venom.container.title'
 		self.imdbProperty = 'plugin.video.venom.container.imdb'
+		self.tmdbProperty = 'plugin.video.venom.container.tmdb'
 		self.tvdbProperty = 'plugin.video.venom.container.tvdb'
 
 		from fenomscrapers import sources
@@ -1420,8 +1404,13 @@ class Sources:
 					tvdb = meta.get('tvdb')
 				else:
 					imdb = control.homeWindow.getProperty(self.imdbProperty)
+
+					tmdb = control.homeWindow.getProperty(self.tmdbProperty)
+
 					tvdb = control.homeWindow.getProperty(self.tvdbProperty)
-				ids = [{'imdb': imdb, 'tvdb': tvdb}]
+				# ids = [{'imdb': imdb, 'tvdb': tvdb}]
+				ids = [{'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb}]
+
 				meta2 = metacache.fetch(ids, meta_lang, user)[0]
 				if not seasoncount: seasoncount = meta2.get('seasoncount', None)
 				if not counts: counts = meta2.get('counts', None)
@@ -1650,7 +1639,7 @@ class Sources:
 
 	def debrid_abv(self, debrid):
 		try:
-			d_dict = {'AllDebrid': 'AD', 'Linksnappy': 'LS', 'MegaDebrid': 'MD', 'Premiumize.me': 'PM', 'Real-Debrid': 'RD', 'Simply-Debrid': 'SD', 'Zevera': 'ZVR'}
+			d_dict = {'AllDebrid': 'AD', 'Premiumize.me': 'PM', 'Real-Debrid': 'RD'}
 			d = d_dict[debrid]
 		except:
 			log_utils.error()

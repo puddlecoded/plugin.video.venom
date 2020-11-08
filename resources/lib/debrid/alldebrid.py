@@ -207,9 +207,7 @@ class AllDebrid:
 	def delete_transfer(self, transfer_id, folder_name=None, silent=True):
 		try:
 			if not silent:
-				yes = control.yesnoDialog(control.lang(40050) % folder_name, '', '')
-				if not yes:
-					return
+				if not control.yesnoDialog(control.lang(40050) % folder_name, '', ''): return
 			url = 'magnet/delete'
 			url_append = '&id=%s' % transfer_id
 			response = self._get(url, url_append)
@@ -229,9 +227,7 @@ class AllDebrid:
 	def restart_transfer(self, transfer_id, folder_name=None, silent=True):
 		try:
 			if not silent:
-				yes = control.yesnoDialog(control.lang(40007) % folder_name, '', '')
-				if not yes:
-					return
+				if not control.yesnoDialog(control.lang(40007) % folder_name, '', ''): return
 			url = 'magnet/restart'
 			url_append = '&id=%s' % transfer_id
 			response = self._get(url, url_append)
@@ -268,7 +264,7 @@ class AllDebrid:
 					active = True
 					downloaded = item['downloaded']
 					size = item['size']
-					try: percent = str(round(float(downloaded)/size*100, 1))
+					try: percent = str(round(float(downloaded) / size * 100, 1))
 					except: percent = '0'
 				else:
 					active = False

@@ -17,8 +17,7 @@ def clearViews():
 	try:
 		skin = control.skin
 		control.hide()
-		yes = control.yesnoDialog(control.lang(32056), '', '')
-		if not yes: return
+		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		control.makeFile(control.dataPath)
 		dbcon = database.connect(control.viewsFile)
 		dbcur = dbcon.cursor()

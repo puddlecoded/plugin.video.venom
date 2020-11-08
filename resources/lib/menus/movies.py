@@ -128,27 +128,6 @@ class Movies:
 		self.traktrecommendations_link = 'https://api.trakt.tv/recommendations/movies?limit=40'
 
 
-	def profileIt(func):
-		import cProfile, pstats
-		from io import BytesIO as StringIO
-		def wrapper(*args, **kwargs):
-			LOGPATH = control.transPath('special://logpath/')
-			datafn = func.__name__ + ".profile" # Name the data file sensibly
-			log_file = control.joinPath(LOGPATH, datafn)
-			prof = cProfile.Profile()
-			retval = prof.runcall(func, *args, **kwargs)
-			# s = io.StringIO()
-			s = StringIO()
-			# sortby = 'cumulative'
- 			sortby = 'tottime'
-			ps = pstats.Stats(prof, stream=s).sort_stats(sortby)
-			ps.print_stats()
-			with open(log_file, 'a') as perf_file:
-				perf_file.write(s.getvalue())
-			return retval
-		return wrapper
-
-
 	def timeIt(func):
 		import time
 		fnc_name = func.__name__
@@ -824,7 +803,6 @@ class Movies:
 				poster = re.sub('(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', poster)
 				poster = client.replaceHTMLCodes(poster)
 				poster = poster.encode('utf-8')
-				# log_utils.log('poster = %s' % str(poster), __name__, log_utils.LOGDEBUG)
 
 				try: duration = re.findall('(\d+?) min(?:s|)', item)[-1]
 				except: duration = '0'
@@ -1153,7 +1131,6 @@ class Movies:
 		addonPoster = control.addonPoster()
 		addonFanart = control.addonFanart()
 		addonBanner = control.addonBanner()
-
 		indicators = playcount.getMovieIndicators()
 
 		isPlayable = 'false'
@@ -1176,8 +1153,6 @@ class Movies:
 		queueMenu = control.lang(32065)
 		traktManagerMenu = control.lang(32070)
 		addToLibrary = control.lang(32551)
-
-		# test = trakt.scrobbleProgress(type='movie')
 
 		for i in items:
 			try:
@@ -1260,7 +1235,7 @@ class Movies:
 				try:
 					overlay = int(playcount.getMovieOverlay(indicators, imdb))
 					watched = (overlay == 7)
-					# Skip episodes marked as watched for the unfinished and onDeck lists.
+					# Skip marked as watched for the unfinished list.
 					# try:
 						# if unfinished and watched and not i['progress'] is None: continue
 					# except: pass
@@ -1278,7 +1253,7 @@ class Movies:
 				sysmeta = quote_plus(json.dumps(meta))
 				sysart = quote_plus(json.dumps(art))
 
-				url = '%s?action=play&title=%s&year=%s&imdb=%s&meta=%s' % (sysaddon, systitle, year, imdb, sysmeta)
+				url = '%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&meta=%s' % (sysaddon, systitle, year, imdb, tmdb, sysmeta)
 				sysurl = quote_plus(url)
 
 				cm.append((playlistManagerMenu, 'RunPlugin(%s?action=playlist_Manager&name=%s&url=%s&meta=%s&art=%s)' % (sysaddon, sysname, sysurl, sysmeta, sysart)))
@@ -1286,9 +1261,9 @@ class Movies:
 				cm.append((playbackMenu, 'RunPlugin(%s?action=alterSources&url=%s&meta=%s)' % (sysaddon, sysurl, sysmeta)))
 
 				if control.setting('hosts.mode') == '1':
-					cm.append(('Rescrape Item', 'RunPlugin(%s?action=play&title=%s&year=%s&imdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, sysmeta)))
+					cm.append(('Rescrape Item', 'RunPlugin(%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, tmdb, sysmeta)))
 				elif control.setting('hosts.mode') != '1':
-					cm.append(('Rescrape Item', 'PlayMedia(%s?action=play&title=%s&year=%s&imdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, sysmeta)))
+					cm.append(('Rescrape Item', 'PlayMedia(%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, tmdb, sysmeta)))
 
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=library_movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
@@ -1307,7 +1282,7 @@ class Movies:
 				item.setProperty('IsPlayable', isPlayable)
 				if is_widget: item.setProperty('isVenom_widget', 'true')
 				from resources.lib.modules.player import Bookmarks
-				resumetime = Bookmarks().get(name=label, imdb=imdb, year=str(year), runtime=runtime, ck=True)
+				resumetime = Bookmarks().get(name=label, imdb=imdb, tmdb=tmdb, year=str(year), runtime=runtime, ck=True)
 				# item.setProperty('totaltime', str(meta['duration'])) # Adding this property causes the Kodi bookmark CM items to be added
 				item.setProperty('resumetime', str(resumetime))
 				item.setProperty('venom_resumetime', str(resumetime))

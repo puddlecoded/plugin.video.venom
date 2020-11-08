@@ -1042,7 +1042,6 @@ class Collections:
 				# tagline = self.list[i]['tagline']
 			tagline = '0'
 
-
 			if 'plot' not in self.list[i] or self.list[i]['plot'] == '0': plot = item.get('overview')
 			else: plot = self.list[i]['plot']
 			try: plot = plot.encode('utf-8')
@@ -1249,7 +1248,7 @@ class Collections:
 				sysmeta = quote_plus(json.dumps(meta))
 				sysart = quote_plus(json.dumps(art))
 
-				url = '%s?action=play&title=%s&year=%s&imdb=%s&meta=%s' % (sysaddon, systitle, year, imdb, sysmeta)
+				url = '%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&meta=%s' % (sysaddon, systitle, year, imdb, tmdb, sysmeta)
 				sysurl = quote_plus(url)
 
 				cm.append((playlistManagerMenu, 'RunPlugin(%s?action=playlist_Manager&name=%s&url=%s&meta=%s&art=%s)' % (sysaddon, sysname, sysurl, sysmeta, sysart)))
@@ -1257,9 +1256,9 @@ class Collections:
 				cm.append((playbackMenu, 'RunPlugin(%s?action=alterSources&url=%s&meta=%s)' % (sysaddon, sysurl, sysmeta)))
 
 				if control.setting('hosts.mode') == '1':
-					cm.append(('Rescrape Item', 'RunPlugin(%s?action=play&title=%s&year=%s&imdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, sysmeta)))
+					cm.append(('Rescrape Item', 'RunPlugin(%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, tmdb, sysmeta)))
 				elif control.setting('hosts.mode') != '1':
-					cm.append(('Rescrape Item', 'PlayMedia(%s?action=play&title=%s&year=%s&imdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, sysmeta)))
+					cm.append(('Rescrape Item', 'PlayMedia(%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, tmdb, sysmeta)))
 
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=library_movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
@@ -1279,7 +1278,7 @@ class Collections:
 				if is_widget: item.setProperty('isVenom_widget', 'true')
 
 				from resources.lib.modules.player import Bookmarks
-				resumetime = Bookmarks().get(name=label, imdb=imdb, year=str(year), runtime=runtime, ck=True)
+				resumetime = Bookmarks().get(name=label, imdb=imdb, tmdb=tmdb, year=str(year), runtime=runtime, ck=True)
 				# item.setProperty('totaltime', str(meta['duration'])) # Adding this property causes the Kodi bookmark CM items to be added
 				item.setProperty('resumetime', str(resumetime))
 				item.setProperty('venom_resumetime', str(resumetime))

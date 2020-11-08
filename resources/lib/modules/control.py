@@ -71,11 +71,6 @@ playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 jsonrpc = xbmc.executeJSONRPC
 skinPath = xbmc.translatePath('special://skin/')
 
-try:
-	addonPath = xbmcaddon.Addon().getAddonInfo('path').decode('utf-8')
-except:
-	addonPath = xbmcaddon.Addon().getAddonInfo('path')
-
 joinPath = os.path.join
 isfilePath = os.path.isfile
 
@@ -102,8 +97,8 @@ providercacheFile = os.path.join(dataPath, 'providers.db')
 metacacheFile = os.path.join(dataPath, 'metadata.db')
 searchFile = os.path.join(dataPath, 'search.db')
 libcacheFile = os.path.join(dataPath, 'library.db')
-cacheFile = os.path.join(dataPath, 'cache.db')  # Used by trakt.py
-# traktSyncFile = os.path.join(dataPath, 'traktSync.db') # Used by trakt.py
+cacheFile = os.path.join(dataPath, 'cache.db')
+traktSyncFile = os.path.join(dataPath, 'traktSync.db')
 trailer = 'plugin://plugin.video.youtube/play/?video_id=%s'
 
 
@@ -299,7 +294,9 @@ def addonPath(addon):
 	try: addonID = xbmcaddon.Addon(addon)
 	except: addonID = None
 	if addonID is None: return ''
-	else: return xbmc.translatePath(addonID.getAddonInfo('path').decode('utf-8'))
+	else:
+		try: return xbmc.translatePath(addonID.getAddonInfo('path').decode('utf-8'))
+		except: return xbmc.translatePath(addonID.getAddonInfo('path'))
 
 
 def artPath():
@@ -844,27 +841,29 @@ def set_reuselanguageinvoker():
 		notification(message=32116)
 		return
 	try:
-		addon = xbmcaddon.Addon(id='plugin.video.venom')
-		addon_name = addon.getAddonInfo('name')
-		addon_dir = xbmc.translatePath(addon.getAddonInfo('path'))
-		addon_xml = os.path.join(addon_dir, 'addon.xml')
+		addon_xml = joinPath(addonPath('plugin.video.venom'), 'addon.xml')
 		tree = ET.parse(addon_xml)
 		root = tree.getroot()
 		for item in root.iter('reuselanguageinvoker'):
-			curr_value = str(item.text)
-		if curr_value:
-			yes = yesnoDialog('Current value of <reuselanguageinvoker> from addon.xml = %s' % curr_value, 'Note: instability issue may occur. Test on your own free will', '')
-			if not yes:
-				return
-			new_value = 'true' if curr_value == 'false' else 'false'
+			current_value = str(item.text)
+		if current_value:
+			new_value = 'true' if current_value == 'false' else 'false'
+			if not yesnoDialog(lang(33018) % (current_value, new_value), '', ''):
+				return openSettings(query='12.6')
+			if new_value == 'true':
+				if not yesnoDialog(lang(33019), '', ''): return
 			item.text = new_value
 			hash_start = gen_file_hash(addon_xml)
 			tree.write(addon_xml)
 			hash_end = gen_file_hash(addon_xml)
 			if hash_start != hash_end:
-				okDialog(title='default', message='New value = %s: Successfully changed. You must restart kodi for change to take effect.' % new_value)
+				setSetting('reuse.languageinvoker', new_value)
+				okDialog(message=lang(33017) % new_value)
 			else:
-				okDialog(title='default', message='Write failed')
+				return okDialog(message=33021)
+			current_profile = infoLabel('system.profilename')
+			okDialog(message=33020)
+			execute('LoadProfile(%s)' % current_profile)
 	except:
 		import traceback
 		traceback.print_exc()

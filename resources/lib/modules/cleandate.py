@@ -6,11 +6,12 @@
 
 import datetime
 import time
+# Import _strptime to workaround python 2 bug with threads
+import _strptime
 
 
 def iso_2_utc(iso_ts):
-	if not iso_ts or iso_ts is None:
-		return 0
+	if not iso_ts: return 0
 	delim = -1
 
 	if not iso_ts.endswith('Z'):

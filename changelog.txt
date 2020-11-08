@@ -1,4 +1,40 @@
-[B][COLOR red]Update - v4.2.6 – Oct. 13, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.2.7 - Nov. 06, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed TVShows Season level watched indicators.
+    Previously the Season level did not refresh the cached
+    watch status upon detection of a playcount change, this
+    is now fixed.[/I]
+[COLOR yellow]--[/COLOR][I] Added new startup service to detect a mismatch
+    in the current reuselanguageinvoker setting vs. an update
+    change.  Upon change detection user will be presented
+    with the option to revert or accept the new setting.  Any
+    change made and the users profile will be reloaded.
+    There is no longer a need to restart Kodi as this is now
+    done via reloading users profile.[/I]
+[COLOR yellow]--[/COLOR][I] Added check for Google Drive account.  If present,
+    and no debrid account exists, user will not longer be
+    presented with a notification that a debrid account is
+    required since these are direct playable links.[/I]
+[COLOR yellow]--[/COLOR][I] New "traktSync.db" has been added. When user
+    enables the "Trakt" category setting "Enable scrobbling",
+    and also sets "Resume Point source" to "Trakt scrobbles",
+    an initial sync will retrieve your complete Trakt Progress for
+    all Movies and Shows.  At any time playback is stopped,
+    before the normal 85% for "mark as watched", the
+    scrobble pause will be saved to local db as well as sent
+    to Trakt to maintain synchronization.  A service check is
+    performed at 15 minute intervals to compare the latest
+    "paused_at" db entry with that from the Trakt api.  This
+    assures that another device in your home will get
+    updated for changes.  This maintains sync across
+    multiple devices.[/I]
+[COLOR yellow]--[/COLOR][I] For the item above a new option has been added
+    to the "Trakt Manager" called "Scrobble Reset".  This
+    removes the given item from the local db and sends
+    "progress=0" to Trakt "scrobble/start".  A 
+    "container.refresh()" is then issued so 
+    the changes are seen instantly.[/I]
+
+[B][COLOR red]Update - v4.2.6 - Oct. 13, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed settings for remove uncached torrents. Under
     some conditions an item my be unavailable for AD, PM,
     or RDd torrents.[/I]
@@ -9,7 +45,7 @@
     for the progressDialog.  AuraMod skin had a slight overlap
     with the progress bar.[/I]
 
-[B][COLOR red]Update - v4.2.5 – Oct. 09, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.2.5 - Oct. 09, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Removed cache check setting for AD, PM, and RD,
     this is now hard coded on to always check cached status.
     You can still enable/disable showing of uncached torrents.[/I]
@@ -19,13 +55,13 @@
     during playback.[/I]
 [COLOR yellow]--[/COLOR][I] Fix for Furk resolve issue.[/I]
 
-[B][COLOR red]Update - v4.2.4 – Oct. 03, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.2.4 - Oct. 03, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Removed old exo code for configurable "New Movies"
     and "New Episodes".  All items were currently availalbe.[/I]
 [COLOR yellow]--[/COLOR][I] Renamed a few menu items.[/I]
 [COLOR yellow]--[/COLOR][I] Code changes for "My Accounts" changes.[/I]
 
-[B][COLOR red]Update - v4.2.3 – Oct. 01, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.2.3 - Oct. 01, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Removed "Premium Services" Auth methods as this now
     uses "My Accounts" and was missed in previous updates.[/I]
 [COLOR yellow]--[/COLOR][I] Reformat of scrape progress dialog to make better use
@@ -33,7 +69,7 @@
 [COLOR yellow]--[/COLOR][I] Code cleanup and removal of logging from previous
     version.[/I]
 
-[B][COLOR red]Update - v4.2.2 – Sept. 29, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.2.2 - Sept. 29, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed seven instances of missing ID's in settings.xml.  This
     just caused a constant cleaning of these 7 items that were
     never called or referenced.  This now avoids that notice.[/I]
@@ -41,10 +77,10 @@
     names for skins with small progress dialogs.  Names will not
     display until the remaining count reaches 6.[/I]
 
-[B][COLOR red]Update - v4.2.1 – Sept. 26, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.2.1 - Sept. 26, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] fix incorrect version bump.[/I]
 
-[B][COLOR red]Update - v4.2.0 – Sept. 26, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.2.0 - Sept. 26, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Free hoster and foreign scraper support has been removed
     due to limited time to maintain.  Premium hosters supported
     by AD, PM, and RD is still supported.[/I]
@@ -66,13 +102,13 @@
 [COLOR yellow]--[/COLOR][I] New bookmark options to use exist local bookmarks
     or Trakt scrobble.[/I]
 
-[B][COLOR red]Update - v4.1.5 – Sept. 13, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.1.5 - Sept. 13, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed typo in v4.1.4 Apple fix.[/I]
 
-[B][COLOR red]Update - v4.1.4 – Sept. 13, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.1.4 - Sept. 13, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Settings fix for Apple TV, curtsey of tikipeter.[/I]
 
-[B][COLOR red]Update - v4.1.3 – Sept. 09, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.1.3 - Sept. 09, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fix for missing context menu option "Download" when
     selection is free or premium hoster source.[/I]
 [COLOR yellow]--[/COLOR][I] Context menu option to cache uncached torrents was also
@@ -80,14 +116,14 @@
 [COLOR yellow]--[/COLOR][I] Fixed incorrect path in control module.[/I]
 [COLOR yellow]--[/COLOR][I] I'm updating the News-Info file so please have a read of that.
 
-[B][COLOR red]Update - v4.1.2 – Sept. 05, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.1.2 - Sept. 05, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed hosters not displayed from previous update.  Hoster
     support may be removed is the near future.[/I]
 
-[B][COLOR red]Update - v4.1.1 – Sept. 04, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.1.1 - Sept. 04, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed issue with fresh install failing with log error notice.[/I]
 
-[B][COLOR red]Update - v4.1.0 – Sept. 03, 2020[/COLOR][/B]
+[B][COLOR red]Update - v4.1.0 - Sept. 03, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Added "File Name Format" option to downloads.  You
     have the option of "Title (year) or Title S01E01", which is
     the older file naming method.  Or you can chose

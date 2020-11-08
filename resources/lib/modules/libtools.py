@@ -230,23 +230,16 @@ class lib_tools:
 
 		while not control.monitor.abortRequested():
 			try:
-				if control.monitor.waitForAbort(60*15):
-					break
-
 				last_service = control.homeWindow.getProperty(self.property)
 				t1 = datetime.timedelta(hours=6)
 				t2 = control.datetime_workaround(str(last_service), '%Y-%m-%d %H:%M:%S.%f', False)
 				t3 = datetime.datetime.now()
 				check = abs(t3 - t2) >= t1
-				if not check:
-					continue
-
-				if (control.player.isPlaying() or control.condVisibility('Library.IsScanningVideo')):
-					continue
+				if not check: continue
+				if (control.player.isPlaying() or control.condVisibility('Library.IsScanningVideo')): continue
 
 				last_service = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
 				control.homeWindow.setProperty(self.property, last_service)
-
 				try:
 					dbcon = database.connect(control.libcacheFile)
 					dbcur = dbcon.cursor()
@@ -259,12 +252,14 @@ class lib_tools:
 					try: dbcon.close()
 					except: pass
 
-				if control.setting('library.service.update') == 'false' or service_update is False:
-					continue
+				if control.setting('library.service.update') == 'false' or service_update is False: continue
 
 				libepisodes().update()
 				libmovies().list_update()
 				libtvshows().list_update()
+
+				if control.monitor.waitForAbort(60*15):
+					break
 			except:
 				log_utils.error()
 				continue
@@ -552,12 +547,10 @@ class libmovies:
 
 	def strmFile(self, i):
 		try:
-			name, title, year, imdb, tmdb = i['name'], i['title'], i['year'], i['imdb'], i['tmdb']
-			sysname, systitle = quote_plus(name), quote_plus(title)
+			title, year, imdb, tmdb = i['title'], i['year'], i['imdb'], i['tmdb']
+			systitle = quote_plus(title)
 			transtitle = cleantitle.normalize(title.translate(None, '\/:*?"<>|'))
-
-# check cause name is not used in play action
-			content = '%s?action=play&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s' % (sys.argv[0], sysname, systitle, year, imdb, tmdb)
+			content = '%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s' % (sys.argv[0], systitle, year, imdb, tmdb)
 			folder = lib_tools.make_path(self.library_folder, transtitle, year)
 			lib_tools.create_folder(folder)
 			lib_tools.write_file(control.joinPath(folder, lib_tools.legal_filename(transtitle) + '.' + year + '.strm'), content)
@@ -804,8 +797,7 @@ class libtvshows:
 
 	def range(self, url, list_name):
 		control.hide()
-		if not control.yesnoDialog(control.lang(32555), '', ''):
-			return
+		if not control.yesnoDialog(control.lang(32555), '', ''): return
 		try:
 			if 'traktcollection' in url:
 				message = 32661
@@ -903,15 +895,15 @@ class libtvshows:
 
 	def strmFile(self, i):
 		try:
-			title, year, imdb, tvdb, season, episode, tvshowtitle, premiered = i['title'], i['year'], i['imdb'], i['tvdb'], i['season'], i['episode'], i['tvshowtitle'], i['premiered']
+			title, year, imdb, tmdb, tvdb, season, episode, tvshowtitle, premiered = i['title'], i['year'], i['imdb'], i['tmdb'], i['tvdb'], i['season'], i['episode'], i['tvshowtitle'], i['premiered']
 
 			episodetitle = quote_plus(title)
 			systitle, syspremiered = quote_plus(tvshowtitle), quote_plus(premiered)
 
 			transtitle = cleantitle.normalize(tvshowtitle.translate(None, '\/:*?"<>|'))
 
-			content = '%s?action=play&title=%s&year=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s' % (
-							sys.argv[0], episodetitle, year, imdb, tvdb, season, episode, systitle, syspremiered)
+			content = '%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s' % (
+							sys.argv[0], episodetitle, year, imdb, tmdb, tvdb, season, episode, systitle, syspremiered)
 
 			folder = lib_tools.make_path(self.library_folder, transtitle, year)
 			if not control.isfilePath(control.joinPath(folder, 'tvshow.nfo')):

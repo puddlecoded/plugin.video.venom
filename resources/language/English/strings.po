@@ -2102,27 +2102,27 @@ msgid ""
 msgstr ""
 
 msgctxt "#33017"
-msgid ""
+msgid "New value = %s: Successfully changed.\n Kodi must now restart for change to take effect."
 msgstr ""
 
 msgctxt "#33018"
-msgid ""
+msgid "[B]Reuse Langauage Invoker[/B] is currently set to %s.\n\nDo you wish to change this setting to %s?"
 msgstr ""
 
 msgctxt "#33019"
-msgid ""
+msgid "Enabling this setting may cause instability issues.\nTest at your own free will.\nContinue?"
 msgstr ""
 
 msgctxt "#33020"
-msgid ""
+msgid "Venom will reload your profile to refresh the addon.xml"
 msgstr ""
 
 msgctxt "#33021"
-msgid ""
+msgid "Write failed"
 msgstr ""
 
 msgctxt "#33022"
-msgid ""
+msgid "Error setting correct value."
 msgstr ""
 
 msgctxt "#33023"
@@ -3693,6 +3693,9 @@ msgid "Select Menu type to hide from"
 msgstr ""
 
 msgctxt "#40075"
-msgid "Hide %s"
+msgid "[COLOR red][B]Hide[/B][/COLOR] %s"
 msgstr ""
 
+msgctxt "#40076"
+msgid "[COLOR red][B]Scrobbble Reset[/B][/COLOR] Item"
+msgstr ""

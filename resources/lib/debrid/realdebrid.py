@@ -282,8 +282,7 @@ class RealDebrid:
 
 	def delete_user_torrent(self, media_id, name):
 		try:
-			yes = control.yesnoDialog(control.lang(40050) % name, '', '')
-			if not yes: return
+			if not control.yesnoDialog(control.lang(40050) % name, '', ''): return
 			url = torrents_delete_url + "/%s&auth_token=%s" % (media_id, self.token)
 			response = requests.delete(rest_base_url + url).text
 			if not 'error' in response:
@@ -380,9 +379,7 @@ class RealDebrid:
 
 	def delete_download(self, media_id, name):
 		try:
-			yes = control.yesnoDialog(control.lang(40050) % name, '', '')
-			if not yes:
-				return
+			if not control.yesnoDialog(control.lang(40050) % name, '', ''): return
 			# Need to check token, and refresh if needed
 			ck_token = self._get('user', token_ck=True)
 			url = downloads_delete_url + "/%s&auth_token=%s" % (media_id, self.token)

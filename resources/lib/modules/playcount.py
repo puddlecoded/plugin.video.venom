@@ -46,8 +46,7 @@ def getTVShowIndicators(refresh=False):
 def getSeasonIndicators(imdb, refresh=False):
 	try:
 		if traktIndicators:
-			if not refresh: timeout = 720
-			elif trakt.getWatchedActivity() < trakt.timeoutsyncSeason(imdb=imdb): timeout = 720
+			if trakt.getWatchedActivity() < trakt.timeoutsyncSeason(imdb=imdb): timeout = 720
 			else: timeout = 0
 			indicators = trakt.cachesyncSeason(imdb=imdb, timeout=timeout)
 			return indicators
@@ -56,60 +55,67 @@ def getSeasonIndicators(imdb, refresh=False):
 			indicators = metahandlers.MetaData()
 			return indicators
 	except:
+		log_utils.error()
 		pass
 
 
 def getMovieOverlay(indicators, imdb):
 	try:
-		try:
-			playcount = indicators._get_watched('movie', imdb, '', '')
-			return str(playcount)
-		except:
+		if traktIndicators:
 			playcount = [i for i in indicators if i == imdb]
 			playcount = 7 if len(playcount) > 0 else 6
 			return str(playcount)
+		else:
+			playcount = indicators._get_watched('movie', imdb, '', '')
+			return str(playcount)
 	except:
+		log_utils.error()
 		return '6'
 
 
 def getTVShowOverlay(indicators, imdb, tvdb):
+	# if not indicators: return '6'
 	try:
-		try:
-			playcount = indicators._get_watched('tvshow', imdb, '', '')
-			return str(playcount)
-		except:
+		if traktIndicators:
 			playcount = [i[0] for i in indicators if i[0] == tvdb and len(i[2]) >= int(i[1])]
 			playcount = 7 if len(playcount) > 0 else 6
 			return str(playcount)
+		else:
+			playcount = indicators._get_watched('tvshow', imdb, '', '')
+			return str(playcount)
 	except:
+		log_utils.error()
 		return '6'
 
 
 def getSeasonOverlay(indicators, imdb, tvdb, season):
+	if not indicators: return '6'
 	try:
-		try:
-			playcount = indicators._get_watched('season', imdb, '', season)
-			return str(playcount)
-		except:
+		if traktIndicators:
 			playcount = [i for i in indicators if int(season) == int(i)]
 			playcount = 7 if len(playcount) > 0 else 6
 			return str(playcount)
+		else:
+			playcount = indicators._get_watched('season', imdb, '', season)
+			return str(playcount)
 	except:
+		log_utils.error()
 		return '6'
 
 
 def getEpisodeOverlay(indicators, imdb, tvdb, season, episode):
 	try:
-		try:
-			playcount = indicators._get_watched_episode({'imdb_id': imdb, 'season': season, 'episode': episode, 'premiered': ''})
-			return str(playcount)
-		except:
+		if traktIndicators:
 			playcount = [i[2] for i in indicators if i[0] == tvdb]
 			playcount = playcount[0] if len(playcount) > 0 else []
 			playcount = [i for i in playcount if int(season) == int(i[0]) and int(episode) == int(i[1])]
 			playcount = 7 if len(playcount) > 0 else 6
 			return str(playcount)
+		else:
+			playcount = indicators._get_watched_episode({'imdb_id': imdb, 'season': season, 'episode': episode, 'premiered': ''})
+			return str(playcount)
 	except:
+		log_utils.error()
 		return '6'
 
 
@@ -138,7 +144,6 @@ def getEpisodeOverlay(indicators, imdb, tvdb, season, episode):
 
 
 def getShowCount(indicators, imdb, tvdb, limit=False):
-	# log_utils.log('indicators = %s' % indicators, __name__, log_utils.LOGDEBUG)
 	if not imdb.startswith('tt'):
 		return None
 	try:

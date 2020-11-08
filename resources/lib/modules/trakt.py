@@ -117,6 +117,7 @@ def getTraktAsJson(url, post=None, authentication=None):
 		if isinstance(r, tuple) and len(r) == 2:
 			res_headers = r[1]
 			r = r[0]
+		# log_utils.log('r = %s' % r, __name__, log_utils.LOGDEBUG)
 		if not r:	return
 		r = utils.json_loads_as_str(r)
 		res_headers = dict((k.lower(), v) for k, v in res_headers.iteritems())
@@ -197,10 +198,7 @@ def _cacheProcess():
 			# Execute the select and delete as atomic operations.
 			data._lock()
 			result = data._selectSingle('SELECT id, time, link, data FROM %s ORDER BY time ASC LIMIT 1;' % (databaseTable))
-
-			if not result:
-				raise Exception()
-
+			if not result: raise Exception()
 			data._delete('DELETE FROM %s WHERE id IS %d;' % (databaseTable, result[0]), commit = True)
 			data._unlock()
 			result = getTrakt(url = result[2], post = json.loads(result[3]) if result[3] else None, cache=True, check=False, timestamp=result[1])
@@ -440,6 +438,7 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 		items += [(control.lang(33653), 'rate')]
 		items += [(control.lang(33654), 'unrate')]
 		items += [(control.lang(40075) % media_type, 'hideItem')]
+		items += [(control.lang(40076), 'scrobbleReset')]
 		items += [(control.lang(33575), '/sync/collection')]
 		items += [(control.lang(33576), '/sync/collection/remove')]
 		if season or episode:
@@ -486,7 +485,10 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 				control.busy()
 				hideItem(name=name, imdb=imdb, tvdb=tvdb, season=season, episode=episode)
 				control.hide()
-
+			elif items[select][0] == control.lang(40076):
+				control.busy()
+				scrobbleReset(imdb=imdb, tvdb=tvdb, season=season, episode=episode)
+				control.hide()
 			else:
 				if not tvdb:
 					post = {"movies": [{"ids": {"imdb": imdb}}]}
@@ -782,8 +784,6 @@ def seasonCount(imdb, refresh=True, wait=False):
 		if not imdb: return None
 		if not imdb.startswith('tt'): return None
 		indicators = cache.cache_existing(_seasonCountRetrieve, imdb)
-		if indicators:
-			return indicators # added 9/2/20
 		if refresh:
 			# NB: Do not retrieve a fresh count, otherwise loading show/season menus are slow.
 			thread = threading.Thread(target=_seasonCountCache, args=(imdb,))
@@ -801,7 +801,7 @@ def _seasonCountCache(imdb):
 	return cache.get(_seasonCountRetrieve, 0, imdb)
 
 
-		# indicators = getTraktAsJson('/users/me/watched/shows?extended=full')
+	# indicators = getTraktAsJson('/users/me/watched/shows?extended=full')
 def _seasonCountRetrieve(imdb):
 	try:
 		if not getTraktCredentialsInfo(): return
@@ -1051,17 +1051,45 @@ def IdLookup(id_type, id, type):
 		return None
 
 
-def scrobbleMovie(imdb, watched_percent):
+def scrobbleReset(imdb, tvdb=None, season=None, episode=None, refresh=True):
+	try:
+		from resources.lib.modules import traktsync
+		type = 'movie' if not episode else 'episode'
+		if type == 'movie':
+			items = [{'type': 'movie', 'movie': {'ids': {'imdb': imdb}}}]
+			getTrakt('/scrobble/start', {"movie": {"ids": {"imdb": imdb}}, "progress": 0})
+		else:
+			items = [{'type': 'episode', 'episode': {'season': season, 'number': episode}, 'show': {'ids': {'imdb': imdb, 'tvdb': tvdb}}}]
+			getTrakt('/scrobble/start', {"show": {"ids": {"tvdb": tvdb}}, "episode": {"season": season, "number": episode}, "progress": 0})
+		traktsync.delete_bookmark(items)
+		if refresh:
+			control.refresh()
+	except:
+		log_utils.error()
+
+
+def scrobbleMovie(imdb, tmdb, watched_percent):
 	try:
 		if not imdb.startswith('tt'): imdb = 'tt' + imdb
+		from datetime import datetime
+		timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.000Z")
+		from resources.lib.modules import traktsync
+		items = [{'progress': watched_percent, 'paused_at': timestamp, 'type': 'movie', 'movie': {'ids': {'imdb': imdb, 'tmdb': tmdb}}}]
+		traktsync.insert_bookmarks(items)
 		return getTrakt('/scrobble/pause', {"movie": {"ids": {"imdb": imdb}}, "progress": watched_percent})
 	except:
 		log_utils.error()
 
 
-def scrobbleEpisode(tvdb, season, episode, watched_percent):
+def scrobbleEpisode(imdb, tmdb, tvdb, season, episode, watched_percent):
 	try:
 		season, episode = int('%01d' % int(season)), int('%01d' % int(episode))
+		from datetime import datetime
+		timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.000Z")
+		# log_utils.log('timestamp = %s' % str(timestamp), __name__, log_utils.LOGDEBUG)
+		from resources.lib.modules import traktsync
+		items = [{'progress': watched_percent, 'paused_at': timestamp, 'type': 'episode', 'episode': {'season': season, 'number': episode}, 'show': {'ids': {'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb}}}]
+		traktsync.insert_bookmarks(items)
 		return getTrakt('/scrobble/pause', {"show": {"ids": {"tvdb": tvdb}}, "episode": {"season": season, "number": episode}, "progress": watched_percent})
 	except:
 		log_utils.error()
@@ -1073,19 +1101,28 @@ def _scrobbleType(type):
 	else:
 		return 'movie'
 
-
-def scrobbleProgress(type, imdb=None, tvdb=None, season=None, episode=None):
+# no longer used 
+def scrobbleProgress(type, imdb=None, tmdb=None, tvdb=None, season=None, episode=None):
 	try:
 		type = _scrobbleType(type)
 		if imdb: imdb = str(imdb)
+		if tmdb: tmdb = str(tmdb)
 		if tvdb: tvdb = int(tvdb)
 		if episode: episode = int(episode)
 		if season: season = int(season)
 
-		# link = '/sync/playback/type'
-		link = '/sync/playback/%s' % type + 's'
-		# items = getTraktAsJson(link)
-		items = cache.get(getTraktAsJson, 0.0833, link) #5min cache for faster menu load time
+		# link = '/sync/playback/%s' % type + 's'
+		# # items = getTraktAsJson(link)
+		# items = cache.get(getTraktAsJson, 0.0833, link) #5min cache for faster menu load time
+
+		try:
+			# from resources.lib.modules import traktsync
+			progress = traktsync.fetch_bookmarks(imdb, tmdb, tvdb, season, episode)
+			return progress
+		except:
+			log_utils.error()
+			pass
+
 		if type == 'episode':
 			if imdb and items:
 				for item in items:
@@ -1105,6 +1142,26 @@ def scrobbleProgress(type, imdb=None, tvdb=None, season=None, episode=None):
 	except:
 		log_utils.error()
 	return 0
+
+
+def sync_progress():
+	try:
+		from resources.lib.modules import traktsync
+		while not control.monitor.abortRequested():
+			db_last_paused = traktsync.last_paused_at()
+			activity = getPausedActivity()
+			if activity - db_last_paused > 10:
+				log_utils.log('Trakt Progress Sync Update...(local db latest "paused_at" = %s, trakt api latest "paused_at" = %s)' % \
+									(str(db_last_paused), str(activity)), __name__, log_utils.LOGDEBUG)
+				link = '/sync/playback/'
+				items = getTraktAsJson(link)
+				from resources.lib.modules import traktsync
+				traktsync.insert_bookmarks(items)
+			if control.monitor.waitForAbort(60*15):
+				break
+	except:
+		log_utils.error()
+		pass
 
 
 def scrobbleUpdate(action, type, imdb=None, tvdb=None, season=None, episode=None, progress=0):
@@ -1135,7 +1192,7 @@ def scrobbleUpdate(action, type, imdb=None, tvdb=None, season=None, episode=None
 						'progress': progress,
 						'app_version': control.addonVersion(addon='plugin.video.venom'),
 					}
-					result = getTrakt(url = link, post = data)
+					result = getTrakt(url=link, post=data)
 					return 'progress' in result
 	except:
 		log_utils.error()

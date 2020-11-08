@@ -430,9 +430,7 @@ class Premiumize:
 
 	def delete_transfer(self, media_id, folder_name=None):
 		try:
-			yes = control.yesnoDialog(control.lang(40050) % folder_name, '', '')
-			if not yes:
-				return
+			if not control.yesnoDialog(control.lang(40050) % folder_name, '', ''): return
 			data = {'id': media_id}
 			response = self._post(transfer_delete_url, data)
 			if not response:
@@ -617,9 +615,7 @@ class Premiumize:
 				url = folder_rename_url
 				t = control.lang(40049) % type
 			else:
-				yes = control.yesnoDialog(control.lang(40049) % folder_name + ': [B](YOU MUST ENTER MATCHING FILE EXT.)[/B]', '', '')
-				if not yes:
-					return
+				if not control.yesnoDialog(control.lang(40049) % folder_name + ': [B](YOU MUST ENTER MATCHING FILE EXT.)[/B]', '', ''): return
 				url = item_rename_url
 				t = control.lang(40049) % type + ': [B](YOU MUST ENTER MATCHING FILE EXT.)[/B]'
 			k = control.keyboard('', t)
@@ -645,9 +641,7 @@ class Premiumize:
 				url = folder_delete_url
 			else:
 				url = item_delete_url
-			yes = control.yesnoDialog(control.lang(40050) % folder_name, '', '')
-			if not yes:
-				return
+			if not control.yesnoDialog(control.lang(40050) % folder_name, '', ''): return
 			data = {'id': folder_id}
 			response = self._post(url, data=data)
 			if not response:
