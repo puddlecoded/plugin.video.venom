@@ -252,8 +252,8 @@ class lib_tools:
 					try: dbcon.close()
 					except: pass
 
-				if control.setting('library.service.update') == 'false' or service_update is False: continue
-
+				if control.setting('library.service.update') == 'false' or service_update is False:
+					continue
 				libepisodes().update()
 				libmovies().list_update()
 				libtvshows().list_update()

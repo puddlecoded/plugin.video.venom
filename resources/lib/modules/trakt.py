@@ -117,8 +117,7 @@ def getTraktAsJson(url, post=None, authentication=None):
 		if isinstance(r, tuple) and len(r) == 2:
 			res_headers = r[1]
 			r = r[0]
-		# log_utils.log('r = %s' % r, __name__, log_utils.LOGDEBUG)
-		if not r:	return
+		if not r or 'Bad Gateway' in str(r): return
 		r = utils.json_loads_as_str(r)
 		res_headers = dict((k.lower(), v) for k, v in res_headers.iteritems())
 		if 'x-sort-by' in res_headers and 'x-sort-how' in res_headers:
@@ -130,7 +129,6 @@ def getTraktAsJson(url, post=None, authentication=None):
 
 
 def _error(url, post, timestamp, message):
-	# log_utils.log('message = %s' % message, __name__, log_utils.LOGDEBUG)
 	try:
 		_cache(url=url, post=post, timestamp=timestamp)
 		if control.setting('trakt.server.notifications') == 'true':
@@ -517,7 +515,6 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 
 				control.hide()
 				message = 33583 if 'remove' in items[select][1] else 33582
-
 				if refresh:
 					control.refresh()
 				control.trigger_widget_refresh()
@@ -572,6 +569,7 @@ def verify(authentication=None):
 def getActivity():
 	try:
 		i = getTraktAsJson('/sync/last_activities')
+		if not i: return 0
 		activity = []
 		activity.append(i['movies']['watched_at']) # added 8/30/20
 		activity.append(i['movies']['collected_at'])
@@ -596,6 +594,7 @@ def getActivity():
 def getWatchedActivity():
 	try:
 		i = getTraktAsJson('/sync/last_activities')
+		if not i: return 0
 		activity = []
 		activity.append(i['movies']['watched_at'])
 		activity.append(i['episodes']['watched_at'])
@@ -610,6 +609,7 @@ def getWatchedActivity():
 def getPausedActivity():
 	try:
 		i = getTraktAsJson('/sync/last_activities')
+		if not i: return 0
 		activity = []
 		activity.append(i['movies']['paused_at'])
 		activity.append(i['episodes']['paused_at'])
@@ -624,6 +624,7 @@ def getPausedActivity():
 def getCollectedActivity():
 	try:
 		i = getTraktAsJson('/sync/last_activities')
+		if not i: return 0
 		activity = []
 		activity.append(i['movies']['collected_at'])
 		activity.append(i['episodes']['collected_at'])
@@ -649,6 +650,7 @@ def syncMovies():
 	try:
 		if not getTraktCredentialsInfo(): return
 		indicators = getTraktAsJson('/users/me/watched/movies')
+		# log_utils.log('indicators = %s' % indicators, __name__, log_utils.LOGDEBUG)
 		indicators = [i['movie']['ids'] for i in indicators]
 		indicators = [str(i['imdb']) for i in indicators if 'imdb' in i]
 		return indicators
@@ -812,7 +814,7 @@ def _seasonCountRetrieve(imdb):
 		if not indicators: return None
 		seasons = indicators['seasons']
 		return [{'total': season['aired'], 'watched': season['completed'], 'unwatched': season['aired'] - season['completed']} for season in seasons]
-		# return [{season['number']: {'total': season['aired'], 'watched': season['completed'], 'unwatched': season['aired'] - season['completed']} for season in seasons}]
+		# return {season['number']: {'total': season['aired'], 'watched': season['completed'], 'unwatched': season['aired'] - season['completed']} for season in seasons}
 	except:
 		log_utils.error()
 		return None
@@ -1086,7 +1088,6 @@ def scrobbleEpisode(imdb, tmdb, tvdb, season, episode, watched_percent):
 		season, episode = int('%01d' % int(season)), int('%01d' % int(episode))
 		from datetime import datetime
 		timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.000Z")
-		# log_utils.log('timestamp = %s' % str(timestamp), __name__, log_utils.LOGDEBUG)
 		from resources.lib.modules import traktsync
 		items = [{'progress': watched_percent, 'paused_at': timestamp, 'type': 'episode', 'episode': {'season': season, 'number': episode}, 'show': {'ids': {'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb}}}]
 		traktsync.insert_bookmarks(items)
@@ -1150,7 +1151,7 @@ def sync_progress():
 		while not control.monitor.abortRequested():
 			db_last_paused = traktsync.last_paused_at()
 			activity = getPausedActivity()
-			if activity - db_last_paused > 10:
+			if activity - db_last_paused >= 60: # do not sync unless 1 min difference or more
 				log_utils.log('Trakt Progress Sync Update...(local db latest "paused_at" = %s, trakt api latest "paused_at" = %s)' % \
 									(str(db_last_paused), str(activity)), __name__, log_utils.LOGDEBUG)
 				link = '/sync/playback/'

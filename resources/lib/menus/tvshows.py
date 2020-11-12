@@ -1219,7 +1219,6 @@ class TVshows:
 			unwatchedMenu = control.lang(32067)
 
 		traktManagerMenu = control.lang(32070)
-		# playlistManagerMenu = control.lang(35522)
 		queueMenu = control.lang(32065)
 		showPlaylistMenu = control.lang(35517)
 		clearPlaylistMenu = control.lang(35516)
@@ -1238,6 +1237,8 @@ class TVshows:
 				meta.update({'code': imdb, 'imdbnumber': imdb})
 				meta.update({'mediatype': 'tvshow'})
 				meta.update({'tag': [imdb, tvdb]})
+
+				if unwatchedEnabled: trakt.seasonCount(imdb) # pre-cache season counts for the listed shows
 
 				# Some descriptions have a link at the end that. Remove it.
 				try:
@@ -1331,8 +1332,8 @@ class TVshows:
 					item.setCast(i['castandart'])
 
 				if unwatchedEnabled:
-					count = playcount.getShowCount(indicators, imdb, tvdb)
-					if count: # for some reason count at times is 'None' but back up and go back in and count has new value
+					count = playcount.getShowCount(indicators, imdb, tvdb) # this is threaded without .join() so not all results are immediately seen
+					if count:
 						item.setProperty('TotalEpisodes', str(count['total']))
 						item.setProperty('WatchedEpisodes', str(count['watched']))
 						item.setProperty('UnWatchedEpisodes', str(count['unwatched']))
@@ -1420,8 +1421,7 @@ class TVshows:
 					thumb = addonThumb
 
 				icon = i.get('icon', 0)
-				if not icon:
-					icon = 'DefaultFolder.png'
+				if not icon: icon = 'DefaultFolder.png'
 
 				url = '%s?action=%s' % (sysaddon, i['action'])
 				try: url += '&url=%s' % quote_plus(i['url'])

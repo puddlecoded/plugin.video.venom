@@ -245,7 +245,6 @@ class Player(xbmc.Player):
 		current_position = self.current_time
 		total_length = self.media_length
 		watched_percent = 0
-
 		if int(total_length) is not 0:
 			try:
 				watched_percent = float(current_position) / float(total_length) * 100
@@ -596,8 +595,9 @@ class Subtitles:
 
 
 class Bookmarks:
-	def get(self, name, imdb=None, tmdb=None, tvdb=None, season=None, episode=None, year='0', runtime='0', ck=False):
+	def get(self, name, imdb=None, tmdb=None, tvdb=None, season=None, episode=None, year='0', runtime=None, ck=False):
 		offset = '0'
+		if not runtime: return offset
 		scrobbble = 'Local Bookmark'
 		if control.setting('bookmarks') != 'true': return offset
 		if control.setting('resume.source') == '1':

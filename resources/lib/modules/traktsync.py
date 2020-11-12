@@ -15,6 +15,7 @@ from resources.lib.modules import log_utils
 
 
 def fetch_bookmarks(imdb, tmdb='', tvdb='', season=None, episode=None):
+	progress = '0'
 	try:
 		if not control.existsPath(control.dataPath):
 			control.makeFile(control.dataPath)
@@ -26,9 +27,8 @@ def fetch_bookmarks(imdb, tmdb='', tvdb='', season=None, episode=None):
 		log_utils.error()
 		try: dbcon.close()
 		except: pass
-		return items
+		return progress
 
-	progress = '0'
 	type = 'episode' if episode else 'movie'
 	try:
 		if type == 'movie':
@@ -37,14 +37,13 @@ def fetch_bookmarks(imdb, tmdb='', tvdb='', season=None, episode=None):
 				dbcur.execute("SELECT * FROM bookmarks WHERE (imdb = '%s' and tmdb = '%s' and not imdb = '' and not tmdb = '')" % (imdb, tmdb))
 				match = dbcur.fetchone()
 				progress = match[5]
-				# if match: progress = eval(match[5].encode('utf-8'))
-				# log_utils.log('progress = %s' % str(progress), __name__, log_utils.LOGDEBUG)
+				# if match: progress = match[5].encode('utf-8')
 			except:
 				try:
-					dbcur.execute("SELECT * FROM bookmarks WHERE (imdb = '%s' AND not imdb = '')" % imdb)
+					dbcur.execute("SELECT * FROM bookmarks WHERE (imdb = '%s' and not imdb = '')" % imdb)
 					match = dbcur.fetchone()
 					progress = match[5]
-					# if match: progress = eval(match[5].encode('utf-8'))
+					# if match: progress = match[5].encode('utf-8')
 				except:
 					pass
 		else:
@@ -53,13 +52,13 @@ def fetch_bookmarks(imdb, tmdb='', tvdb='', season=None, episode=None):
 				dbcur.execute("SELECT * FROM bookmarks WHERE (imdb = '%s' and tvdb = '%s' and season = '%s' and episode = '%s' and not imdb = '' and not tvdb = '')" % (imdb, tvdb, season, episode))
 				match = dbcur.fetchone()
 				progress = match[5]
-				# if match: progress = eval(match[5].encode('utf-8'))
+				# if match: progress = match[5].encode('utf-8')
 			except:
 				try:
 					dbcur.execute("SELECT * FROM bookmarks WHERE (tvdb = '%s' and season = '%s' and episode = '%s' and not tvdb = '')" % (tvdb, season, episode))
 					match = dbcur.fetchone()
 					progress = match[5]
-					# if match: progress = eval(match[5].encode('utf-8'))
+					# if match: progress = match[5].encode('utf-8')
 				except: pass
 	except:
 		log_utils.error()
@@ -129,7 +128,6 @@ def delete_bookmark(items):
 	try: dbcon.close()
 	except: pass
 	return
-
 
 
 def last_paused_at():

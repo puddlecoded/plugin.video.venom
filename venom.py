@@ -515,7 +515,7 @@ if action and action.startswith('download'):
 				import json
 				from resources.lib.modules import sources
 				from resources.lib.modules import downloader
-				downloader.download(name, image, sources.Sources().sourcesResolve(json.loads(source)[0], True), title)
+				downloader.download(name, image, sources.Sources().sourcesResolve(json.loads(source)[0]), title)
 			except:
 				import traceback
 				traceback.print_exc()

@@ -74,7 +74,7 @@ def getMovieOverlay(indicators, imdb):
 
 
 def getTVShowOverlay(indicators, imdb, tvdb):
-	# if not indicators: return '6'
+	if not indicators: return '6'
 	try:
 		if traktIndicators:
 			playcount = [i[0] for i in indicators if i[0] == tvdb and len(i[2]) >= int(i[1])]
@@ -143,52 +143,48 @@ def getEpisodeOverlay(indicators, imdb, tvdb, season, episode):
 		# return None
 
 
-def getShowCount(indicators, imdb, tvdb, limit=False):
-	if not imdb.startswith('tt'):
-		return None
+def getShowCount(indicators, imdb, tvdb):
+	if not imdb.startswith('tt'): return None
 	try:
 		if traktIndicators:
-			for indicator in indicators:
-				if indicator[0] == tvdb:
-					total = indicator[1]
-					watched = len(indicator[2])
-					unwatched = total - watched
-					if limit: unwatched = min(99, unwatched)
-					return {'total': total, 'watched': watched, 'unwatched': unwatched}
-			result = trakt.showCount(imdb)
-			if limit and result:
-				result['unwatched'] = min(99, result['unwatched'])
-			return result
+			if indicators and tvdb in str(indicators):
+				for indicator in indicators:
+					if indicator[0] == tvdb:
+						total = indicator[1]
+						watched = len(indicator[2])
+						unwatched = total - watched
+						return {'total': total, 'watched': watched, 'unwatched': unwatched}
+			else:
+				result = trakt.showCount(imdb)
+				return result
 		else:
 			for indicator in indicators:
 				if indicator[0] == tvdb:
 					total = indicator[1]
 					watched = len(indicator[2])
 					unwatched = total - watched
-					if limit: unwatched = min(99, unwatched)
 					return {'total': total, 'watched': watched, 'unwatched': unwatched}
 	except:
 		log_utils.error()
 		return None
 
 
-def getSeasonCount(imdb, season=None, season_special=False, limit=False):
-	if not imdb.startswith('tt'):
-		return None
+def getSeasonCount(imdb, season=None, season_special=False):
+	if not imdb.startswith('tt'): return None
 	try:
-		if not traktIndicators: raise Exception()
-		result = trakt.seasonCount(imdb)
+		if not traktIndicators: return None
+		result = trakt.seasonCount(imdb=imdb)
+		if not result: return None
 		if season is None:
-			if limit and result:
-				for i in range(len(result)):
-					result[i]['unwatched'] = min(99, result[i]['unwatched'])
 			return result
 		else:
 			if control.setting('tv.specials') == 'true' and season_special: result = result[int(season)]
-			else: result = result[int(season) - 1]
-			if limit: result['unwatched'] = min(99, result['unwatched'])
+			else: 
+				if int(season) > len(result): return None
+				result = result[int(season) - 1]
 			return result
 	except:
+		log_utils.error()
 		pass
 	return None
 
@@ -200,7 +196,6 @@ def markMovieDuringPlayback(imdb, watched):
 			else: trakt.markMovieAsNotWatched(imdb)
 			trakt.cachesyncMovies()
 			# if trakt.getTraktAddonMovieInfo():
-				# log_utils.log('trakt.getTraktAddonMovieInfo = True', __name__, log_utils.LOGDEBUG)
 				# trakt.markMovieAsNotWatched(imdb)
 		else:
 			from metahandler import metahandlers
@@ -219,7 +214,6 @@ def markEpisodeDuringPlayback(imdb, tvdb, season, episode, watched):
 			else: trakt.markEpisodeAsNotWatched(imdb, tvdb, season, episode)
 			trakt.cachesyncTVShows()
 			# if trakt.getTraktAddonEpisodeInfo():
-				# log_utils.log('trakt.getTraktAddonEpisodeInfo = True', __name__, log_utils.LOGDEBUG)
 				# trakt.markEpisodeAsNotWatched(imdb, tvdb, season, episode)
 		else:
 			from metahandler import metahandlers

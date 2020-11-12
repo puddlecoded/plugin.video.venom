@@ -1,3 +1,7 @@
+[B][COLOR red]Update - v4.2.8 - Nov. 12, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed Download context menu option.[/I]
+[COLOR yellow]--[/COLOR][I] Added a pre-fetch for Season watched and unwatched count.[/I]
+
 [B][COLOR red]Update - v4.2.7 - Nov. 06, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed TVShows Season level watched indicators.
     Previously the Season level did not refresh the cached
