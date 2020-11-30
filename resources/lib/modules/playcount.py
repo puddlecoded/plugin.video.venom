@@ -46,6 +46,7 @@ def getTVShowIndicators(refresh=False):
 def getSeasonIndicators(imdb, refresh=False):
 	try:
 		if traktIndicators:
+			if not refresh: timeout = 720
 			if trakt.getWatchedActivity() < trakt.timeoutsyncSeason(imdb=imdb): timeout = 720
 			else: timeout = 0
 			indicators = trakt.cachesyncSeason(imdb=imdb, timeout=timeout)

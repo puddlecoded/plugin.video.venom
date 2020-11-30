@@ -226,12 +226,12 @@ class Navigator:
 
 
 	def cf(self):
-		self.addDirectoryItem(32610, 'cache_clearAll&opensettings=false', 'tools.png', 'DefaultAddonService.png', isFolder=False)
-		self.addDirectoryItem(32611, 'cache_clearSources&opensettings=false', 'tools.png', 'DefaultAddonService.png', isFolder=False)
-		self.addDirectoryItem(32612, 'cache_clearMeta&opensettings=false', 'tools.png', 'DefaultAddonService.png', isFolder=False)
-		self.addDirectoryItem(32613, 'cache_clearCache&opensettings=false', 'tools.png', 'DefaultAddonService.png', isFolder=False)
-		self.addDirectoryItem(32614, 'cache_clearSearch&opensettings=false', 'tools.png', 'DefaultAddonService.png', isFolder=False)
-		self.addDirectoryItem(32615, 'cache_clearBookmarks&opensettings=false', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32610, 'cache_clearAll', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32611, 'cache_clearSources', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32612, 'cache_clearMeta', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32613, 'cache_clearCache', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32614, 'cache_clearSearch', 'tools.png', 'DefaultAddonService.png', isFolder=False)
+		self.addDirectoryItem(32615, 'cache_clearBookmarks', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		self.endDirectory()
 
 

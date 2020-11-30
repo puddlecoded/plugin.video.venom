@@ -100,7 +100,7 @@ msgid "Browse Progress"
 msgstr ""
 
 msgctxt "#32017"
-msgid ""
+msgid "check IMDb year for Movies"
 msgstr ""
 
 msgctxt "#32018"
@@ -2102,11 +2102,11 @@ msgid ""
 msgstr ""
 
 msgctxt "#33017"
-msgid "New value = %s: Successfully changed.\n Kodi must now restart for change to take effect."
+msgid "New value = [B]%s[/B]: Successfully changed."
 msgstr ""
 
 msgctxt "#33018"
-msgid "[B]Reuse Langauage Invoker[/B] is currently set to %s.\n\nDo you wish to change this setting to %s?"
+msgid "[B]Reuse Langauage Invoker[/B] is currently set to [B]%s[/B].\n\nDo you wish to change this setting to [B]%s[/B]?"
 msgstr ""
 
 msgctxt "#33019"
@@ -2126,7 +2126,7 @@ msgid "Error setting correct value."
 msgstr ""
 
 msgctxt "#33023"
-msgid ""
+msgid "[B]Reuse Language Invoker[/B] SETTING/XML mismatch"
 msgstr ""
 
 msgctxt "#33024"

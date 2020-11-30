@@ -28,7 +28,6 @@ from resources.lib.modules import providerscache
 from resources.lib.modules import source_utils
 from resources.lib.modules import trakt
 from resources.lib.modules import workers
-
 from resources.lib.debrid import alldebrid
 from resources.lib.debrid import premiumize
 from resources.lib.debrid import realdebrid
@@ -92,38 +91,27 @@ class Sources:
 			control.homeWindow.setProperty(self.tmdbProperty, tmdb)
 			control.homeWindow.clearProperty(self.tvdbProperty)
 			control.homeWindow.setProperty(self.tvdbProperty, tvdb)
+			highlight_color = control.getColor(control.setting('highlight.color'))
+			p_label = '[COLOR %s]%s (%s)[/COLOR]' % (highlight_color, title, year) if tvshowtitle is None else \
+			'[COLOR %s]%s (S%02dE%02d)[/COLOR]' % (highlight_color, tvshowtitle, int(season), int(episode))
+			control.homeWindow.clearProperty(self.labelProperty)
+			control.homeWindow.setProperty(self.labelProperty, p_label)
 
 			url = None
 			self.mediatype = 'movie'
 
-			external_caller = 'plugin.video.venom' not in control.infoLabel('Container.PluginName')
-			isSTRM = control.infoLabel('ListItem.FileExtension') == 'strm'
-
 			#check IMDB for year since TMDB and Trakt differ on a ratio of 1 in 20 and year is off by 1 and some meta titles mismatch
-			if tvshowtitle is None:
+			if tvshowtitle is None and control.setting('imdb.year.check') == 'true':
 				year, title = self.movie_chk_imdb(imdb, title, year)
-
-			# fix incorect year passed from TMDBHelper. Need series premiered not variable season premiered.
-			# TMDBHelper added "{showyear}" for player files 7/29/20. Check on removing this
-			if external_caller and tvshowtitle is not None:
-				year = self.tmdbhelper_fix(imdb, year)
 
 			# get "total_season" to satisfy showPack scrapers. 1st=passed meta, 2nd=matacache check, 3rd=trakt.getSeasons() request
 			# also get "is_airing" status of season for showPack scrapers. 1st=passed meta, 2nd=matacache check, 3rd=tvdb v1 xml request
 			if tvshowtitle is not None:
 				self.mediatype = 'episode'
 				self.total_seasons, self.is_airing = self.get_season_info(imdb, tvdb, meta, season)
-
 			if rescrape :
 				self.clr_item_providers(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-
-			if isSTRM or external_caller:
-				items = self.getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-				# items, uncached_items = self.getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-			else:
-				items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-				# items, uncached_items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-
+			items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 			if not items:
 				self.url = url
 				return self.errorForSources()
@@ -133,13 +121,16 @@ class Sources:
 					select = '2'
 				else:
 					select = control.setting('hosts.mode')
-					if control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Netflix.xml)") or \
-							control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Estuary.xml)") or \
-							control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Aura.xml)") or \
-							control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo.xml)") and select == '1':
-						select = '0'
 			else:
 				select = select
+
+			if select == '1':
+				if control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo.xml)") or \
+				control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Aura.xml)") or \
+				control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Estuary.xml)") or \
+				control.condVisibility("Window.IsActive(script.extendedinfo-DialogVideoInfo-Netflix.xml)") or \
+				control.condVisibility("Window.IsActive(DialogVideoInfo.xml)"):
+					select = '0'
 
 			title = tvshowtitle if tvshowtitle is not None else title
 			if len(items) > 0:
@@ -310,7 +301,7 @@ class Sources:
 			items = json.loads(source)
 			items = [i for i in items + next + prev][:40]
 
-			header = control.addonInfo('name') + ': Resolving...'
+			header = control.homeWindow.getProperty(self.labelProperty) + ': Resolving...'
 			progressDialog = control.progressDialog if control.setting('progress.dialog') == '0' else control.progressDialogBG
 			progressDialog.create(header, '')
 
@@ -394,7 +385,9 @@ class Sources:
 		control.hide()
 		progressDialog = control.progressDialog if control.setting(
 			'progress.dialog') == '0' else control.progressDialogBG
-		progressDialog.create(control.addonInfo('name'), '')
+		header = control.homeWindow.getProperty(self.labelProperty) + ': Scraping...'
+		progressDialog.create(header, '')
+
 		self.prepareSources()
 		sourceDict = self.sourceDict
 		progressDialog.update(0, control.lang(32600))
@@ -1095,7 +1088,7 @@ class Sources:
 			# items = [i for i in items + next + prev][:40]
 			items = [i for i in items + next + prev][:tot_items]
 
-			header = control.addonInfo('name') + ': Resolving...'
+			header = control.homeWindow.getProperty(self.labelProperty) + ': Resolving...'
 			progressDialog = control.progressDialog if control.setting('progress.dialog') == '0' else control.progressDialogBG
 			progressDialog.create(header, '')
 
@@ -1182,13 +1175,10 @@ class Sources:
 		items = [i for i in items if not i in filter]
 		filter = [i for i in items if i['source'] in self.hostblockDict]# and i['debrid'] == '']
 		items = [i for i in items if not i in filter]
-
 		if control.setting('autoplay.sd') == 'true':
 			items = [i for i in items if not i['quality'] in ['4K', '1080p', '720p', 'HD']]
-
 		u = None
-		header = control.addonInfo('name') + ': Resolving...'
-
+		header = control.homeWindow.getProperty(self.labelProperty) + ': Resolving...'
 		try:
 			control.sleep(1000)
 			if control.setting('progress.dialog') == '0':
@@ -1314,6 +1304,10 @@ class Sources:
 		self.tmdbProperty = 'plugin.video.venom.container.tmdb'
 		self.tvdbProperty = 'plugin.video.venom.container.tvdb'
 
+
+		self.labelProperty = 'plugin.video.venom.container.label'
+
+
 		from fenomscrapers import sources
 		self.sourceDict = sources()
 
@@ -1372,10 +1366,12 @@ class Sources:
 					log_utils.error()
 					pass
 			filter.append(i)
-		control.notification(message='Removed %s duplicate sources from list' % (len(self.sources) - len(filter)))
+		header = control.homeWindow.getProperty(self.labelProperty)
+		control.notification(title=header, message='Removed %s duplicate sources from list' % (len(self.sources) - len(filter)))
 		log_utils.log('Removed %s duplicate sources from list' % (len(self.sources) - len(filter)), log_utils.LOGDEBUG)
 		self.sources = filter
 		return self.sources
+
 
 	# @timeIt
 	def calc_pack_size(self):
@@ -1401,14 +1397,12 @@ class Sources:
 				meta_lang = control.apiLanguage()['tvdb']
 				if meta:
 					imdb = meta.get('imdb')
+					tmdb = meta.get('tmdb')
 					tvdb = meta.get('tvdb')
 				else:
 					imdb = control.homeWindow.getProperty(self.imdbProperty)
-
 					tmdb = control.homeWindow.getProperty(self.tmdbProperty)
-
 					tvdb = control.homeWindow.getProperty(self.tvdbProperty)
-				# ids = [{'imdb': imdb, 'tvdb': tvdb}]
 				ids = [{'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb}]
 
 				meta2 = metacache.fetch(ids, meta_lang, user)[0]

@@ -31,8 +31,6 @@ from resources.lib.modules import workers
 from resources.lib.extensions import tools
 from resources.lib.indexers import tvdb_v1
 
-disable_fanarttv = control.setting('disable.fanarttv')
-
 
 class Episodes:
 	def __init__(self, type='show', notifications=True):
@@ -42,6 +40,7 @@ class Episodes:
 		self.type = type
 		self.lang = control.apiLanguage()['tvdb']
 		self.notifications = notifications
+		self.disable_fanarttv = control.setting('disable.fanarttv')
 
 		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours=5))
 		self.today_date = (self.datetime).strftime('%Y-%m-%d')
@@ -1232,7 +1231,7 @@ class Episodes:
 								'airzone': airzone, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'season_poster': season_poster, 'banner': banner,
 								'fanart': fanart, 'thumb': thumb, 'episodeIDS': episodeIDS, 'ForceAirEnabled': True}
 
-				if disable_fanarttv != 'true':
+				if self.disable_fanarttv != 'true':
 					from resources.lib.indexers import fanarttv
 					extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
 					if extended_art:
@@ -1306,7 +1305,6 @@ class Episodes:
 		try: sysaction = items[0]['action']
 		except: sysaction = ''
 
-		# indicators = playcount.getTVShowIndicators()
 		indicators = playcount.getTVShowIndicators(refresh=True)
 
 		isFolder = False if sysaction != 'episodes' else True
@@ -1460,7 +1458,6 @@ class Episodes:
 				poster2 = meta.get('poster2')
 				poster3 = meta.get('poster3')
 				poster = poster3 or poster2 or poster1 or addonPoster
-
 				season_poster = meta.get('season_poster') or poster
 
 				fanart = '0'
@@ -1555,7 +1552,7 @@ class Episodes:
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=library_tvshowToLibrary&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s)' % (
 											sysaddon, systvshowtitle, year, imdb, tmdb, tvdb)))
-				cm.append((control.lang(32611), 'RunPlugin(%s?action=cache_clearSources&opensettings=false)' % sysaddon))
+				cm.append((control.lang(32611), 'RunPlugin(%s?action=cache_clearSources)' % sysaddon))
 				cm.append(('PlayAll', 'RunPlugin(%s?action=playAll)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 ####################################

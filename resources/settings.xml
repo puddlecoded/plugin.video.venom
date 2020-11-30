@@ -143,6 +143,8 @@
 	<!-- Source Options - 5 -->
 	<category label="Source Options">
 		<setting id="cf.disable" type="bool" label="32364" default="false" />
+		<setting id="imdb.year.check" type="bool" label="32017" default="true" />
+		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=imdbYearCheck)" />
 		<setting id="scrapers.timeout.1" type="slider" label="32312" default="30" range="10,60" option="int" />
 		<setting id="preemptive.termination" type="bool" label="32654" default="false" />
 		<setting id="preemptive.limit" type="slider" label="32655" default="25" range="1,50" option="int" visible="eq(-1,true)" />

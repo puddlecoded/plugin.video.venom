@@ -119,17 +119,15 @@ class Player(xbmc.Player):
 			item.setInfo(type='video', infoLabels=control.metadataClean(meta))
 
 			if 'plugin' not in control.infoLabel('Container.PluginName') or select != '1':
-				if control.homeWindow.getProperty('infodialogs.active') or \
-				control.homeWindow.getProperty('extendedinfo_running'):
-					control.closeAll()
+				control.busy()
 				control.resolve(int(sys.argv[1]), True, item)
 
 			elif select == '1':
-				control.closeAll()
+				control.busy()
 				control.player.play(url, item)
 
-			self.keepAlive()
 			control.homeWindow.setProperty('script.trakt.ids', json.dumps(self.ids))
+			self.keepAlive()
 			control.homeWindow.clearProperty('script.trakt.ids')
 		except:
 			log_utils.error()
@@ -267,7 +265,9 @@ class Player(xbmc.Player):
 		else: overlay = '6'
 
 		for i in range(0, 240):
-			if self.isPlayback(): break
+			if self.isPlayback():
+				control.closeAll()
+				break
 			xbmc.sleep(1000)
 
 		while self.isPlayingVideo():
@@ -417,7 +417,7 @@ class Player(xbmc.Player):
 			log_utils.error()
 			pass
 		# if control.setting('crefresh') == 'true':
-			# # control.refresh()
+			# control.refresh()
 			# control.sleep(500)
 		# control.playlist.clear()
 		control.trigger_widget_refresh()
@@ -426,9 +426,10 @@ class Player(xbmc.Player):
 
 	def onPlayBackEnded(self):
 		Bookmarks().reset(self.current_time, self.media_length, self.name, self.year)
+		trakt.scrobbleReset(imdb=self.imdb, tvdb=self.tvdb, season=self.season, episode=self.episode)
 		self.libForPlayback()
 		# if control.setting('crefresh') == 'true':
-			# # control.refresh()
+			# control.refresh()
 			# control.sleep(500)
 		control.trigger_widget_refresh()
 		xbmc.log('[ plugin.video.venom ] onPlayBackEnded callback', 2)

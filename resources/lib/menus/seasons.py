@@ -31,7 +31,6 @@ from resources.lib.modules import views
 from resources.lib.menus import episodes as episodesx
 from resources.lib.menus import tvshows as tvshowsx
 
-disable_fanarttv = control.setting('disable.fanarttv')
 
 class Seasons:
 	def __init__(self, type = 'show'):
@@ -39,6 +38,7 @@ class Seasons:
 		self.type = type
 		self.lang = control.apiLanguage()['tvdb']
 		self.season_special = False
+		self.disable_fanarttv = control.setting('disable.fanarttv')
 
 		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
 		self.today_date = (self.datetime).strftime('%Y-%m-%d')
@@ -734,7 +734,7 @@ class Seasons:
 		addonFanart = control.addonFanart()
 		addonBanner = control.addonBanner()
 
-		try: indicators = playcount.getSeasonIndicators(items[0]['imdb'])
+		try: indicators = playcount.getSeasonIndicators(items[0]['imdb'], refresh=True)
 		except: indicators = None
 		unwatchedEnabled = control.setting('tvshows.unwatched.enabled') == 'true'
 
@@ -758,7 +758,7 @@ class Seasons:
 		multi = len([x for y,x in enumerate(multi) if x not in multi[:y]])
 		multi = True if multi > 1 else False
 
-		if disable_fanarttv != 'true':
+		if self.disable_fanarttv != 'true':
 			tvdb = [i['tvdb'] for i in items][0]
 			from resources.lib.indexers import fanarttv
 			extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)

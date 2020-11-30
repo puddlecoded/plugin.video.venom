@@ -662,6 +662,11 @@ if action and action.startswith('tools_'):
 		from resources.lib.modules import trakt
 		trakt.sync_progress()
 
+	elif action == 'tools_syncTraktWatched':
+		from resources.lib.modules import trakt
+		trakt.sync_watched()
+
+
 ####################################################
 #---Play
 ####################################################

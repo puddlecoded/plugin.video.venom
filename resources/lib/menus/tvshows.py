@@ -82,10 +82,12 @@ class TVshows:
 		self.trakt_link = 'https://api.trakt.tv'
 		self.search_link = 'https://api.trakt.tv/search/show?limit=%d&page=1&query=' % self.count
 		self.traktlist_link = 'https://api.trakt.tv/users/%s/lists/%s/items/shows'
-		self.traktlists_link = 'https://api.trakt.tv/users/me/lists'
 		self.traktlikedlists_link = 'https://api.trakt.tv/users/likes/lists?limit=1000000'
+
+		self.traktlists_link = 'https://api.trakt.tv/users/me/lists'
 		self.traktwatchlist_link = 'https://api.trakt.tv/users/me/watchlist/shows'
 		self.traktcollection_link = 'https://api.trakt.tv/users/me/collection/shows'
+
 		self.trakttrending_link = 'https://api.trakt.tv/shows/trending?page=1&limit=%d' % self.count
 		self.traktpopular_link = 'https://api.trakt.tv/shows/popular?page=1&limit=%d' % self.count
 		self.traktrecommendations_link = 'https://api.trakt.tv/recommendations/shows?limit=40'
@@ -128,10 +130,8 @@ class TVshows:
 
 			if u in self.trakt_link and '/users/' in url:
 				try:
-					if '/users/me/' not in url:
-						raise Exception()
-					if trakt.getActivity() > cache.timeout(self.trakt_list, url, self.trakt_user):
-						raise Exception()
+					if '/users/me/' not in url: raise Exception()
+					if trakt.getActivity() > cache.timeout(self.trakt_list, url, self.trakt_user): raise Exception()
 					self.list = cache.get(self.trakt_list, 720, url, self.trakt_user)
 				except:
 					self.list = cache.get(self.trakt_list, 0, url, self.trakt_user)
@@ -156,7 +156,7 @@ class TVshows:
 				# self.sort() # I switched this to request sorting for imdb
 
 			elif u in self.imdb_link:
-				self.list = cache.get(self.imdb_list, 168, url)
+				self.list = cache.get(self.imdb_list, 96, url)
 				if idx: self.worker()
 
 			if self.list is None:
@@ -1207,7 +1207,8 @@ class TVshows:
 		addonPoster = control.addonPoster()
 		addonFanart = control.addonFanart()
 		addonBanner = control.addonBanner()
-		indicators = playcount.getTVShowIndicators()
+		indicators = playcount.getTVShowIndicators(refresh=True)
+
 		unwatchedEnabled = control.setting('tvshows.unwatched.enabled') == 'true'
 		flatten = control.setting('flatten.tvshows') == 'true'
 

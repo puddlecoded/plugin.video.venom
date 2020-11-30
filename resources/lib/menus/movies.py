@@ -115,11 +115,13 @@ class Movies:
 		self.search_link = 'https://api.trakt.tv/search/movie?limit=%d&page=1&query=' % self.count
 		self.traktlistsearch_link = 'https://api.trakt.tv/search/list?limit=%d&page=1&query=' % self.count
 		self.traktlist_link = 'https://api.trakt.tv/users/%s/lists/%s/items/movies'
-		self.traktlists_link = 'https://api.trakt.tv/users/me/lists'
 		self.traktlikedlists_link = 'https://api.trakt.tv/users/likes/lists?limit=1000000'
+
+		self.traktlists_link = 'https://api.trakt.tv/users/me/lists'
 		self.traktwatchlist_link = 'https://api.trakt.tv/users/me/watchlist/movies'
 		self.traktcollection_link = 'https://api.trakt.tv/users/me/collection/movies' # api collection does not support pagination atm
 		self.trakthistory_link = 'https://api.trakt.tv/users/me/history/movies?limit=40&page=1'
+
 		self.traktunfinished_link = 'https://api.trakt.tv/sync/playback/movies?limit=40'
 		self.traktanticipated_link = 'https://api.trakt.tv/movies/anticipated?limit=%d&page=1' % self.count 
 		self.trakttrending_link = 'https://api.trakt.tv/movies/trending?limit=%d&page=1' % self.count
@@ -149,17 +151,12 @@ class Movies:
 
 			if u in self.trakt_link and '/users/' in url:
 				try:
-					if url == self.trakthistory_link:
-						raise Exception()
-					if '/users/me/' not in url:
-						raise Exception()
-					if trakt.getActivity() > cache.timeout(self.trakt_list, url, self.trakt_user):
-					# if trakt.getWatchedActivity() > cache.timeout(self.trakt_list, url, self.trakt_user):
-						raise Exception()
+					if url == self.trakthistory_link: raise Exception()
+					if '/users/me/' not in url: raise Exception()
+					if trakt.getActivity() > cache.timeout(self.trakt_list, url, self.trakt_user): raise Exception()
 					self.list = cache.get(self.trakt_list, 720, url, self.trakt_user)
 				except:
 					self.list = cache.get(self.trakt_list, 0, url, self.trakt_user)
-
 				if url == self.traktwatchlist_link:
 					self.sort(type='movies.watchlist')
 				else: self.sort()
@@ -1131,7 +1128,7 @@ class Movies:
 		addonPoster = control.addonPoster()
 		addonFanart = control.addonFanart()
 		addonBanner = control.addonBanner()
-		indicators = playcount.getMovieIndicators()
+		indicators = playcount.getMovieIndicators(refresh=True)
 
 		isPlayable = 'false'
 		if 'plugin' not in control.infoLabel('Container.PluginName'): isPlayable = 'true'
@@ -1268,7 +1265,7 @@ class Movies:
 				if control.setting('library.service.update') == 'true':
 					cm.append((addToLibrary, 'RunPlugin(%s?action=library_movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
 				cm.append(('Find similar', 'ActivateWindow(10025,%s?action=movies&url=https://api.trakt.tv/movies/%s/related,return)' % (sysaddon, imdb)))
-				cm.append((control.lang(32611), 'RunPlugin(%s?action=cache_clearSources&opensettings=false)' % sysaddon))
+				cm.append((control.lang(32611), 'RunPlugin(%s?action=cache_clearSources)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 ####################################
 

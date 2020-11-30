@@ -33,8 +33,10 @@ def get(function, duration, *args):
 
 		if cache_result:
 			if _is_cache_valid(cache_result['date'], duration):
+				# log_utils.log('cache is valid for function = %s' % str(function), __name__, log_utils.LOGDEBUG)
 				return ast.literal_eval(cache_result['value'].encode('utf-8'))
 
+		# log_utils.log('cache is invalid for function = %s' % str(function), __name__, log_utils.LOGDEBUG)
 		fresh_result = repr(function(*args))
 
 		cache_insert(key, fresh_result)
@@ -131,7 +133,6 @@ def cache_insert(key, value):
 		except: pass
 
 
-
 def cache_clean(duration = 1209600):
 	try:
 		now = int(time.time())
@@ -163,7 +164,6 @@ def cache_clear_all():
 def cache_clear_providers():
 	cursor = _get_connection_cursor_providers()
 	for t in ['cache', 'rel_src', 'rel_url']:
-	# for t in ['cache', 'rel_src', 'rel_url', 'rel_src_seasonPack', 'rel_src_showPack']:
 		try:
 			cursor.execute("DROP TABLE IF EXISTS %s" % t)
 			cursor.execute("VACUUM")

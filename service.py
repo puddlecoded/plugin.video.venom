@@ -14,7 +14,7 @@ from resources.lib.modules import trakt
 window = control.homeWindow
 
 
-class CheckSettingsFile():
+class CheckSettingsFile:
 	def run(self):
 		try:
 			xbmc.log('[ plugin.video.venom ]  CheckSettingsFile Service Starting...', 2)
@@ -60,7 +60,7 @@ class SyncMyAccounts:
 class ReuseLanguageInvokerCheck:
 	def run(self):
 		if control.getKodiVersion() < 18: return
-		xbmc.log("[ plugin.video.venom ]  ReuseLanguageInvokerCheck Service Starting...", 2)
+		xbmc.log('[ plugin.video.venom ]  ReuseLanguageInvokerCheck Service Starting...', 2)
 		try:
 			import xml.etree.ElementTree as ET
 			addon_xml = control.joinPath(control.addonPath('plugin.video.venom'), 'addon.xml')
@@ -68,25 +68,23 @@ class ReuseLanguageInvokerCheck:
 			root = tree.getroot()
 			current_addon_setting = control.addon('plugin.video.venom').getSetting('reuse.languageinvoker')
 			try: current_xml_setting = [str(i.text) for i in root.iter('reuselanguageinvoker')][0]
-			except: return xbmc.log("[ plugin.video.venom ]  ReuseLanguageInvokerCheck failed to get settings.xml value", 2)
+			except: return xbmc.log('[ plugin.video.venom ]  ReuseLanguageInvokerCheck failed to get settings.xml value', 2)
 			if current_addon_setting == '':
 				current_addon_setting = 'true'
 				control.setSetting('reuse.languageinvoker', current_addon_setting)
-			if current_xml_setting == current_addon_setting: return
-			if not control.yesnoDialog(control.lang(33018) % (current_xml_setting, current_addon_setting), '', ''):
-				return control.setSetting('reuse.languageinvoker', 'true')
+			if current_xml_setting == current_addon_setting:
+				return xbmc.log('[ plugin.video.venom ]  ReuseLanguageInvokerCheck Service Finished', 2)
+			control.okDialog(message='%s\n%s' % (control.lang(33023), control.lang(33020)))
 			for item in root.iter('reuselanguageinvoker'):
 				item.text = current_addon_setting
 				hash_start = control.gen_file_hash(addon_xml)
 				tree.write(addon_xml)
 				hash_end = control.gen_file_hash(addon_xml)
+				xbmc.log('[ plugin.video.venom ]  ReuseLanguageInvokerCheck Service Finished', 2)
 				if hash_start != hash_end:
-					control.okDialog(message=33020)
 					current_profile = control.infoLabel('system.profilename')
 					control.execute('LoadProfile(%s)' % current_profile)
-				else:
-					control.okDialog(message=33022)
-			xbmc.log("[ plugin.video.venom ]  ReuseLanguageInvokerCheck Service finished", 2)
+				else: control.okDialog(title='default', message=33022)
 			return
 		except:
 			log_utils.error()
@@ -132,10 +130,11 @@ class SyncTraktCollection:
 
 class SyncTraktWatched:
 	def run(self):
-		xbmc.log('[ plugin.video.venom ]  Trakt Watched Sync Starting...', 2)
-		control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=tools_cachesyncTVShows&timeout=720')
-		control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=tools_cachesyncMovies&timeout=720')
-		xbmc.log('[ plugin.video.venom ]  Trakt Watched Sync Complete', 2)
+		xbmc.log('[ plugin.video.venom ]  Trakt Watched Sync Service Starting (sync check every 15min)...', 2)
+		# control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=tools_cachesyncTVShows&timeout=0')
+		# control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=tools_cachesyncMovies&timeout=0')
+		control.execute('RunPlugin(plugin://%s)' % 'plugin.video.venom/?action=tools_syncTraktWatched') # trakt.sync_watched() contains xbmc.Monitor().waitForAbort() while loop every 15min
+		# xbmc.log('[ plugin.video.venom ]  Trakt Watched Sync Complete', 2)
 
 
 class SyncTraktProgress:
@@ -157,6 +156,7 @@ except:
 def main():
 	while not control.monitor.abortRequested():
 		xbmc.log('[ plugin.video.venom ]  Service Started', 2)
+		syncWatched = None
 		syncProgress = None
 		schedTrakt = None
 		libraryService = None
@@ -169,7 +169,9 @@ def main():
 		if control.setting('general.checkAddonUpdates') == 'true':
 			AddonCheckUpdate().run()
 		if trakt.getTraktCredentialsInfo() is True:
-			SyncTraktWatched().run()
+			if control.setting('indicators.alt') == '1':
+				syncWatched = True
+				SyncTraktWatched().run()
 			if control.setting('bookmarks') == 'true' and control.setting('resume.source') == '1':
 				syncProgress = True
 				SyncTraktProgress().run()
@@ -184,6 +186,8 @@ def main():
 		break
 	SettingsMonitor().waitForAbort()
 	xbmc.log('[ plugin.video.venom ]  Settings Monitor Service Stopping...', 2)
+	if syncWatched:
+		xbmc.log('[ plugin.video.venom ]  Trakt Watched Sync Service Stopping...', 2)
 	if syncProgress:
 		xbmc.log('[ plugin.video.venom ]  Trakt Progress Sync Service Stopping...', 2)
 	if libraryService:

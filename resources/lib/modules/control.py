@@ -858,11 +858,10 @@ def set_reuselanguageinvoker():
 			hash_end = gen_file_hash(addon_xml)
 			if hash_start != hash_end:
 				setSetting('reuse.languageinvoker', new_value)
-				okDialog(message=lang(33017) % new_value)
+				okDialog(message='%s\n%s' % (lang(33017) % new_value, lang(33020)))
 			else:
 				return okDialog(message=33021)
 			current_profile = infoLabel('system.profilename')
-			okDialog(message=33020)
 			execute('LoadProfile(%s)' % current_profile)
 	except:
 		import traceback

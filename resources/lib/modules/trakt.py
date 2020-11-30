@@ -20,7 +20,6 @@ from resources.lib.modules import client
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 from resources.lib.modules import utils
-
 from resources.lib.extensions import database
 
 BASE_URL = 'https://api.trakt.tv'
@@ -606,13 +605,26 @@ def getWatchedActivity():
 		pass
 
 
-def getPausedActivity():
+def getMoviesWatchedActivity():
 	try:
 		i = getTraktAsJson('/sync/last_activities')
 		if not i: return 0
 		activity = []
-		activity.append(i['movies']['paused_at'])
-		activity.append(i['episodes']['paused_at'])
+		activity.append(i['movies']['watched_at'])
+		activity = [int(cleandate.iso_2_utc(i)) for i in activity]
+		activity = sorted(activity, key=int)[-1]
+		return activity
+	except:
+		log_utils.error()
+		pass
+
+
+def getEpisodesWatchedActivity():
+	try:
+		i = getTraktAsJson('/sync/last_activities')
+		if not i: return 0
+		activity = []
+		activity.append(i['episodes']['watched_at'])
 		activity = [int(cleandate.iso_2_utc(i)) for i in activity]
 		activity = sorted(activity, key=int)[-1]
 		return activity
@@ -636,9 +648,63 @@ def getCollectedActivity():
 		pass
 
 
+def getWatchListedActivity():
+	try:
+		i = getTraktAsJson('/sync/last_activities')
+		if not i: return 0
+		activity = []
+		activity.append(i['movies']['watchlisted_at'])
+		activity.append(i['episodes']['watchlisted_at'])
+		activity.append(i['shows']['watchlisted_at'])
+		activity.append(i['seasons']['watchlisted_at'])
+		activity = [int(cleandate.iso_2_utc(i)) for i in activity]
+		activity = sorted(activity, key=int)[-1]
+		return activity
+	except:
+		log_utils.error()
+		pass
+
+
+def getPausedActivity():
+	try:
+		i = getTraktAsJson('/sync/last_activities')
+		if not i: return 0
+		activity = []
+		activity.append(i['movies']['paused_at'])
+		activity.append(i['episodes']['paused_at'])
+		activity = [int(cleandate.iso_2_utc(i)) for i in activity]
+		activity = sorted(activity, key=int)[-1]
+		return activity
+	except:
+		log_utils.error()
+		pass
+
+
 def cachesyncMovies(timeout=0):
 	indicators = cache.get(syncMovies, timeout)
 	return indicators
+
+
+def sync_watched():
+	try:
+		while not control.monitor.abortRequested():
+			moviesWatchedActivity = getMoviesWatchedActivity()
+			db_movies_last_watched = timeoutsyncMovies()
+			episodesWatchedActivity = getEpisodesWatchedActivity()
+			db_episoodes_last_watched = timeoutsyncTVShows()
+			if moviesWatchedActivity > db_movies_last_watched:
+				log_utils.log('Trakt Watched Movie Sync Update...(local db latest "watched_at" = %s, trakt api latest "watched_at" = %s)' % \
+								(str(db_movies_last_watched), str(moviesWatchedActivity)), __name__, log_utils.LOGDEBUG)
+				cachesyncMovies()
+			if episodesWatchedActivity > db_episoodes_last_watched:
+				log_utils.log('Trakt Watched Episodes Sync Update...(local db latest "watched_at" = %s, trakt api latest "watched_at" = %s)' % \
+								(str(db_episoodes_last_watched), str(episodesWatchedActivity)), __name__, log_utils.LOGDEBUG)
+				cachesyncTVShows()
+			if control.monitor.waitForAbort(60*15):
+				break
+	except:
+		log_utils.error()
+		pass
 
 
 def timeoutsyncMovies():
@@ -785,7 +851,7 @@ def seasonCount(imdb, refresh=True, wait=False):
 	try:
 		if not imdb: return None
 		if not imdb.startswith('tt'): return None
-		indicators = cache.cache_existing(_seasonCountRetrieve, imdb)
+		indicators = cache.cache_existing(_seasonCountRetrieve, imdb) # get existing result while thread fetches new
 		if refresh:
 			# NB: Do not retrieve a fresh count, otherwise loading show/season menus are slow.
 			thread = threading.Thread(target=_seasonCountCache, args=(imdb,))
@@ -800,8 +866,8 @@ def seasonCount(imdb, refresh=True, wait=False):
 
 
 def _seasonCountCache(imdb):
-	return cache.get(_seasonCountRetrieve, 0, imdb)
-
+	# return cache.get(_seasonCountRetrieve, 0, imdb)
+	return cache.get(_seasonCountRetrieve, 0.3, imdb)
 
 	# indicators = getTraktAsJson('/users/me/watched/shows?extended=full')
 def _seasonCountRetrieve(imdb):
