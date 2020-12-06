@@ -456,10 +456,14 @@ def closeOk():
 
 
 def cancelPlayback():
-	playlist.clear()
-	syshandle = int(argv[1])
-	resolve(syshandle, False, item())
-	closeOk()
+	try:
+		playlist.clear()
+		resolve(int(argv[1]), False, item(offscreen=True))
+		closeOk()
+	except:
+		import traceback
+		traceback.print_exc()
+		return
 
 
 def visible():

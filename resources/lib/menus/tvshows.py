@@ -308,7 +308,6 @@ class TVshows:
 			from sqlite3 import dbapi2 as database
 		except:
 			from pysqlite2 import dbapi2 as database
-
 		dbcon = database.connect(control.searchFile)
 		dbcur = dbcon.cursor()
 		try:
@@ -317,19 +316,15 @@ class TVshows:
 		except:
 			log_utils.error()
 			pass
-
 		dbcur.execute("SELECT * FROM tvshow ORDER BY ID DESC")
 		lst = []
 		delete_option = False
-
 		for (id, term) in dbcur.fetchall():
 			if term not in str(lst):
 				delete_option = True
 				navigator.Navigator().addDirectoryItem(term, 'tvSearchterm&name=%s' % term, 'search.png', 'DefaultAddonsSearch.png', isSearch=True, table='tvshow')
 				lst += [(term)]
-
 		dbcon.close()
-
 		if delete_option:
 			navigator.Navigator().addDirectoryItem(32605, 'cache_clearSearch', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		navigator.Navigator().endDirectory()
@@ -341,15 +336,11 @@ class TVshows:
 		k = control.keyboard('', t)
 		k.doModal()
 		q = k.getText() if k.isConfirmed() else None
-
-		if (q is None or q == ''):
-			return
-
+		if not q: return
 		try:
 			from sqlite3 import dbapi2 as database
 		except:
 			from pysqlite2 import dbapi2 as database
-
 		dbcon = database.connect(control.searchFile)
 		dbcur = dbcon.cursor()
 		dbcur.execute("INSERT INTO tvshow VALUES (?,?)", (None, q))
@@ -373,8 +364,7 @@ class TVshows:
 		k = control.keyboard('', t)
 		k.doModal()
 		q = k.getText().strip() if k.isConfirmed() else None
-		if (q is None or q == ''):
-			return
+		if not q: return
 		url = self.persons_link + quote_plus(q)
 		self.persons(url)
 
@@ -389,8 +379,7 @@ class TVshows:
 			('Musical', 'musical', True), ('Mystery', 'mystery', True), ('News', 'news', True),
 			('Reality-TV', 'reality_tv', True), ('Romance', 'romance', True), ('Science Fiction', 'sci_fi', True),
 			('Sport', 'sport', True), ('Talk-Show', 'talk_show', True), ('Thriller', 'thriller', True),
-			('War', 'war', True), ('Western', 'western', True)
-		]
+			('War', 'war', True), ('Western', 'western', True)]
 		for i in genres:
 			self.list.append({'name': cleangenre.lang(i[0], self.lang), 'url': self.genre_link % i[1] if i[2] else self.keyword_link % i[1], 'image': 'genres.png', 'icon': 'DefaultGenre.png', 'action': 'tvshows'})
 		self.addDirectory(self.list)
@@ -440,8 +429,7 @@ class TVshows:
 			('General Audience (TV-G)', 'TV-G'),
 			('Parental Guidance (TV-PG)', 'TV-PG'),
 			('Youth Audience (TV-14)', 'TV-13', 'TV-14'),
-			('Mature Audience (TV-MA)', 'TV-MA')
-		]
+			('Mature Audience (TV-MA)', 'TV-MA')]
 		for i in certificates:
 			self.list.append({'name': str(i[0]), 'url': self.certification_link % self.certificatesFormat(i[1]), 'image': 'certificates.png', 'icon': 'DefaultTVShows.png', 'action': 'tvshows'})
 		self.addDirectory(self.list)
@@ -456,10 +444,8 @@ class TVshows:
 
 
 	def persons(self, url):
-		if url is None:
-			self.list = cache.get(self.imdb_person_list, 24, self.personlist_link)
-		else:
-			self.list = cache.get(self.imdb_person_list, 1, url)
+		if url is None: self.list = cache.get(self.imdb_person_list, 24, self.personlist_link)
+		else: self.list = cache.get(self.imdb_person_list, 1, url)
 		if len(self.list) == 0:
 			control.hide()
 			control.notification(title=32010, message=33049)
@@ -497,8 +483,7 @@ class TVshows:
 	def userlists(self):
 		userlists = []
 		try:
-			if not self.traktCredentials:
-				raise Exception()
+			if not self.traktCredentials: raise Exception()
 			activity = trakt.getActivity()
 			self.list = []
 			lists = []
@@ -513,20 +498,16 @@ class TVshows:
 			userlists += lists
 		except:
 			pass
-
 		try:
-			if not self.traktCredentials:
-				raise Exception()
+			if not self.traktCredentials: raise Exception()
 			self.list = []
 			lists = []
-
 			try:
 				if activity > cache.timeout(self.trakt_user_list, self.traktlikedlists_link, self.trakt_user):
 					raise Exception()
 				lists += cache.get(self.trakt_user_list, 3, self.traktlikedlists_link, self.trakt_user)
 			except:
 				lists += cache.get(self.trakt_user_list, 0, self.traktlikedlists_link, self.trakt_user)
-
 			for i in range(len(lists)):
 				lists[i].update({'image': 'trakt.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
 			userlists += lists
@@ -534,8 +515,7 @@ class TVshows:
 			pass
 
 		try:
-			if self.imdb_user == '':
-				raise Exception()
+			if not self.imdb_user: raise Exception()
 			self.list = []
 			lists = cache.get(self.imdb_user_list, 0, self.imdblists_link)
 			for i in range(len(lists)):
@@ -545,8 +525,7 @@ class TVshows:
 			pass
 
 		try:
-			if self.tmdb_session_id == '':
-				raise Exception()
+			if self.tmdb_session_id == '': raise Exception()
 			self.list = []
 			from resources.lib.indexers import tmdb
 			lists = cache.get(tmdb.userlists, 0, self.tmdb_userlists_link)
@@ -568,9 +547,6 @@ class TVshows:
 			if not contains:
 				self.list.append(userlists[i])
 
-		# for i in range(len(self.list)):
-			# self.list[i].update({'action': 'tvshows'})
-
 		# TMDb Favorites
 		if self.tmdb_session_id != '':
 			self.list.insert(0, {'name': control.lang(32026), 'url': self.tmdb_favorites_link, 'image': 'tmdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tmdbTvshows'})
@@ -589,9 +565,7 @@ class TVshows:
 
 		# Trakt Watchlist
 		if self.traktCredentials:
-			# trakt_watchlist = self.traktwatchlist_link + 'shows'
-			trakt_watchlist = self.traktwatchlist_link
-			self.list.insert(0, {'name': control.lang(32033), 'url': trakt_watchlist, 'image': 'trakt.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
+			self.list.insert(0, {'name': control.lang(32033), 'url': self.traktwatchlist_link, 'image': 'trakt.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tvshows'})
 
 		self.addDirectory(self.list)
 		return self.list
@@ -608,9 +582,7 @@ class TVshows:
 			if '/related' in u:
 				u = u + '&limit=20'
 			result = trakt.getTraktAsJson(u)
-
-			if not result:
-				return list
+			if not result: return list
 			items = []
 			for i in result:
 				try:

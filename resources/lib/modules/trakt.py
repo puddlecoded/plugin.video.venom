@@ -1132,6 +1132,7 @@ def scrobbleReset(imdb, tvdb=None, season=None, episode=None, refresh=True):
 		traktsync.delete_bookmark(items)
 		if refresh:
 			control.refresh()
+		control.trigger_widget_refresh()
 	except:
 		log_utils.error()
 

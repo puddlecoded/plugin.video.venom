@@ -56,8 +56,8 @@ def seas_ep_filter(season, episode, release_title, split=False):
 		string4 = '(s<<S>>e<<E1>>e<<E2>>)|' \
 				'(s<<S>>e<<E1>>-e<<E2>>)|' \
 				'(s<<S>>e<<E1>>\.e<<E2>>)|' \
-				'(s<<S>>e<<E1>>-<<E2>>)|' \
-				'(s<<S>>e<<E1>>\.<<E2>>)|' \
+				'(s<<S>>e<<E1>>-<<E2>>-)|' \
+				'(s<<S>>e<<E1>>\.<<E2>>\.)|' \
 				'(s<<S>>e<<E1>><<E2>>)'
 		string_list = []
 		string_list.append(string1.replace('<<S>>', str(season).zfill(2)).replace('<<E>>', str(episode).zfill(2)))
@@ -71,7 +71,6 @@ def seas_ep_filter(season, episode, release_title, split=False):
 		string_list.append(string4.replace('<<S>>', str(season).zfill(2)).replace('<<E1>>', str(int(episode)-1).zfill(2)).replace('<<E2>>', str(episode).zfill(2)))
 		string_list.append(string4.replace('<<S>>', str(season).zfill(2)).replace('<<E1>>', str(episode).zfill(2)).replace('<<E2>>', str(int(episode)+1).zfill(2)))
 		final_string = '|'.join(string_list)
-		# log_utils.log('final_string = %s' % str(final_string), __name__, log_utils.LOGDEBUG)
 		reg_pattern = re.compile(final_string)
 		if split:
 			return release_title.split(re.search(reg_pattern, release_title).group(), 1)[1]
@@ -80,6 +79,27 @@ def seas_ep_filter(season, episode, release_title, split=False):
 	except:
 		log_utils.error()
 		return None
+
+# Needs work, still sucks
+# def seas_ep_filter(season, episode, release_title, split=False):
+	# try:
+		# release_title = re.sub('[^A-Za-z0-9-]+', '.', unquote(release_title).replace('\'', '')).lower()
+		# episode_up = str(int(episode)+1) ; episode_dn = str(int(episode)-1)
+		# string1 = r'(?:s|season|)(?:\.|-|\(|)0{0,1}%s(?:\.|-|\)|x|)(?:e|ep|episode|)(?:\.|-|\(|)0{0,1}%s(?:\.|-|\)|)(?:e|ep|episode|)0{0,1}%s(?:\.|-|\)|$)' % (season, episode, episode_up)
+		# if int(episode) > 1:
+			# string2 = r'(?:s|season|)(?:\.|-|\(|)0{0,1}%s(?:\.|-|\)|x|)(?:e|ep|episode|)(?:\.|-|\(|)0{0,1}%s(?:\.|-|\)|)(?:e|ep|episode|)0{0,1}%s(?:\.|-|\)|$)' % (season, episode_dn, episode)
+		# string3 = r'(?:s|season|)(?:\.|-|\(|)0{0,1}%s(?:\.|-|\)|x|)(?:e|ep|episode|)(?:\.|-|\(|)0{0,1}%s(?:\.|-|\)|x|$)' % (season, episode)
+		# string_list = [string1, string2, string3]
+		# final_string = '|'.join(string_list)
+		# # log_utils.log('final_string = %s' % str(final_string), __name__, log_utils.LOGDEBUG)
+		# reg_pattern = re.compile(final_string)
+		# if split:
+			# return release_title.split(re.search(reg_pattern, release_title).group(), 1)[1]
+		# else:
+			# return bool(re.search(reg_pattern, release_title))
+	# except:
+		# log_utils.error()
+		# return None
 
 
 def episode_extras_filter():
@@ -96,9 +116,7 @@ def getFileType(url):
 	try:
 		type = ''
 		fmt = url_strip(url)
-		# log_utils.log('fmt = %s' % fmt, log_utils.LOGDEBUG)
-		if fmt is None:
-			return type
+		if not fmt: return type
 		if any(value in fmt for value in ['blu.ray', 'bluray', '.bd.']):
 			type += ' BLURAY /'
 		if any(value in fmt for value in ['bd.r', 'bdr', 'bd.rip', 'bdrip', 'br.rip', 'brrip']):
@@ -166,10 +184,8 @@ def getFileType(url):
 		if any(value in fmt for value in ADDS):
 			type += ' ADDS /'
 		if any(value in fmt for value in SUBS):
-			if type != '':
-				type += ' WITH SUBS'
-			else:
-				type = 'SUBS'
+			if type != '': type += ' WITH SUBS'
+			else: type = 'SUBS'
 		type = type.rstrip('/')
 		return type
 	except:
@@ -186,12 +202,9 @@ def url_strip(url):
 		fmt = re.sub('[^a-z0-9]+', '.', url)
 		fmt = '.%s.' % fmt
 		fmt = re.sub(r'(.+)((?:19|20)[0-9]{2}|season.\d+|s[0-3]{1}[0-9]{1}|e\d+|complete)(.complete\.|.episode\.\d+\.|.episodes\.\d+\.\d+\.|.series|.extras|.ep\.\d+\.|.\d{1,2}\.|-|\.|\s)', '', fmt) # new for pack files
-		if '.http' in fmt:
-			fmt = None
-		if fmt == '':
-			return None
-		else:
-			return '.%s' % fmt
+		if '.http' in fmt: fmt = None
+		if fmt == '': return None
+		else: return '.%s' % fmt
 	except:
 		log_utils.error()
 		return None

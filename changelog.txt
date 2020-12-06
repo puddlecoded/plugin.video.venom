@@ -1,3 +1,9 @@
+[B][COLOR red]Update - v4.3.0 - Dec. 5, 2020[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed resolve issue with pack files when playing episode10
+    would replay episode9 if quality was 1080p.[/I]
+[COLOR yellow]--[/COLOR][I] Fixed failed library playback issue if Venom's metacache was
+    cleared after a title was added to the library.[/I]
+
 [B][COLOR red]Update - v4.2.9 - Nov. 29, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed for some skins info dialog not closing when playback
     initiated from this info dialog.[/I]
@@ -8,7 +14,6 @@
 [COLOR yellow]--[/COLOR][I] Added setting to the "Source Options" to enable/disable the
     IMDb year check before scraping.  See Help below setting
     for more info[/I]
-
 
 [B][COLOR red]Update - v4.2.8 - Nov. 12, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed Download context menu option.[/I]
@@ -1030,6 +1035,7 @@ added "Disable Extended artwork" option.[/I]
     options you will now have a pop up list to show you
     all available options in one shot. Options with only
     2 items I left as "enum" type.[/I]
+
 [B][COLOR red]Update - v3.0.1 - July 03, 2019[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Removed caching of Trakt Progress list. Data should now
     refresh and be current instantly[/I]

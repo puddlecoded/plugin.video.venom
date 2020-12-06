@@ -7,7 +7,7 @@
 from datetime import datetime, timedelta
 import json
 import re
-# Import _strptime to workaround python 2 bug with threads
+# import _strptime to workaround python 2 bug with threads
 import _strptime
 import sys
 import time
@@ -158,6 +158,7 @@ class Sources:
 			player.Player().play_source(title, year, season, episode, imdb, tmdb, tvdb, url, meta, select)
 		except:
 			log_utils.error()
+			control.cancelPlayback()
 			pass
 
 
@@ -1303,10 +1304,7 @@ class Sources:
 		self.imdbProperty = 'plugin.video.venom.container.imdb'
 		self.tmdbProperty = 'plugin.video.venom.container.tmdb'
 		self.tvdbProperty = 'plugin.video.venom.container.tvdb'
-
-
 		self.labelProperty = 'plugin.video.venom.container.label'
-
 
 		from fenomscrapers import sources
 		self.sourceDict = sources()
@@ -1330,15 +1328,14 @@ class Sources:
 										'uploadgig.com', 'ul.to', 'uploadrocket.net', 'usersdrive.com']
 
 		self.hostcapDict = ['flashx.tv', 'flashx.to', 'flashx.sx', 'flashx.bz', 'flashx.cc', 'hugefiles.cc', 'hugefiles.net', 'jetload.net', 'jetload.tv',
-									'jetload.to''kingfiles.net', 'streamin.to', 'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io',
+									'jetload.to', 'kingfiles.net', 'streamin.to', 'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io',
 									'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
 
 		self.hostblockDict = ['divxme.com', 'divxstage.eu', 'estream.to', 'facebook.com', 'oload.download', 'oload.fun', 'oload.icu', 'oload.info',
 									'oload.life', 'oload.space', 'oload.stream', 'oload.tv', 'oload.win', 'openload.co', 'openload.io', 'openload.pw', 'rapidvideo.com',
 									'rapidvideo.is', 'rapidvid.to', 'streamango.com', 'streamcherry.com', 'twitch.tv', 'youtube.com', 'zippyshare.com']
 
-		self.sourcecfDict = ['ganool', 'maxrls', 'mkvhub', 'rapidmoviez', 'rlsbb', 'scenerls', 'tvdownload', 'btdb',
-									'extratorrent', 'limetorrents', 'moviemagnet', 'torrentgalaxy', 'torrentz']
+		self.sourcecfDict = ['filmxy', 'ganool', 'maxrls', 'rlsbb', 'scenerls', 'btdb', 'extratorrent', 'limetorrents', 'moviemagnet', 'torrentgalaxy']
 
 
 	# @timeIt
@@ -1528,17 +1525,13 @@ class Sources:
 
 	def clr_item_providers(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered):
 		providerscache.remove(self.getSources, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered) # function cache removal of item
-		# if not season:
-			# season = episode = ''
 		try:
 			dbcon = database.connect(self.sourceFile)
 			dbcur = dbcon.cursor()
 			dbcur.execute("SELECT count(name) FROM sqlite_master WHERE type='table' AND name='rel_url'")
 			if dbcur.fetchone()[0] == 1: # table exists so both all will
-				dbcur.execute(
-					"DELETE FROM rel_url WHERE imdb_id = '%s'" % imdb)
-				dbcur.execute(
-					"DELETE FROM rel_src WHERE imdb_id = '%s'" % imdb)
+				dbcur.execute("DELETE FROM rel_url WHERE imdb_id = '%s'" % imdb)
+				dbcur.execute("DELETE FROM rel_src WHERE imdb_id = '%s'" % imdb)
 				dbcur.connection.commit()
 				dbcon.close()
 		except:
@@ -1561,23 +1554,6 @@ class Sources:
 		except:
 			log_utils.error()
 			return year, title
-
-
-	def tmdbhelper_fix(self, imdb, year):
-		try:
-			if not imdb or imdb == '0':
-				raise Exception()
-			result = client.request('https://v2.sg.media-imdb.com/suggestion/t/{}.json'.format(imdb))
-			result = json.loads(result)['d'][0]
-			year_ck = result['y']
-			if not year_ck:
-				raise Exception()
-			if year != year_ck:
-				year = year_ck
-			return year
-		except:
-			log_utils.error()
-			return year
 
 
 	def get_season_info(self, imdb, tvdb, meta, season):

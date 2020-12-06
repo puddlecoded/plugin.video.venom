@@ -336,15 +336,12 @@ class Movies:
 		dbcur.execute("SELECT * FROM movies ORDER BY ID DESC")
 		lst = []
 		delete_option = False
-
 		for (id, term) in dbcur.fetchall():
 			if term not in str(lst):
 				delete_option = True
 				navigator.Navigator().addDirectoryItem(term, 'movieSearchterm&name=%s' % term, 'search.png', 'DefaultAddonsSearch.png', isSearch=True, table='movies')
 				lst += [(term)]
-
 		dbcon.close()
-
 		if delete_option:
 			navigator.Navigator().addDirectoryItem(32605, 'cache_clearSearch', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		navigator.Navigator().endDirectory()
@@ -361,7 +358,6 @@ class Movies:
 			from sqlite3 import dbapi2 as database
 		except:
 			from pysqlite2 import dbapi2 as database
-
 		dbcon = database.connect(control.searchFile)
 		dbcur = dbcon.cursor()
 		dbcur.execute("INSERT INTO movies VALUES (?,?)", (None, q))
@@ -399,8 +395,7 @@ class Movies:
 			('Horror', 'horror', True), ('Music ', 'music', True), ('Musical', 'musical', True),
 			('Mystery', 'mystery', True), ('Romance', 'romance', True), ('Science Fiction', 'sci-fi', True),
 			('Sport', 'sport', True), ('Thriller', 'thriller', True), ('War', 'war', True),
-			('Western', 'western', True)
-		]
+			('Western', 'western', True)]
 		for i in genres:
 			self.list.append({'name': cleangenre.lang(i[0], self.lang), 'url': self.genre_link % i[1] if i[2] else self.keyword_link % i[1], 'image': 'genres.png', 'icon': 'DefaultGenre.png', 'action': 'movies' })
 		self.addDirectory(self.list)
@@ -425,8 +420,7 @@ class Movies:
 			('Parental Guidance (PG)', 'PG'),
 			('Parental Caution (PG-13)', 'PG-13'),
 			('Parental Restriction (R)', 'R'),
-			('Mature Audience (NC-17)', 'NC-17')
-		]
+			('Mature Audience (NC-17)', 'NC-17')]
 		for i in certificates:
 			self.list.append({'name': str(i[0]), 'url': self.certification_link % self.certificatesFormat(i[1]), 'image': 'certificates.png', 'icon': 'DefaultMovies.png', 'action': 'movies'})
 		self.addDirectory(self.list)
@@ -490,8 +484,7 @@ class Movies:
 	def userlists(self):
 		userlists = []
 		try:
-			if not self.traktCredentials:
-				raise Exception()
+			if not self.traktCredentials: raise Exception()
 			activity = trakt.getActivity()
 			self.list = []
 			lists = []
@@ -507,8 +500,7 @@ class Movies:
 		except:
 			pass
 		try:
-			if not self.traktCredentials:
-				raise Exception()
+			if not self.traktCredentials: raise Exception()
 			self.list = []
 			lists = []
 			try:
@@ -534,8 +526,7 @@ class Movies:
 			pass
 
 		try:
-			if self.tmdb_session_id == '':
-				raise Exception()
+			if self.tmdb_session_id == '': raise Exception()
 			self.list = []
 			from resources.lib.indexers import tmdb
 			lists = cache.get(tmdb.userlists, 0, self.tmdb_userlists_link)
@@ -556,9 +547,6 @@ class Movies:
 					break
 			if not contains:
 				self.list.append(userlists[i])
-
-		# for i in range(0, len(self.list)):
-			# self.list[i].update({'action': 'movies'})
 
 		# TMDb Favorites
 		if self.tmdb_session_id != '':
@@ -585,6 +573,7 @@ class Movies:
 
 
 	def trakt_list(self, url, user):
+		list = []
 		try:
 			q = dict(parse_qsl(urlsplit(url).query))
 			q.update({'extended': 'full'})
@@ -593,6 +582,7 @@ class Movies:
 			if '/related' in u:
 				u = u + '&limit=20'
 			result = trakt.getTraktAsJson(u)
+			if not result: return list
 			items = []
 			for i in result:
 				try:
@@ -627,7 +617,7 @@ class Movies:
 
 		for item in items:
 			try:
-				try: title = (item.get('title')).encode('utf-8')
+				try: title = item.get('title').encode('utf-8')
 				except: title = item.get('title')
 
 				premiered = item.get('released', '0')
@@ -674,13 +664,13 @@ class Movies:
 
 				tagline = item.get('tagline', '0')
 
-				self.list.append({'title': title, 'originaltitle': title, 'added': listed_at, 'lastplayed': lastplayed, 'progress': progress, 'paused_at': paused_at,
+				list.append({'title': title, 'originaltitle': title, 'added': listed_at, 'lastplayed': lastplayed, 'progress': progress, 'paused_at': paused_at,
 										'year': year, 'premiered': premiered, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa,
 										'plot': plot, 'tagline': tagline, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'poster': '0', 'fanart': '0', 'trailer': trailer, 'next': next})
 			except:
 				log_utils.error()
 				pass
-		return self.list
+		return list
 
 
 	def trakt_user_list(self, url, user):
@@ -688,7 +678,9 @@ class Movies:
 			result = trakt.getTrakt(url)
 			items = json.loads(result)
 		except:
+			log_utils.error()
 			pass
+
 		for item in items:
 			try:
 				try: name = item['list']['name']

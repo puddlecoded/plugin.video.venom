@@ -48,10 +48,7 @@ class Player(xbmc.Player):
 
 	def play_source(self, title, year, season, episode, imdb, tmdb, tvdb, url, meta, select=None):
 		try:
-			if not url:
-				control.cancelPlayback()
-				raise Exception
-
+			if not url: raise Exception
 			self.media_type = 'movie' if season is None or episode is None else 'episode'
 			self.title = title
 			self.year = str(year)
@@ -99,10 +96,10 @@ class Player(xbmc.Player):
 			self.meta = meta
 ##################
 
-			runtime = meta.get('duration')
+			poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta = self.getMeta(meta)
+			runtime = meta.get('duration') if meta else 0
 			self.offset = Bookmarks().get(name=self.name, imdb=imdb, tmdb=tmdb, tvdb=tvdb, season=season, episode=episode, year=self.year, runtime=runtime)
 
-			poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta = self.getMeta(meta)
 			if self.media_type == 'episode':
 				self.episodeIDS = meta.get('episodeIDS', '0')
 				item.setUniqueIDs(self.episodeIDS)
@@ -146,7 +143,6 @@ class Player(xbmc.Player):
 			clearart = meta.get('clearart')
 			clearlogo = meta.get('clearlogo')
 			discart = meta.get('discart')
-
 			if 'mediatype' not in meta:
 				meta.update({'mediatype': 'episode' if self.episode else 'movie'})
 				if self.episode:
@@ -159,9 +155,7 @@ class Player(xbmc.Player):
 			pass
 
 		try:
-			raise Exception() #kodi seems to use scraped artwork so retrival from library not needed
 			if self.media_type != 'movie': raise Exception()
-
 			meta = control.jsonrpc('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": {"filter":{"or": [{"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}]}, "properties" : ["title", "originaltitle", "year", "genre", "studio", "country", "runtime", "rating", "votes", "mpaa", "director", "writer", "plot", "plotoutline", "tagline", "thumbnail", "file"]}, "id": 1}' % (self.year, str(int(self.year) + 1), str(int(self.year) - 1)))
 			meta = unicode(meta, 'utf-8', errors = 'ignore')
 			meta = json.loads(meta)['result']['movies']
@@ -170,6 +164,8 @@ class Player(xbmc.Player):
 			meta = [i for i in meta if self.year == str(i['year']) and (t == cleantitle.get(i['title']) or t == cleantitle.get(i['originaltitle']))][0]
 			if 'mediatype' not in meta:
 				meta.update({'mediatype': 'movie'})
+			if 'duration' not in meta:
+				meta.update({'duration': meta.get('runtime') / 60})
 
 			for k, v in meta.iteritems():
 				if type(v) == list:
@@ -183,16 +179,13 @@ class Player(xbmc.Player):
 				self.DBID = meta.get('movieid')
 
 			poster = thumb = meta.get('thumbnail')
-			return (poster, '', '', '', '', '', '', '', meta)
+			return (poster, thumb, '', '', '', '', '', '', meta)
 		except:
 			log_utils.error()
 			pass
 
 		try:
-			raise Exception() #kodi seems to use scraped artwork so retrival from library not needed
-			if self.media_type != 'episode':
-				raise Exception()
-
+			if self.media_type != 'episode': raise Exception()
 			meta = control.jsonrpc('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": {"filter":{"or": [{"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}]}, "properties" : ["title", "year", "thumbnail", "file"]}, "id": 1}' % (self.year, str(int(self.year)+1), str(int(self.year)-1)))
 			meta = unicode(meta, 'utf-8', errors = 'ignore')
 			meta = json.loads(meta)['result']['tvshows']
@@ -206,9 +199,10 @@ class Player(xbmc.Player):
 			meta = control.jsonrpc('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params":{ "tvshowid": %d, "filter":{"and": [{"field": "season", "operator": "is", "value": "%s"}, {"field": "episode", "operator": "is", "value": "%s"}]}, "properties": ["title", "season", "episode", "showtitle", "firstaired", "runtime", "rating", "director", "writer", "plot", "thumbnail", "file"]}, "id": 1}' % (tvshowid, self.season, self.episode))
 			meta = unicode(meta, 'utf-8', errors = 'ignore')
 			meta = json.loads(meta)['result']['episodes'][0]
-
 			if 'mediatype' not in meta:
 				meta.update({'mediatype': 'episode'})
+			if 'duration' not in meta:
+				meta.update({'duration': meta.get('runtime') / 60})
 
 			for k, v in meta.iteritems():
 				if type(v) == list:
@@ -222,7 +216,7 @@ class Player(xbmc.Player):
 				self.DBID = meta.get('episodeid')
 
 			thumb = meta['thumbnail']
-			return (poster, '', '', '', '', '', '', '', meta)
+			return (poster, thumb, '', '', '', '', '', '', meta)
 		except:
 			log_utils.error()
 			pass
@@ -504,7 +498,6 @@ class Player(xbmc.Player):
 		next_episode["episode"] = next_info.get('episode')
 		next_episode["rating"] = next_info.get('rating')
 		next_episode["firstaired"] = next_info.get('tvshowyear')
-
 		next_episode["tvshowimdb"] = next_info.get('imdb')
 		next_episode["year"] = next_info.get('year')
 
