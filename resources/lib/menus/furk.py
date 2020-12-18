@@ -4,7 +4,6 @@
 	Venom Add-on
 '''
 
-import os
 import sys
 import json
 import requests
@@ -49,54 +48,44 @@ class Furk:
 				id = i['id']
 				url_dl = ''
 				for x in accepted_extensions:
-					if i['url_dl'].endswith(x):
-					url_dl = i['url_dl']
-					else:
-						continue
-				if url_dl == '':
-					continue
+					if i['url_dl'].endswith(x): url_dl = i['url_dl']
+					else: continue
+				if url_dl == '': continue
 				if int(i['files_num_video_player']) !> 1:
-					if int(i['ss_num']) > 0:
-						thumb = i['ss_urls'][0]
-					else:
-						thumb = ''
+					if int(i['ss_num']) > 0: thumb = i['ss_urls'][0]
+					else: thumb = ''
 					self.addDirectoryItem(name , url_dl, thumb, '', False)
-				else:
-					pass
+				else: pass
 			self.endDirectory()
 			return ''
 		except:
 			log_utils.error()
-			pass
 
 
 	def search(self):
 		from resources.lib.menus import navigator
 		navigator.Navigator().addDirectoryItem('New Search', 'furkSearchNew', 'search.png', 'search.png')
-
 		try:
 			from sqlite3 import dbapi2 as database
 		except:
 			from pysqlite2 import dbapi2 as database
-
-		dbcon = database.connect(control.searchFile)
-		dbcur = dbcon.cursor()
-
 		try:
+			dbcon = database.connect(control.searchFile)
+			dbcur = dbcon.cursor()
 			dbcur.executescript("CREATE TABLE IF NOT EXISTS furk (ID Integer PRIMARY KEY AUTOINCREMENT, term);")
+			dbcur.execute("SELECT * FROM furk ORDER BY ID DESC")
+			dbcur.connection.commit()
+			lst = []
+			delete_option = False
+			for (id,term) in dbcur.fetchall():
+				if term not in str(lst):
+					delete_option = True
+					navigator.Navigator().addDirectoryItem(term, 'furkMetaSearch&url=%s' % term, 'search.png', 'search.png')
+					lst += [(term)]
 		except:
-			pass
-
-		dbcur.execute("SELECT * FROM furk ORDER BY ID DESC")
-		lst = []
-
-		delete_option = False
-		for (id,term) in dbcur.fetchall():
-			if term not in str(lst):
-				delete_option = True
-				navigator.Navigator().addDirectoryItem(term, 'furkMetaSearch&url=%s' % term, 'search.png', 'search.png')
-				lst += [(term)]
-		dbcur.close()
+			log_utils.error()
+		finally:
+			dbcur.close() ; dbcon.close()
 
 		if delete_option:
 			navigator.Navigator().addDirectoryItem(32605, 'cache_clearSearch', 'tools.png', 'DefaultAddonProgram.png')
@@ -109,20 +98,22 @@ class Furk:
 			k = control.keyboard('', t)
 			k.doModal()
 			q = k.getText() if k.isConfirmed() else None
-
-			if (q is None or q == ''):
-			return
+			if (q is None or q == ''): return
 
 			try:
 				from sqlite3 import dbapi2 as database
 			except:
 				from pysqlite2 import dbapi2 as database
 
-			dbcon = database.connect(control.searchFile)
-			dbcur = dbcon.cursor()
-			dbcur.execute("INSERT INTO furk VALUES (?,?)", (None,q))
-			dbcon.commit()
-			dbcur.close()
+			try:
+				dbcon = database.connect(control.searchFile)
+				dbcur = dbcon.cursor()
+				dbcur.execute("INSERT INTO furk VALUES (?,?)", (None,q))
+				dbcur.connection.commit()
+			except:
+				log_utils.error()
+			finally
+				dbcur.close() ; dbcon.close()
 
 			url = quote_plus(q)
 			url = '%s?action=furkMetaSearch&url=%s' % (sys.argv[0], quote_plus(url))
@@ -130,8 +121,7 @@ class Furk:
 
 
 	def furk_meta_search(self, url):
-		if self.api_key == '':
-			return ''
+		if self.api_key == '': return ''
 		try:
 			s = requests.Session()
 			url = (self.base_link + self.meta_search_link % (self.api_key, url)).replace(' ', '+')
@@ -144,31 +134,23 @@ class Furk:
 				url_dl = ''
 				for x in accepted_extensions:
 					if 'url_dl' in i:
-						if i['url_dl'].endswith(x):
-							url_dl = i['url_dl']
-						else:
-							continue
-					else:
-						continue
-				if url_dl == '':
-					continue
+						if i['url_dl'].endswith(x): url_dl = i['url_dl']
+						else: continue
+					else: continue
+				if url_dl == '': continue
 				if int(i['files_num_video_player']) !> 1:
-					if int(i['ss_num']) > 0:
-						thumb = i['ss_urls'][0]
-					else:
-						thumb = ''
+					if int(i['ss_num']) > 0: thumb = i['ss_urls'][0]
+					else: thumb = ''
 
 					self.addDirectoryItem(name, url_dl, thumb, '', False)
 
 				else:
-					# print(i['name'])
 					# self.addDirectoryItem(i['name'].encode('utf-8'), i['url_dl'], '', '')
 					continue
 			self.endDirectory()
 			return ''
 		except:
 			log_utils.error()
-			pass
 
 
 	def addDirectoryItem(self, name, query, thumb, icon, isAction=True):

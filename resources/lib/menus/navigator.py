@@ -8,6 +8,9 @@ import sys
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 from resources.lib.modules import trakt
+try: from urllib import quote_plus
+except: from urllib.parse import quote_plus
+
 
 artPath = control.artPath()
 traktCredentials = trakt.getTraktCredentialsInfo()
@@ -355,11 +358,11 @@ class Navigator:
 		if not control.yesnoDialog(control.lang(32077), '', ''): return
 		try:
 			from resources.lib.modules import cache
-			cache.cache_clear_all()
-			control.notification(message=32089)
+			if cache.cache_clear_all():
+				control.notification(message=32089)
+			else: control.notification(message=33586)
 		except:
 			log_utils.error()
-			pass
 
 
 	def clearCacheProviders(self):
@@ -367,11 +370,11 @@ class Navigator:
 		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
-			cache.cache_clear_providers()
-			control.notification(message=32090)
+			if cache.cache_clear_providers():
+				control.notification(message=32090)
+			else: control.notification(message=33586)
 		except:
 			log_utils.error()
-			pass
 
 
 	def clearCacheMeta(self):
@@ -379,11 +382,11 @@ class Navigator:
 		if not control.yesnoDialog(control.lang(32076), '', ''): return
 		try:
 			from resources.lib.modules import cache
-			cache.cache_clear_meta()
-			control.notification(message=32091)
+			if cache.cache_clear_meta():
+				control.notification(message=32091)
+			else: control.notification(message=33586)
 		except:
 			log_utils.error()
-			pass
 
 
 	def clearCache(self):
@@ -391,11 +394,11 @@ class Navigator:
 		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
-			cache.cache_clear()
-			control.notification(message=32092)
+			if cache.cache_clear():
+				control.notification(message=32092)
+			else: control.notification(message=33586)
 		except:
 			log_utils.error()
-			pass
 
 
 	def clearCacheSearch(self):
@@ -403,11 +406,11 @@ class Navigator:
 		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
-			cache.cache_clear_search()
-			control.notification(message=32093)
+			if cache.cache_clear_search():
+				control.notification(message=32093)
+			else: control.notification(message=33586)
 		except:
 			log_utils.error()
-			pass
 
 
 	def clearCacheSearchPhrase(self, table, name):
@@ -415,11 +418,11 @@ class Navigator:
 		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
-			cache.cache_clear_SearchPhrase(table, name)
-			control.notification(message=32094)
+			if cache.cache_clear_SearchPhrase(table, name):
+				control.notification(message=32094)
+			else: control.notification(message=33586)
 		except:
 			log_utils.error()
-			pass
 
 
 	def clearBookmarks(self):
@@ -427,11 +430,11 @@ class Navigator:
 		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
-			cache.cache_clear_bookmarks()
-			control.notification(message=32100)
+			if cache.cache_clear_bookmarks():
+				control.notification(message=32100)
+			else: control.notification(message=33586)
 		except:
 			log_utils.error()
-			pass
 
 
 	def clearBookmark(self, name, year):
@@ -439,11 +442,11 @@ class Navigator:
 		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		try:
 			from resources.lib.modules import cache
-			cache.cache_clear_bookmark(name, year)
-			control.notification(title=name, message=32102)
+			if cache.cache_clear_bookmark(name, year):
+				control.notification(title=name, message=32102)
+			else: control.notification(message=33586)
 		except:
 			log_utils.error()
-			pass
 
 
 	def addDirectoryItem(self, name, query, thumb, icon, context=None, queue=False, isAction=True, isFolder=True, isPlayable=False, isSearch=False, table=''):
@@ -466,8 +469,6 @@ class Navigator:
 		if context:
 			cm.append((control.lang(context[0]), 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
 		if isSearch:
-			try: from urllib import quote_plus
-			except: from urllib.parse import quote_plus
 			cm.append(('Clear Search Phrase', 'RunPlugin(%s?action=cache_clearSearchPhrase&source=%s&name=%s)' % (sysaddon, table, quote_plus(name))))
 		cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))
 		item = control.item(label=name)

@@ -152,7 +152,6 @@ class Player(xbmc.Player):
 			return (poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta)
 		except:
 			log_utils.error()
-			pass
 
 		try:
 			if self.media_type != 'movie': raise Exception()
@@ -177,12 +176,10 @@ class Player(xbmc.Player):
 
 			if 'plugin' not in control.infoLabel('Container.PluginName'):
 				self.DBID = meta.get('movieid')
-
 			poster = thumb = meta.get('thumbnail')
 			return (poster, thumb, '', '', '', '', '', '', meta)
 		except:
 			log_utils.error()
-			pass
 
 		try:
 			if self.media_type != 'episode': raise Exception()
@@ -192,7 +189,6 @@ class Player(xbmc.Player):
 
 			t = cleantitle.get(self.title)
 			meta = [i for i in meta if self.year == str(i['year']) and t == cleantitle.get(i['title'])][0]
-
 			tvshowid = meta['tvshowid']
 			poster = meta['thumbnail']
 
@@ -214,12 +210,10 @@ class Player(xbmc.Player):
 
 			if 'plugin' not in control.infoLabel('Container.PluginName'):
 				self.DBID = meta.get('episodeid')
-
 			thumb = meta['thumbnail']
 			return (poster, thumb, '', '', '', '', '', '', meta)
 		except:
 			log_utils.error()
-			pass
 			poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta = '', '', '', '', '', '', '', '', {'title': self.name}
 			return (poster, thumb, season_poster, fanart, banner, clearart, clearlogo, discart, meta)
 
@@ -244,7 +238,6 @@ class Player(xbmc.Player):
 					watched_percent = 100
 			except:
 				log_utils.error()
-				pass
 		return watched_percent
 
 
@@ -278,7 +271,6 @@ class Player(xbmc.Player):
 
 				watcher = (self.getWatchedPercent() >= 80)
 				property = control.homeWindow.getProperty(pname)
-
 				if self.media_type == 'movie':
 					try:
 						if watcher and property != '7':
@@ -300,12 +292,10 @@ class Player(xbmc.Player):
 							# playcount.markEpisodeDuringPlayback(self.imdb, self.tvdb, self.season, self.episode, '6')
 					except: continue
 					xbmc.sleep(2000)
-
 			except:
 				log_utils.error()
 				xbmc.sleep(1000)
 				continue
-
 		control.homeWindow.clearProperty(pname)
 		# self.onPlayBackEnded()
 
@@ -315,8 +305,6 @@ class Player(xbmc.Player):
 			if self.playback_started: return
 			if not self.isPlayback(): return
 			self.playback_started = True
-
-			# control.execute('Dialog.Close(all,true)')
 			self.current_time = self.getTime()
 			self.media_length = self.getTotalTime()
 
@@ -326,7 +314,6 @@ class Player(xbmc.Player):
 					return
 				source_id = 'plugin.video.venom'
 				return_id = 'plugin.video.venom_play_action'
-
 				try:
 					# if int(control.playlist.getposition()) < (control.playlist.size() - 1) and not int(control.playlist.getposition()) == -1:
 					if int(control.playlist.getposition()) < (control.playlist.size() - 1):
@@ -334,17 +321,13 @@ class Player(xbmc.Player):
 						next_info = self.next_info()
 						AddonSignals.sendSignal('upnext_data', next_info, source_id)
 						AddonSignals.registerSlot('upnextprovider', return_id, self.signals_callback)
-
 						# # Prescrape
 						# from resources.lib.modules import sources
 						# psources = sources.Sources().preScrape(title=next_info['next_episode']['title'], year=next_info['next_episode']['year'], imdb=next_info['next_episode']['tvshowimdb'], tvdb=next_info['next_episode']['tvshowid'], season=next_info['next_episode']['season'], episode=next_info['next_episode']['episode'], tvshowtitle=next_info['next_episode']['showtitle'], premiered=next_info['next_episode']['firstaired'])
 				except:
 					log_utils.error()
-					pass
-
 		except:
 			log_utils.error()
-			pass
 
 
 	def libForPlayback(self):
@@ -357,7 +340,6 @@ class Player(xbmc.Player):
 			control.jsonrpc(rpc)
 		except:
 			log_utils.error()
-			pass
 
 
 	def isPlayback(self):
@@ -409,7 +391,6 @@ class Player(xbmc.Player):
 				self.libForPlayback()
 		except:
 			log_utils.error()
-			pass
 		# if control.setting('crefresh') == 'true':
 			# control.refresh()
 			# control.sleep(500)
@@ -420,7 +401,7 @@ class Player(xbmc.Player):
 
 	def onPlayBackEnded(self):
 		Bookmarks().reset(self.current_time, self.media_length, self.name, self.year)
-		trakt.scrobbleReset(imdb=self.imdb, tvdb=self.tvdb, season=self.season, episode=self.episode)
+		trakt.scrobbleReset(imdb=self.imdb, tvdb=self.tvdb, season=self.season, episode=self.episode, refresh=False)
 		self.libForPlayback()
 		# if control.setting('crefresh') == 'true':
 			# control.refresh()
@@ -585,13 +566,12 @@ class Subtitles:
 			xbmc.Player().setSubtitles(subtitle)
 		except:
 			log_utils.error()
-			pass
 
 
 class Bookmarks:
 	def get(self, name, imdb=None, tmdb=None, tvdb=None, season=None, episode=None, year='0', runtime=None, ck=False):
 		offset = '0'
-		if not runtime: return offset
+		if not runtime or runtime == 'None': return offset # TMDB sometimes return None as string
 		scrobbble = 'Local Bookmark'
 		if control.setting('bookmarks') != 'true': return offset
 		if control.setting('resume.source') == '1':
@@ -609,19 +589,18 @@ class Bookmarks:
 			try:
 				dbcon = database.connect(control.bookmarksFile)
 				dbcur = dbcon.cursor()
-				dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""Name TEXT, ""year TEXT, ""UNIQUE(idFile)"");")
+				dbcur.execute('''CREATE TABLE IF NOT EXISTS bookmark (idFile TEXT, timeInSeconds TEXT, Name TEXT, year TEXT, UNIQUE(idFile));''')
 				if not year or year == 'None': return offset
 				years = [str(year), str(int(year)+1), str(int(year)-1)]
-				dbcur.execute('SELECT * FROM bookmark WHERE Name = "%s" AND year IN (%s)' % (name, ','.join(i for i in years))) #helps fix random cases where trakt and imdb, or tvdb, differ by a year for eps
-				match = dbcur.fetchone()
-				dbcon.close()
+				#helps fix random cases where trakt and imdb, or tvdb, differ by a year for eps
+				match = dbcur.execute('''SELECT * FROM bookmark WHERE Name="%s" AND year IN (%s)''' % (name, ','.join(i for i in years))).fetchone()
 			except:
 				log_utils.error()
-				try: dbcon.close()
-				except: pass
 				return offset
-			if not match:
-				return offset
+			finally:
+				dbcur.close() ; dbcon.close()
+
+			if not match: return offset
 			offset = str(match[1])
 
 		if ck: return offset
@@ -638,28 +617,23 @@ class Bookmarks:
 		from resources.lib.modules import cache
 		cache.clear_local_bookmarks()
 		if control.setting('bookmarks') != 'true' or media_length == 0 or current_time == 0: return
-
 		timeInSeconds = str(current_time)
-		ok = (int(current_time) > 180 and (current_time / media_length) <= .85)
-
+		seekable = (int(current_time) > 180 and (current_time / media_length) <= .85)
 		idFile = hashlib.md5()
 		for i in name: idFile.update(str(i))
 		for i in year: idFile.update(str(i))
 		idFile = str(idFile.hexdigest())
-
 		control.makeFile(control.dataPath)
 		try:
 			dbcon = database.connect(control.bookmarksFile)
 			dbcur = dbcon.cursor()
-			dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""Name TEXT, ""year TEXT, ""UNIQUE(idFile)"");")
+			dbcur.execute('''CREATE TABLE IF NOT EXISTS bookmark (idFile TEXT, timeInSeconds TEXT, Name TEXT, year TEXT, UNIQUE(idFile));''')
 			years = [str(year), str(int(year)+1), str(int(year)-1)]
-			dbcur.execute('DELETE FROM bookmark WHERE Name = "%s" AND year IN (%s)' % (name, ','.join(i for i in years))) #helps fix random cases where trakt and imdb, or tvdb, differ by a year for eps
+			dbcur.execute('''DELETE FROM bookmark WHERE Name="%s" AND year IN (%s)''' % (name, ','.join(i for i in years))) #helps fix random cases where trakt and imdb, or tvdb, differ by a year for eps
 		except:
 			log_utils.error()
-			pass
-
-		if ok:
-			dbcur.execute("INSERT INTO bookmark Values (?, ?, ?, ?)", (idFile, timeInSeconds, name, year))
+		if seekable:
+			dbcur.execute('''INSERT INTO bookmark Values (?, ?, ?, ?)''', (idFile, timeInSeconds, name, year))
 			minutes, seconds = divmod(float(timeInSeconds), 60)
 			hours, minutes = divmod(minutes, 60)
 			label = ('%02d:%02d:%02d' % (hours, minutes, seconds)).encode('utf-8')
@@ -672,11 +646,11 @@ class Bookmarks:
 	def set_scrobble(self, current_time, media_length, media_type, imdb='', tmdb='', tvdb='', season='', episode=''):
 		try:
 			percent = float((current_time / media_length)) * 100
-			seekable = (2 <= percent <= 85)
-			if percent > 85: percent = 100
-			if seekable or percent == 100:
+			# seekable = (2 <= percent <= 85) # 2% could potentially be shorter than the 3min from bookmarks.reset
+			seekable = (int(current_time) > 180 and (percent <= 85))
+			if seekable:
 				trakt.scrobbleMovie(imdb, tmdb, percent) if media_type == 'movie' else trakt.scrobbleEpisode(imdb, tmdb, tvdb, season, episode, percent)
-				if control.setting('trakt.scrobble.notify') == 'true':
-					control.notification(message=32088)
+			if percent > 85:
+				trakt.scrobbleReset(imdb, tvdb, season, episode, refresh=False)
 		except:
 			log_utils.error()

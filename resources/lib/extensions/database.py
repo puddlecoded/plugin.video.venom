@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import os
+import os.path
 import hashlib
 import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcaddon
 import threading
-
 try:
 	from sqlite3 import dbapi2 as database
 except:
 	from pysqlite2 import dbapi2 as database
+from resources.lib.modules import log_utils
 
 DatabaseInstances = {}
 DatabaseLocks = {}
@@ -22,8 +22,7 @@ class Database(object):
 	Timeout = 20
 	Extension = '.db'
 
-
-	def __init__(self, name, addon = None, default = None, path = None, connect = True):
+	def __init__(self, name, addon=None, default=None, path=None, connect=True):
 		try:
 			self.mAddon = addon
 			self.mDatabase = None
@@ -126,6 +125,7 @@ class Database(object):
 			else: self.mDatabase.execute(query, parameters)
 			return True
 		except Exception as error:
+			log_utils.error()
 			xbmc.log('Venom ERROR [Database]: ' + str(error), xbmc.LOGERROR)
 			return False
 		finally:
@@ -150,11 +150,14 @@ class Database(object):
 
 
 	def _create(self, query, parameters = None, commit = True):
-		result = self._execute(query, parameters = parameters)
-		if result and commit:
-			result = self._commit()
-		return result
-
+		try:
+			result = self._execute(query, parameters = parameters)
+			if result and commit:
+				result = self._commit()
+			return result
+		except:
+			log_utils.error()
+			pass
 
 	def _createAll(self, query, tables, parameters = None, commit = True):
 		result = self._executeAll(query, tables, parameters = parameters)
@@ -199,15 +202,19 @@ class Database(object):
 
 
 	# Checks if the value exists, such as an ID.
-	def _exists(self, query, parameters = None):
+	def _exists(self, query, parameters=None):
 		return len(self._select(query, parameters = parameters)) > 0
 
 
-	def _insert(self, query, parameters = None, commit = True):
-		result = self._execute(query, parameters = parameters)
-		if result and commit:
-			result = self._commit()
-		return result
+	def _insert(self, query, parameters=None, commit=True):
+		try:
+			result = self._execute(query, parameters = parameters)
+			if result and commit:
+				result = self._commit()
+			return result
+		except:
+			log_utils.error()
+			pass
 
 
 	def _update(self, query, parameters = None, commit = True):

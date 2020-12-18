@@ -90,7 +90,6 @@ def download(name, image, url, meta_name=None):
 		doDownload(url, dest, name, image, headers)
 	except:
 		log_utils.error()
-		pass
 
 
 def getResponse(url, headers, size):
@@ -124,7 +123,6 @@ def done(title, dest, downloaded):
 			control.homeWindow.clearProperty('GEN-DOWNLOADED')
 	except:
 		log_utils.error()
-		pass
 
 
 def doDownload(url, dest, title, image, headers):
@@ -227,8 +225,7 @@ def doDownload(url, dest, title, image, headers):
 				chunks  = []
 				#create new response
 				resp = getResponse(url, headers, total)
-			else:
-				pass
+			else: pass
 
 
 def titlecase(string):

@@ -328,7 +328,7 @@ msgid "[B]TRAKT[/B] : Authorize"
 msgstr ""
 
 msgctxt "#32074"
-msgid ""
+msgid "Source Options"
 msgstr ""
 
 msgctxt "#32075"
@@ -360,7 +360,7 @@ msgid "Enable"
 msgstr ""
 
 msgctxt "#32082"
-msgid ""
+msgid "Trakt: Scrobble Reset"
 msgstr ""
 
 msgctxt "#32083"
@@ -528,11 +528,11 @@ msgid "Not found in playlist"
 msgstr ""
 
 msgctxt "#32124"
-msgid ""
+msgid "No TVShow lists imports found"
 msgstr ""
 
 msgctxt "#32125"
-msgid ""
+msgid "Scraper Preperation"
 msgstr ""
 
 msgctxt "#32126"
@@ -607,7 +607,7 @@ msgid "Icon Package"
 msgstr ""
 
 msgctxt "#32312"
-msgid "Providers Timeout"
+msgid "Scraper Timeout"
 msgstr ""
 
 msgctxt "#32313"
@@ -683,7 +683,7 @@ msgid "Playback"
 msgstr ""
 
 msgctxt "#32331"
-msgid "Default action"
+msgid "Default (movie/episode) select action"
 msgstr ""
 
 msgctxt "#32332"
@@ -699,7 +699,7 @@ msgid "Auto Play"
 msgstr ""
 
 msgctxt "#32335"
-msgid "Progress Dialog"
+msgid "Scraper Dialog"
 msgstr ""
 
 msgctxt "#32336"
@@ -711,7 +711,7 @@ msgid "Background"
 msgstr ""
 
 msgctxt "#32338"
-msgid "Results filtering options"
+msgid "Sources Filtering Options"
 msgstr ""
 
 msgctxt "#32339"
@@ -903,11 +903,11 @@ msgid "All"
 msgstr ""
 
 msgctxt "#32386"
-msgid ""
+msgid "Scraper Progress Dialog"
 msgstr ""
 
 msgctxt "#32387"
-msgid ""
+msgid "Sources Select"
 msgstr ""
 
 msgctxt "#32388"
@@ -1635,7 +1635,7 @@ msgid "Show Extra Source Info"
 msgstr ""
 
 msgctxt "#32588"
-msgid "Debrid Source Identifier Color"
+msgid "Debrid(Hoster) Source Color"
 msgstr ""
 
 msgctxt "#32589"
@@ -1811,19 +1811,19 @@ msgid "Documentaries"
 msgstr ""
 
 msgctxt "#32634"
-msgid "Torrent Source Identifier Color"
+msgid "Cached Torrent Source Color"
 msgstr ""
 
 msgctxt "#32635"
-msgid ""
+msgid "UnCached Torrent Source Color"
 msgstr ""
 
 msgctxt "#32636"
-msgid ""
+msgid "Secondary(info) Line Color"
 msgstr ""
 
 msgctxt "#32637"
-msgid ""
+msgid "Secondary Line Torrent content"
 msgstr ""
 
 msgctxt "#32638"

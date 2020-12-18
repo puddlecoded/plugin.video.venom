@@ -49,8 +49,6 @@ class documentary:
 				self.list.append({'name': cat_title, 'url': cat_url, 'image': cat_icon, 'action': cat_action})
 		except Exception as e:
 			log_utils.log('documentary root : Exception - ' + str(e))
-			pass
-
 		self.list = self.list[::-1]
 		self.addDirectory(self.list)
 		return self.list
@@ -79,12 +77,9 @@ class documentary:
 				link = links[(len(links)-1)]
 				docu_action = 'docuHeaven&docuCat=%s' % link
 				self.list.append({'name': control.lang(32053), 'url': link, 'image': control.addonNext(), 'action': docu_action})
-			except:
-				pass
+			except: pass
 		except Exception as e:
 			log_utils.log('documentary docu_list : Exception - ' + str(e))
-			pass
-
 		self.addDirectory(self.list)
 		return self.list
 
@@ -103,8 +98,7 @@ class documentary:
 				if 'videoseries' not in url:
 					video_id = client.parseDOM(docu_page, 'div', attrs={'class':'youtube-player'}, ret='data-id')[0]
 					url = 'plugin://plugin.video.youtube/play/?video_id=%s' % video_id
-				else:
-					pass
+				else: pass
 			elif 'dailymotion' in url:
 				video_id = client.parseDOM(docu_page, 'div', attrs={'class':'youtube-player'}, ret='data-id')[0]
 				url = self.getDailyMotionStream(video_id)
@@ -120,7 +114,6 @@ class documentary:
 			# control.resolve(int(sys.argv[1]), True, item)
 		except Exception as e:
 			log_utils.log('docu_play: Exception - ' + str(e))
-			pass
 
 
 	def sort_key(self, elem):
@@ -179,10 +172,8 @@ class documentary:
 
 
 	def addDirectoryItem(self, name, query, thumb, icon, context=None, queue=False, isAction=True, isFolder=True):
-		try:
-			name = control.lang(name)
-		except:
-			pass
+		try: name = control.lang(name)
+		except: pass
 
 		sysaddon = sys.argv[0]
 		syshandle = int(sys.argv[1])
@@ -249,10 +240,8 @@ class documentary:
 					item.setInfo("audio", '')
 
 				item.setArt({'icon': thumb, 'thumb': thumb, 'fanart': control.addonFanart()})
-
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=isFolder)
-			except:
-				pass
+			except: pass
 
 		control.content(syshandle, 'addons')
 		control.directory(syshandle, cacheToDisc=True)

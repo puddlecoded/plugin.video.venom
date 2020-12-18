@@ -202,9 +202,8 @@ class RealDebrid:
 					isFolder = True if item['status'] == 'downloaded' else False
 
 					status = '[COLOR %s]%s[/COLOR]' % (control.getColor(control.setting('highlight.color')), item['status'].capitalize())
-					folder_name = cleantitle.normalize(item['filename'])
+					folder_name = control.strip_non_ascii_and_unprintable(item['filename'])
 					label = '%02d | [B]%s[/B] - %s | [B]%s[/B] | [I]%s [/I]' % (count, status, str(item['progress']) + '%', folder_str, folder_name)
-
 					url = '%s?action=rd_BrowseUserTorrents&id=%s' % (sysaddon, item['id']) if isFolder else None
 
 					cm.append((deleteMenu % 'Torrent', 'RunPlugin(%s?action=rd_DeleteUserTorrent&id=%s&name=%s)' %
@@ -282,7 +281,9 @@ class RealDebrid:
 
 	def delete_user_torrent(self, media_id, name):
 		try:
-			if not control.yesnoDialog(control.lang(40050) % name, '', ''): return
+			if not control.yesnoDialog(control.lang(40050) % '?[CR]' + name, '', ''): return
+			# Need to check token, and refresh if needed
+			ck_token = self._get('user', token_ck=True)
 			url = torrents_delete_url + "/%s&auth_token=%s" % (media_id, self.token)
 			response = requests.delete(rest_base_url + url).text
 			if not 'error' in response:
@@ -312,29 +313,27 @@ class RealDebrid:
 	def my_downloads_to_listItem(self, page):
 		try:
 			from datetime import datetime
+			import time
 			sysaddon = sys.argv[0]
 			syshandle = int(sys.argv[1])
 			my_downloads, pages = self.downloads(page)
-		except:
-			my_downloads = None
+		except: my_downloads = None
 
-		if not my_downloads:
-			return
+		if not my_downloads: return
 		extensions = supported_video_extensions()
 		my_downloads = [i for i in my_downloads if i['download'].lower().endswith(tuple(extensions))]
 		downloadMenu, deleteMenu = control.lang(40048), control.lang(40050)
 
 		for count, item in enumerate(my_downloads, 1):
-			if page > 1:
-				count += (page-1)*50
-			try:
+			if page > 1: count += (page-1)*50
+			try: 
 				cm = []
-				generated = datetime.strptime(item['generated'], FormatDateTime)
-				generated = generated.strftime('%Y-%m-%d')
-				name = control.strip_non_ascii_and_unprintable(item['filename'])
+				try: datetime_object = datetime.strptime(item['generated'], FormatDateTime).date()
+				except TypeError: datetime_object = datetime(*(time.strptime(item['generated'], FormatDateTime)[0:6])).date()
 
+				name = control.strip_non_ascii_and_unprintable(item['filename'])
 				size = float(int(item['filesize']))/1073741824
-				label = '%02d | %.2f GB | %s  | [I]%s [/I]' % (count, size, generated, name)
+				label = '%02d | %.2f GB | %s  | [I]%s [/I]' % (count, size, datetime_object, name)
 
 				url_link = item['download']
 				url = '%s?action=playURL&url=%s' % (sysaddon, url_link)
@@ -358,8 +357,7 @@ class RealDebrid:
 		if page < pages:
 			page += 1
 			next = True
-		else:
-			next = False
+		else: next = False
 		if next:
 			try:
 				nextMenu = control.lang(32053)
@@ -379,7 +377,7 @@ class RealDebrid:
 
 	def delete_download(self, media_id, name):
 		try:
-			if not control.yesnoDialog(control.lang(40050) % name, '', ''): return
+			if not control.yesnoDialog(control.lang(40050) % '?[CR]' + name, '', ''): return
 			# Need to check token, and refresh if needed
 			ck_token = self._get('user', token_ck=True)
 			url = downloads_delete_url + "/%s&auth_token=%s" % (media_id, self.token)
@@ -535,10 +533,8 @@ class RealDebrid:
 
 	def add_uncached_torrent(self, magnet_url, pack=False):
 		def _return_failed(message=control.lang(33586)):
-			try:
-				control.progressDialog.close()
-			except:
-				pass
+			try: control.progressDialog.close()
+			except: pass
 			self.delete_torrent(torrent_id)
 			control.hide()
 			control.sleep(500)
@@ -561,6 +557,8 @@ class RealDebrid:
 		if 'error_code' in torrent_info:
 			return _return_failed()
 		status = torrent_info['status']
+		if any(x in status for x in stalled):
+			return _return_failed(status)
 		if status == 'magnet_conversion':
 			line1 = control.lang(40013)
 			line2 = torrent_info['filename']
@@ -569,19 +567,19 @@ class RealDebrid:
 			control.progressDialog.create(control.lang(40018), line1, line2, line3)
 			while status == 'magnet_conversion' and timeout > 0:
 				control.progressDialog.update(timeout, line3=line3)
-				if control.monitor.abortRequested():
+				if control.monitor.abortRequested(): 
 					return sys.exit()
 				try:
 					if control.progressDialog.iscanceled():
 						return _return_failed(control.lang(40014))
 				except:
 					pass
-				if any(x in status for x in stalled):
-					return _return_failed()
 				timeout -= interval
 				control.sleep(1000 * interval)
 				torrent_info = self.torrent_info(torrent_id)
 				status = torrent_info['status']
+				if any(x in status for x in stalled):
+					return _return_failed()
 				line3 = control.lang(40012) % str(torrent_info['seeders'])
 			try:
 				control.progressDialog.close()
@@ -604,7 +602,6 @@ class RealDebrid:
 					torrent_keys = ','.join(torrent_keys)
 					self.add_torrent_select(torrent_id, torrent_keys)
 					control.okDialog(title='default', message=control.lang(40017) % control.lang(40058))
-					# self.clear_cache()
 					control.hide()
 					return True
 				except:
@@ -620,12 +617,14 @@ class RealDebrid:
 			torrent_info = self.torrent_info(torrent_id)
 			status = torrent_info['status']
 			if status == 'downloaded':
+				control.hide()
+				control.notification(message=control.lang(32057))
 				return True
 			file_size = round(float(video['bytes']) / (1000 ** 3), 2)
 			line1 = '%s...' % (control.lang(40017) % control.lang(40058))
 			line2 = torrent_info['filename']
 			line3 = status
-			control.progressDialog.create(ls(40018), line1, line2, line3)
+			control.progressDialog.create(control.lang(40018), line1, line2, line3)
 			while not status == 'downloaded':
 				control.sleep(1000 * interval)
 				torrent_info = self.torrent_info(torrent_id)
@@ -635,11 +634,15 @@ class RealDebrid:
 				else:
 					line3 = status
 				control.progressDialog.update(int(float(torrent_info['progress'])), line3=line3)
-				if control.monitor.abortRequested():
-					return sys.exit()
+				if control.monitor.abortRequested(): return sys.exit()
 				try:
 					if control.progressDialog.iscanceled():
-						return _return_failed(control.lang(40011))
+						if control.yesnoDialog('Delete RD download also?', 'No will continue the download', 'but close dialog'):
+							return _return_failed(control.lang(40014))
+						else:
+							control.progressDialog.close()
+							control.hide()
+							return False
 				except:
 					pass
 				if any(x in status for x in stalled):
@@ -719,7 +722,6 @@ class RealDebrid:
 		try:
 			self.hosts = self.get_hosts()
 			if not self.hosts['Real-Debrid']: return False
-			# log_utils.log('self.hosts = %s' % self.hosts, __name__, log_utils.LOGDEBUG)
 			if any(host in item for item in self.hosts['Real-Debrid']):
 				return True
 			return False
@@ -747,45 +749,6 @@ class RealDebrid:
 			log_utils.error()
 			pass
 		return hosts_regexDict
-
-
-# from resolveURL
-	# def get_all_hosters(self):
-		# hosters = []
-		# try:
-			# url = '%s/%s' % (rest_base_url, hosts_regexes_path)
-			# js_result = json.loads(self.net.http_GET(url, headers=self.headers).content)
-			# regexes = [regex[1:-1].replace(r'\/', '/').rstrip('\\') for regex in js_result]
-			# logger.log_debug('RealDebrid hosters : %s' % regexes)
-			# hosters = [re.compile(regex, re.I) for regex in regexes]
-		# except Exception as e:
-			# logger.log_error('Error getting RD regexes: %s' % e)
-		# return hosters
-
-
-# from resolveURL
-	# def valid_url(self, url, host):
-		# # logger.log_debug('in valid_url %s : %s' % (url, host))
-		# if url:
-			# if url.lower().startswith('magnet:') and self.get_setting('torrents') == 'true':
-				# return True
-			# if self.hosters is None:
-				# self.hosters = self.get_all_hosters()
-
-			# for host in self.hosters:
-				# # logger.log_debug('RealDebrid checking host : %s' %str(host))
-				# if re.search(host, url):
-					# logger.log_debug('RealDebrid Match found')
-					# return True
-		# elif host:
-			# if self.hosts is None:
-				# self.hosts = self.get_hosts()
-
-			# if host.startswith('www.'):
-				# host = host.replace('www.', '')
-			# if any(host in item for item in self.hosts):
-				# return True
-		# return False
 
 
 	def refresh_token(self):
@@ -838,3 +801,42 @@ class RealDebrid:
 		except:
 			log_utils.error()
 			pass
+
+
+# from resolveURL
+	# def get_all_hosters(self):
+		# hosters = []
+		# try:
+			# url = '%s/%s' % (rest_base_url, hosts_regexes_path)
+			# js_result = json.loads(self.net.http_GET(url, headers=self.headers).content)
+			# regexes = [regex[1:-1].replace(r'\/', '/').rstrip('\\') for regex in js_result]
+			# logger.log_debug('RealDebrid hosters : %s' % regexes)
+			# hosters = [re.compile(regex, re.I) for regex in regexes]
+		# except Exception as e:
+			# logger.log_error('Error getting RD regexes: %s' % e)
+		# return hosters
+
+
+# from resolveURL
+	# def valid_url(self, url, host):
+		# # logger.log_debug('in valid_url %s : %s' % (url, host))
+		# if url:
+			# if url.lower().startswith('magnet:') and self.get_setting('torrents') == 'true':
+				# return True
+			# if self.hosters is None:
+				# self.hosters = self.get_all_hosters()
+
+			# for host in self.hosters:
+				# # logger.log_debug('RealDebrid checking host : %s' %str(host))
+				# if re.search(host, url):
+					# logger.log_debug('RealDebrid Match found')
+					# return True
+		# elif host:
+			# if self.hosts is None:
+				# self.hosts = self.get_hosts()
+
+			# if host.startswith('www.'):
+				# host = host.replace('www.', '')
+			# if any(host in item for item in self.hosts):
+				# return True
+		# return False

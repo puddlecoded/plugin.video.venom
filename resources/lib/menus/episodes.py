@@ -104,7 +104,7 @@ class Episodes:
 			if url == self.traktunfinished_link :
 				try:
 					# if activity > cache.timeout(self.trakt_list, url, self.trakt_user, False):
-					if activity > cache.timeout(self.trakt_episodes_list, url, self.trakt_user,self.lang):
+					if activity > cache.timeout(self.trakt_episodes_list, url, self.trakt_user, self.lang):
 						raise Exception()
 					# self.list = cache.get(self.trakt_list, 720, url, self.trakt_user, False)
 					self.list = cache.get(self.trakt_episodes_list, 720, url, self.trakt_user, self.lang)
@@ -164,8 +164,7 @@ class Episodes:
 
 			self.episodeDirectory(self.list, unfinished=False, next=False)
 			return self.list
-		except:
-			pass
+		except: pass
 
 
 	def sort(self, type='shows'):
@@ -230,15 +229,13 @@ class Episodes:
 			months = [(m[0], 'January'), (m[1], 'February'), (m[2], 'March'), (m[3], 'April'), (m[4], 'May'),
 					(m[5], 'June'), (m[6], 'July'), (m[7], 'August'), (m[8], 'September'), (m[9], 'October'),
 					(m[10], 'November'), (m[11], 'December')]
-		except:
-			months = []
+		except: months = []
 
 		d = control.lang(32061).split('|')
 		try:
 			days = [(d[0], 'Monday'), (d[1], 'Tuesday'), (d[2], 'Wednesday'), (d[3], 'Thursday'), (d[4], 'Friday'),
 					(d[5], 'Saturday'), (d[6], 'Sunday')]
-		except:
-			days = []
+		except: days = []
 		for i in range(0, 30):
 			try:
 				name = (self.datetime - datetime.timedelta(days=i))
@@ -251,8 +248,7 @@ class Episodes:
 				except: pass
 				url = self.calendar_link % (self.datetime - datetime.timedelta(days=i)).strftime('%Y-%m-%d')
 				self.list.append({'name': name, 'url': url, 'image': 'calendar.png', 'icon': 'DefaultYear.png', 'action': 'calendar'})
-			except:
-				pass
+			except: pass
 		if idx:
 			self.addDirectory(self.list)
 		return self.list
@@ -264,8 +260,7 @@ class Episodes:
 			if not self.traktCredentials:
 				raise Exception()
 			activity = trakt.getActivity()
-		except:
-			pass
+		except: pass
 		try:
 			if not self.traktCredentials: raise Exception()
 			self.list = []
@@ -275,8 +270,7 @@ class Episodes:
 				userlists += cache.get(self.trakt_user_list, 720, self.traktlists_link, self.trakt_user)
 			except:
 				userlists += cache.get(self.trakt_user_list, 0, self.traktlists_link, self.trakt_user)
-		except:
-			pass
+		except: pass
 		try:
 			if not self.traktCredentials:
 				raise Exception()
@@ -287,8 +281,7 @@ class Episodes:
 				userlists += cache.get(self.trakt_user_list, 720, self.traktlikedlists_link, self.trakt_user)
 			except:
 				userlists += cache.get(self.trakt_user_list, 0, self.traktlikedlists_link, self.trakt_user)
-		except:
-			pass
+		except: pass
 
 		self.list = []
 		# Filter the user's own lists that were
@@ -316,8 +309,7 @@ class Episodes:
 		try:
 			result = trakt.getTrakt(url)
 			items = json.loads(result)
-		except:
-			pass
+		except: pass
 		for item in items:
 			try:
 				try: name = item['list']['name']
@@ -333,7 +325,6 @@ class Episodes:
 				self.list.append({'name': name, 'url': url})
 			except:
 				log_utils.error()
-				pass
 
 		self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['name'].lower()))
 		return self.list
@@ -409,20 +400,17 @@ class Episodes:
 					values['airday'] = air['day']
 					values['airtime'] = air['time']
 					values['airzone'] = air['timezone']
-				except:
-					pass
+				except: pass
 
 				items.append(values)
-			except:
-				pass
+			except: pass
 
 		try:
 			result = trakt.getTrakt(self.hiddenprogress_link)
 			result = json.loads(result)
 			result = [str(i['show']['ids']['tvdb']) for i in result]
 			items = [i for i in items if i['tvdb'] not in result]
-		except:
-			pass
+		except: pass
 
 		def items_list(i):
 			tvshowtitle = i['tvshowtitle']
@@ -478,8 +466,7 @@ class Episodes:
 					raise Exception()
 				elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.today_date))):
 					unaired = 'true'
-					if self.showunaired != 'true':
-						raise Exception()
+					if self.showunaired != 'true': raise Exception()
 
 				title = client.parseDOM(item, 'EpisodeName')[0]
 				title = client.replaceHTMLCodes(title)
@@ -528,26 +515,17 @@ class Episodes:
 					thumb = '%s%s' % (self.tvdb_image, thumb)
 				else: thumb = '0'
 
-				if poster != '0':
-					pass
-				elif fanart != '0':
-					poster = fanart
-				elif banner != '0':
-					poster = banner
+				if poster != '0': pass
+				elif fanart != '0': poster = fanart
+				elif banner != '0': poster = banner
 
-				if banner != '0':
-					pass
-				elif fanart != '0':
-					banner = fanart
-				elif poster != '0':
-					banner = poster
+				if banner != '0': pass
+				elif fanart != '0': banner = fanart
+				elif poster != '0': banner = poster
 
-				if thumb != '0':
-					pass
-				elif fanart != '0':
-					thumb = fanart.replace(self.tvdb_image, self.tvdb_poster)
-				elif poster != '0':
-					thumb = poster
+				if thumb != '0': pass
+				elif fanart != '0': thumb = fanart.replace(self.tvdb_image, self.tvdb_poster)
+				elif poster != '0': thumb = poster
 
 				studio = i['studio'] or client.parseDOM(item2, 'Network')[0]
 
@@ -600,7 +578,6 @@ class Episodes:
 				self.list.append(values)
 			except:
 				log_utils.error()
-				pass
 
 		items = items[:len(items)]
 		threads = []
@@ -708,8 +685,7 @@ class Episodes:
 						title = trans_item.get('title') or title
 						plot = trans_item.get('overview') or plot
 						tvshowtitle = trakt.getTVShowTranslation(imdb, lang=self.lang) or tvshowtitle
-					except:
-						pass
+					except: pass
 
 				try: trailer = control.trailer % item['show']['trailer'].split('v=')[1]
 				except: trailer = ''
@@ -736,18 +712,14 @@ class Episodes:
 						values['airzone'] = air['timezone']
 				except:
 					log_utils.error()
-					pass
 
 				itemlist.append(values)
 				if count:
 					self.seasonCount(itemlist, len(itemlist) - 1)
-
 			except:
 				log_utils.error()
-				pass
 
-		if count:
-			self.seasonCountWait()
+		if count: self.seasonCountWait()
 
 		itemlist = itemlist[::-1]
 		return itemlist
@@ -760,12 +732,10 @@ class Episodes:
 		def items_list(i):
 			# try:
 				# item = [x for x in self.blist if x['tvdb'] == i['tvdb'] and x['season'] == i['season'] and x['episode'] == i['episode']][0]
-				# if item['poster'] == '0':
-					# raise Exception()
+				# if item['poster'] == '0': raise Exception()
 				# self.list.append(item)
 				# return
-			# except:
-				# pass
+			# except: pass
 
 			tvshowtitle = i['tvshowtitle']
 			year = str(i.get('year'))
@@ -859,26 +829,17 @@ class Episodes:
 				season_poster = client.replaceHTMLCodes(season_poster)
 				season_poster = season_poster.encode('utf-8')
 
-				if poster != '0':
-					pass
-				elif fanart != '0':
-					poster = fanart
-				elif banner != '0':
-					poster = banner
+				if poster != '0': pass
+				elif fanart != '0': poster = fanart
+				elif banner != '0': poster = banner
 
-				if banner != '0':
-					pass
-				elif fanart != '0':
-					banner = fanart
-				elif poster != '0':
-					banner = poster
+				if banner != '0': pass
+				elif fanart != '0': banner = fanart
+				elif poster != '0': banner = poster
 
-				if thumb != '0':
-					pass
-				elif fanart != '0':
-					thumb = fanart.replace(self.tvdb_image, self.tvdb_poster)
-				elif poster != '0':
-					thumb = poster
+				if thumb != '0': pass
+				elif fanart != '0': thumb = fanart.replace(self.tvdb_image, self.tvdb_poster)
+				elif poster != '0': thumb = poster
 
 				studio = i['studio'] or client.parseDOM(item2, 'Network')[0]
 
@@ -932,12 +893,10 @@ class Episodes:
 						values['airzone'] = i['airzone']
 				except:
 					log_utils.error()
-					pass
 
 				self.list.append(values)
 			except:
 				log_utils.error()
-				pass
 
 		items = items[:len(items)]
 		threads = []
@@ -1029,7 +988,6 @@ class Episodes:
 								tvdb = '0'
 					except:
 						log_utils.error()
-						pass
 
 # ### episode IDS
 				episodeIDS = {}
@@ -1083,7 +1041,6 @@ class Episodes:
 					# self.seasonCount(itemlist, len(itemlist) - 1)
 			except:
 				log_utils.error()
-				pass
 
 		# if count:
 			# self.seasonCountWait()
@@ -1112,7 +1069,6 @@ class Episodes:
 					item = [x[2] for x in item if len(x[0]) > 0 and len(x[1]) > 0][0]
 				except:
 					item = None
-					pass
 				item2 = result[0]
 
 				try:
@@ -1242,7 +1198,6 @@ class Episodes:
 				self.list.append(values)
 			except:
 				log_utils.error()
-				pass
 
 		items = itemlist[:len(itemlist)]
 		threads = []
@@ -1272,13 +1227,11 @@ class Episodes:
 					self.list[i] = dict(show.list[i].items() + self.list[i].items())
 		except:
 			log_utils.error()
-			pass
 
 		sysaddon = sys.argv[0]
 		syshandle = int(sys.argv[1])
 		is_widget = 'plugin' not in control.infoLabel('Container.PluginName')
-		if not is_widget:
-			control.playlist.clear()
+		if not is_widget: control.playlist.clear()
 
 		settingFanart = control.setting('fanart')
 		addonPoster = control.addonPoster()
@@ -1588,8 +1541,7 @@ class Episodes:
 				try:
 					watched_percent = int(float(resumetime) / float(meta.get('duration', '0')) * 100)
 					item.setProperty('percentplayed', str(watched_percent))
-				except:
-					pass
+				except: pass
 				item.setInfo(type='video', infoLabels=control.metadataClean(meta))
 				video_streaminfo = {'codec': 'h264'}
 				item.addStreamInfo('video', video_streaminfo)
@@ -1600,7 +1552,6 @@ class Episodes:
 					control.playlist.add(url=url, listitem=item)
 			except:
 				log_utils.error()
-				pass
 
 		if next:
 			try:
@@ -1625,8 +1576,7 @@ class Episodes:
 				icon = control.addonNext()
 				item.setArt({'icon': icon, 'thumb': icon, 'poster': icon, 'banner': icon})
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
-			except:
-				pass
+			except: pass
 
 		# Show multi episodes as show, in order to display unwatched count if enabled.
 		if multi and multi_unwatchedEnabled:
@@ -1678,7 +1628,6 @@ class Episodes:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
 			except:
 				log_utils.error()
-				pass
 
 		control.content(syshandle, 'addons')
 		control.directory(syshandle, cacheToDisc=True)

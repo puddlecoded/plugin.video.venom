@@ -141,41 +141,48 @@
 	</category>
 
 	<!-- Source Options - 5 -->
-	<category label="Source Options">
+	<category label="32074">
+		<setting type="lsep" label="32125" /> <!-- Scraper Preperation -->
+		<setting id="hosts.mode" type="select" label="32331" lvalues="32332|32333|32334" default="1" />
 		<setting id="cf.disable" type="bool" label="32364" default="false" />
 		<setting id="imdb.year.check" type="bool" label="32017" default="true" />
 		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=imdbYearCheck)" />
-		<setting id="scrapers.timeout.1" type="slider" label="32312" default="30" range="10,60" option="int" />
+
+		<setting type="lsep" label="32386" /> <!-- Scraper Progress Dialog -->
+		<setting id="scraper.dialog" type="enum" label="32335" lvalues="32336|32337" default="0" />
+		<setting id="scrapers.timeout" type="slider" label="Scraper Timeout" default="20" range="10,60" option="int" />
+		<setting id="scraper.dialog.color" type="select" label="Scraper Dialog Highlight Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="5" />
 		<setting id="preemptive.termination" type="bool" label="32654" default="false" />
 		<setting id="preemptive.limit" type="slider" label="32655" default="25" range="1,50" option="int" visible="eq(-1,true)" />
 		<setting id="preemptive.res" type="enum" label="32659" values="4K|1080p|720p|480p" default="2" visible="eq(-2,true)" />
-		<setting id="progress.dialog" type="enum" label="32335" lvalues="32336|32337" default="0" />
-		<setting id="progress.dialog.prem.color" type="select" label="Progress Dialog Premium Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="5" enable="eq(-1,0)" />
-		<setting id="autoplay.sd" type="bool" label="32656" default="false" />
-		<setting id="hosts.mode" type="select" label="32331" lvalues="32332|32333|32334" default="1" />
-		<setting id="sourcelist.multiline" type="bool" label="Multiline source list" default="true" enable="!eq(-1,2)" />
-		<setting id="sec.identify" type="select" label="   Secondary Line Color" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="4" enable="!eq(-2,2) + eq(-1,true)" />
-		<setting id="sec.identify2" type="select" label="   Secondary Line Torrent content" values="std info line|magnet title" default="magnet title" enable="!eq(-3,2) + eq(-2,true)" />
-		<setting id="prem.identify" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="6" />
-		<setting id="enable.resquality.icons" type="bool" label="32052" default="false" />
-		<setting id="sources.extrainfo" type="bool" label="32587" default="true" />
-		<setting type="lsep" label="32338" />
+
+		<setting type="lsep" label="32338" /> <!-- Sources Filtering Options -->
 		<setting id="hosts.quality" type="enum" label="32339" values="4K|1080p|720p|480p(SD)" default="0" />
 		<setting id="source.enablesizelimit" type="bool" label="32079" default="false" />
 		<setting id="source.sizelimit" type="slider" subsetting="true" label="32080" option="int" range="0,1,300" default="10" visible="eq(-1,true)" />
 		<setting id="hosts.sort.provider" type="bool" label="32342" default="false" />
 		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=DebridSort)" />
 		<setting id="remove.duplicates" type="bool" label="32035" default="true" />
-		<setting id="remove.duplicates.logging" type="bool" label="   Do not spam log with removed duplicates" default="true" enable="eq(-1,true)" />
+		<setting id="remove.duplicates.logging" type="bool" label=" -- Do not spam log with removed duplicates" default="true" enable="eq(-1,true)" />
 		<setting id="remove.hevc" type="bool" label="32363" default="false" />
 		<setting id="remove.captcha" type="bool" label="32341" default="false" />
 		<setting id="remove.CamSd.sources" type="bool" label="32050" default="false" />
 		<setting id="remove.3D.sources" type="bool" label="32051" default="true" />
+
+		<setting type="lsep" label="32387" /> <!-- Sources Select -->
+		<setting id="prem.color" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="6" />
+		<setting id="autoplay.sd" type="bool" label="32656" default="false" />
+		<setting id="enable.resquality.icons" type="bool" label="32052" default="false" />
+		<setting id="sources.extrainfo" type="bool" label="32587" default="true" />
 	</category>
 
 	<!-- Torrent Settings - 6 -->
 	<category label="Torrent Settings">
-		<setting id="torrent.identify" type="select" label="32634" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="5" visible = "true" />
+		<setting type="lsep" label="Sources Select" />
+		<setting id="torrent.cached.color" type="select" label="32634" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="5" visible = "true" />
+		<setting id="torrent.uncached.color" type="select" label="32635" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="13" visible = "true" />
+		<setting id="torrent.sec.color" type="select" label="32636" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="4" />
+		<setting id="torrent.sec.type" type="select" label="32637" values="std info line|magnet title" default="magnet title" />
 		<setting id="torrent.min.seeders" type="slider" label="32638" default="1" range="1,100" option="int" visible="false" /> <!-- Hard coded to 1 by Fenomscrapers so not visible for now-->
 		<setting id="torrent.group.sort" type="select" label="Torent/Hoster sorting method" lvalues="32021|32022" default="1" visible = "true" />
 		<setting id="torrent.size.sort" type="bool" label="Sort torrents by size" default="true" />
@@ -187,7 +194,7 @@
 	<!-- Trakt - 7 -->
 	<category label ="32315">
 		<setting type="lsep" label="32315" />
-		<setting type="action" label="Open My Accounts Addon" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=7.1)" />
+		<setting type="action" label="Open My Accounts Addon" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;query=0.3&amp;opensettings=true&amp;query2=7.1)" />
 		<setting type="action" label="sync(re) with My Accounts" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_syncMyAccount&amp;opensettings=true&amp;query=7.2)" />
 		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=myAccountsSync)" />
 		<setting id="trakt.username" type="text" default="" label="40062" enable="false" visible="true" />
@@ -209,14 +216,14 @@
 
 	<!-- Accounts - 8 -->
 	<category label="32346">
-		<setting type="action" label="Open My Accounts Addon" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=8.0)" />
+		<setting type="action" label="Open My Accounts Addon" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;query=1.0&amp;opensettings=true&amp;query2=8.0)" />
 		<setting type="action" label="sync(re) with My Accounts" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_syncMyAccount&amp;opensettings=true&amp;query=8.1)" />
 		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=myAccountsSync)" />
 		<setting type="lsep" label="Acount Info from My Accounts" />
 		<setting id="seperator" type="bool" visible="false" /> <!-- trick to ensures that a separator is drawn. -->
 
 		<setting type="lsep" label="All Debrid" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=1.4)" visible="eq(2,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;query=1.5&amp;opensettings=true&amp;query2=8.4)" visible="eq(2,)" />
 		<setting id="alldebrid.enable" type="bool" label="32081" default="true" visible="!eq(2,)" />
 		<setting id="alldebrid.token" label="alldebrid token" type="text" default="" visible="false" />
 		<setting id="alldebrid.username" label="40006" type="text" default="" enable="false" visible="!eq(-1,) + eq(-2,true)" />
@@ -225,7 +232,7 @@
 		<setting type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=tools_adAcctMyAccounts)" visible="!eq(-4,) + eq(-5,true)" />
 
 		<setting type="lsep" label="Premiumize.me" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=1.11)" visible="eq(2,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;query=1.13&amp;opensettings=true&amp;query2=8.11)" visible="eq(2,)" />
 		<setting id="premiumize.enable" type="bool" label="32081" default="true" visible="!eq(1,)" />
 		<setting id="premiumize.token" label="premiumize token" type="text" default="" visible="false" />
 		<setting id="premiumize.username" label="40006" type="text" default="" enable="false" visible="!eq(-1,) + eq(-2,true)" />
@@ -234,7 +241,7 @@
 		<setting type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=tools_pmAcctMyAccounts)" visible="!eq(-4,) + eq(-5,true)" />
 
 		<setting type="lsep" label="Real-Debrid" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=1.18)" visible="eq(2,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;query=1.21&amp;opensettings=true&amp;query2=8.26)" visible="eq(2,)" />
 		<setting id="realdebrid.enable" type="bool" label="32081" default="true" visible="!eq(1,)" />
 		<setting id="realdebrid.token" label="realdebrid token" type="text" default="" visible="false" />
 		<setting id="realdebrid.username" label="40006" type="text" default="" enable="false" visible="!eq(-1,) + eq(-2,true)" />
@@ -246,11 +253,11 @@
 		<setting type="action" label="Account Info" action="RunPlugin(plugin://plugin.video.venom/?action=tools_rdAcctMyAccounts)" visible="!eq(-7,) + eq(-8,true)" />
 
 		<setting type="lsep" label="FANART.TV" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=2.1)" visible="eq(1,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;query=2.1&amp;opensettings=true&amp;query2=8.38)" visible="eq(1,)" />
 		<setting id="fanart.tv.api.key" type="text" label="Fanart API" default="" enable="false" />
 
 		<setting type="lsep" label="TMDb" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=2.4)" visible="eq(1,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;query=2.4&amp;opensettings=true&amp;query2=8.42)" visible="eq(1,)" />
 		<setting id="tmdb.api.key" type="text" option="hidden" label="TMDb API" default="" enable="false" />
 		<setting id="tmdb.username" type="text" label="TMDb username" default="" enable="false" />
 		<setting id="tmdb.password" type="text" label="TMDb password" default="" enable="false" />
@@ -263,7 +270,7 @@
 		<setting id="tvdb.jw" type="text" default="" visible="false" />
 
 		<setting type="lsep" label="IMDb" />
-		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;opensettings=true&amp;query=2.18)" visible="eq(1,)" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;query=2.18&amp;opensettings=true&amp;query2=8.55)" visible="eq(1,)" />
 		<setting id="imdb.user" type="text" label="32303" default="" enable="false" />
 	</category>
 

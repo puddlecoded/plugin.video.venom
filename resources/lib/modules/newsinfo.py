@@ -4,7 +4,7 @@
 	Venom Add-on
 """
 
-import os
+import os.path
 import xbmc
 import xbmcaddon
 import xbmcgui

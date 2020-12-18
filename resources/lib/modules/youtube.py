@@ -48,8 +48,7 @@ class youtube(object):
 			result = client.request(url)
 			result = json.loads(result)
 			items = result['items']
-		except:
-			pass
+		except: pass
 
 		for i in range(1, 5):
 			try:
@@ -59,8 +58,7 @@ class youtube(object):
 				result = client.request(next)
 				result = json.loads(result)
 				items += result['items']
-			except:
-				pass
+			except: pass
 
 		for item in items:
 			try:
@@ -73,8 +71,7 @@ class youtube(object):
 					raise Exception()
 				image = image.encode('utf-8')
 				self.list.append({'title': title, 'url': url, 'image': image})
-			except:
-				pass
+			except: pass
 		return self.list
 
 
@@ -83,45 +80,34 @@ class youtube(object):
 			result = client.request(url)
 			result = json.loads(result)
 			items = result['items']
-		except:
-			pass
+		except: pass
 		for i in range(1, 5):
 			try:
-				if pagination:
-					raise Exception()
-				if 'nextPageToken' not in result:
-					raise Exception()
+				if pagination: raise Exception()
+				if 'nextPageToken' not in result: raise Exception()
 				page = url + '&pageToken=' + result['nextPageToken']
 				result = client.request(page)
 				result = json.loads(result)
 				items += result['items']
-			except:
-				pass
+			except: pass
 		try:
-			if not pagination:
-				raise Exception()
+			if not pagination: 	raise Exception()
 			next = cid + '&pageToken=' + result['nextPageToken']
-		except:
-			next = ''
+		except: next = ''
 		for item in items: 
 			try:
 				title = item['snippet']['title']
 				title = title.encode('utf-8')
-				try:
-					url = item['snippet']['resourceId']['videoId']
-				except:
-					url = item['id']['videoId']
+				try: url = item['snippet']['resourceId']['videoId']
+				except: url = item['id']['videoId']
 				url = url.encode('utf-8')
 				image = item['snippet']['thumbnails']['high']['url']
-				if '/default.jpg' in image:
-					raise Exception()
+				if '/default.jpg' in image: raise Exception()
 				image = image.encode('utf-8')
 				append = {'title': title, 'url': url, 'image': image}
-				if next != '':
-					append['next'] = next
+				if next != '': append['next'] = next
 				self.list.append(append)
-			except:
-				pass
+			except: pass
 		try:
 			u = [range(0, len(self.list))[i:i+50] for i in range(len(range(0, len(self.list))))[::50]]
 			u = [','.join([self.list[x]['url'] for x in i]) for i in u]
@@ -137,8 +123,7 @@ class youtube(object):
 			items = []
 			for i in self.data:
 				items += json.loads(i)['items']
-		except:
-			pass
+		except: pass
 
 		for item in range(0, len(self.list)):
 			try:
@@ -148,22 +133,15 @@ class youtube(object):
 				d = [i for i in d if i[0] == vid]
 				d = d[0][1]['duration']
 				duration = 0
-				try:
-					duration += 60 * 60 * int(re.findall('(\d*)H', d)[0])
-				except:
-					pass
-				try:
-					duration += 60 * int(re.findall('(\d*)M', d)[0])
-				except:
-					pass
-				try:
-					duration += int(re.findall('(\d*)S', d)[0])
-				except:
-					pass
+				try: duration += 60 * 60 * int(re.findall('(\d*)H', d)[0])
+				except: pass
+				try: duration += 60 * int(re.findall('(\d*)M', d)[0])
+				except: pass
+				try: duration += int(re.findall('(\d*)S', d)[0])
+				except: pass
 				duration = str(duration)
 				self.list[item]['duration'] = duration
-			except:
-				pass
+			except: pass
 		return self.list
 
 
@@ -171,5 +149,4 @@ class youtube(object):
 		try:
 			result = client.request(url)
 			self.data[i] = result
-		except:
-			return
+		except: return

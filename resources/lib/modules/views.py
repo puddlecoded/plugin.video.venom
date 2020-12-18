@@ -5,9 +5,9 @@
 """
 
 try:
-	from sqlite3 import dbapi2 as database
+	from sqlite3 import dbapi2 as db
 except:
-	from pysqlite2 import dbapi2 as database
+	from pysqlite2 import dbapi2 as db
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -19,35 +19,33 @@ def clearViews():
 		control.hide()
 		if not control.yesnoDialog(control.lang(32056), '', ''): return
 		control.makeFile(control.dataPath)
-		dbcon = database.connect(control.viewsFile)
+		dbcon = db.connect(control.viewsFile)
 		dbcur = dbcon.cursor()
-		for t in ['views']:
-			try:
-				dbcur.execute("DROP TABLE IF EXISTS %s" % t)
-				dbcur.execute("VACUUM")
-				dbcur.execute("CREATE TABLE IF NOT EXISTS views (""skin TEXT, ""view_type TEXT, ""view_id TEXT, ""UNIQUE(skin, view_type)"");")
-				dbcur.connection.commit()
-				dbcon.close()
-			except:
-				log_utils.error()
-				pass
+		try:
+			dbcur.execute('''DROP TABLE IF EXISTS views''')
+			dbcur.execute('''VACUUM''')
+			dbcur.execute('''CREATE TABLE IF NOT EXISTS views (skin TEXT, view_type TEXT, view_id TEXT, UNIQUE(skin, view_type));''')
+			dbcur.connection.commit()
+		except:
+			log_utils.error()
+		finally:
+			dbcur.close() ; dbcon.close()
 		try:
 			kodiDB = control.transPath('special://home/userdata/Database')
 			kodiViewsDB = control.joinPath(kodiDB, 'ViewModes6.db')
-			dbcon = database.connect(kodiViewsDB)
+			dbcon = db.connect(kodiViewsDB)
 			dbcur = dbcon.cursor()
-			dbcur.execute("DELETE FROM view WHERE path LIKE 'plugin://plugin.video.venom/%'")
+			dbcur.execute('''DELETE FROM view WHERE path LIKE "plugin://plugin.video.venom/%"''')
 			dbcur.connection.commit()
-			dbcon.close()
 		except:
 			log_utils.error()
-			pass
+		finally:
+			dbcur.close() ; dbcon.close()
 		skinName = control.addon(skin).getAddonInfo('name')
 		skinIcon = control.addon(skin).getAddonInfo('icon')
 		control.notification(title=skinName, message=32087, icon=skinIcon)
 	except:
 		log_utils.error()
-		pass
 
 
 def addView(content):
@@ -55,20 +53,20 @@ def addView(content):
 		skin = control.skin
 		record = (skin, content, str(control.getCurrentViewId()))
 		control.makeFile(control.dataPath)
-		dbcon = database.connect(control.viewsFile)
+		dbcon = db.connect(control.viewsFile)
 		dbcur = dbcon.cursor()
-		dbcur.execute("CREATE TABLE IF NOT EXISTS views (""skin TEXT, ""view_type TEXT, ""view_id TEXT, ""UNIQUE(skin, view_type)"");")
-		dbcur.execute("DELETE FROM views WHERE skin = '%s' AND view_type = '%s'" % (record[0], record[1]))
-		dbcur.execute("INSERT INTO views Values (?, ?, ?)", record)
+		dbcur.execute('''CREATE TABLE IF NOT EXISTS views (skin TEXT, view_type TEXT, view_id TEXT, UNIQUE(skin, view_type));''')
+		dbcur.execute('''DELETE FROM views WHERE (skin=? AND view_type=?)''', (record[0], record[1]))
+		dbcur.execute('''INSERT INTO views Values (?, ?, ?)''', record)
 		dbcur.connection.commit()
-		dbcon.close()
 		viewName = control.infoLabel('Container.Viewmode')
 		skinName = control.addon(skin).getAddonInfo('name')
 		skinIcon = control.addon(skin).getAddonInfo('icon')
 		control.notification(title=skinName, message=viewName, icon=skinIcon)
 	except:
 		log_utils.error()
-		return
+	finally:
+		dbcur.close() ; dbcon.close()
 
 
 def setView(content, viewDict=None):
@@ -77,18 +75,19 @@ def setView(content, viewDict=None):
 			try:
 				skin = control.skin
 				record = (skin, content)
-				dbcon = database.connect(control.viewsFile)
+				dbcon = db.connect(control.viewsFile)
 				dbcur = dbcon.cursor()
-				dbcur.execute("SELECT * FROM views WHERE skin = '%s' AND view_type = '%s'" % (record[0], record[1]))
-				view = dbcur.fetchone()
+				view = dbcur.execute('''SELECT * FROM views WHERE (skin=? AND view_type=?)''', (record[0], record[1])).fetchone()
 				if not view: raise Exception()
 				view = view[2]
 				return control.execute('Container.SetViewMode(%s)' % str(view))
 			except:
 				try:
 					if skin not in viewDict: return
-					return control.execute('Container.SetViewMode(%s)' % str(viewDict[skin]))
+					else: return control.execute('Container.SetViewMode(%s)' % str(viewDict[skin]))
 				except:
 					log_utils.error()
 					return
+			finally:
+				dbcur.close() ; dbcon.close()
 		control.sleep(100)

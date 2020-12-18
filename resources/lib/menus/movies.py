@@ -293,7 +293,6 @@ class Movies:
 				self.list = reversed(self.list)
 		except:
 			log_utils.error()
-			pass
 
 
 	def imdb_sort(self, type='movies'):
@@ -332,7 +331,6 @@ class Movies:
 			dbcur.connection.commit()
 		except:
 			log_utils.error()
-			pass
 		dbcur.execute("SELECT * FROM movies ORDER BY ID DESC")
 		lst = []
 		delete_option = False
@@ -497,8 +495,7 @@ class Movies:
 			for i in range(len(lists)):
 				lists[i].update({'image': 'trakt.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'movies'})
 			userlists += lists
-		except:
-			pass
+		except: pass
 		try:
 			if not self.traktCredentials: raise Exception()
 			self.list = []
@@ -512,8 +509,7 @@ class Movies:
 			for i in range(len(lists)):
 				lists[i].update({'image': 'trakt.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'movies'})
 			userlists += lists
-		except:
-			pass
+		except: pass
 
 		try:
 			if not self.imdb_user: raise Exception()
@@ -522,8 +518,7 @@ class Movies:
 			for i in range(len(lists)):
 				lists[i].update({'image': 'imdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'movies'})
 			userlists += lists
-		except:
-			pass
+		except: pass
 
 		try:
 			if self.tmdb_session_id == '': raise Exception()
@@ -533,8 +528,7 @@ class Movies:
 			for i in range(len(lists)):
 				lists[i].update({'image': 'tmdb.png', 'icon': 'DefaultVideoPlaylists.png', 'action': 'tmdbmovies'})
 			userlists += lists
-		except:
-			pass
+		except: pass
 
 		self.list = []
 		# Filter the user's own lists that were
@@ -596,8 +590,7 @@ class Movies:
 					try: movie['watched_at'] = i['watched_at']
 					except: pass
 					items.append(movie)
-				except:
-					pass
+				except: pass
 			if len(items) == 0:
 				items = result
 		except:
@@ -669,7 +662,6 @@ class Movies:
 										'plot': plot, 'tagline': tagline, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'poster': '0', 'fanart': '0', 'trailer': trailer, 'next': next})
 			except:
 				log_utils.error()
-				pass
 		return list
 
 
@@ -679,7 +671,6 @@ class Movies:
 			items = json.loads(result)
 		except:
 			log_utils.error()
-			pass
 
 		for item in items:
 			try:
@@ -694,7 +685,6 @@ class Movies:
 				self.list.append({'name': name, 'url': url, 'context': url})
 			except:
 				log_utils.error()
-				pass
 		self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['name'].lower()))
 		return self.list
 
@@ -747,9 +737,9 @@ class Movies:
 				except: pass
 
 				year = client.parseDOM(item, 'span', attrs = {'class': 'lister-item-year.+?'})
-				year = re.findall('(\d{4})', year[0])[0]
+				try: year = re.findall('(\d{4})', year[0])[0]
+				except: continue
 				year = year.encode('utf-8')
-
 				if int(year) > int((self.datetime).strftime('%Y')): raise Exception()
 
 				try: show = '–'.decode('utf-8') in str(year).decode('utf-8') or '-'.decode('utf-8') in str(year).decode('utf-8')
@@ -837,11 +827,8 @@ class Movies:
 				try: 
 					plot = client.parseDOM(item, 'p', attrs = {'class': 'text-muted'})[0]
 				except:
-					try:
-						plot = client.parseDOM(item, 'div', attrs = {'class': 'item_description'})[0]
-					except:
-						plot = client.parseDOM(item, 'p', attrs = {'class': '""'})[0]
-						pass
+					try: plot = client.parseDOM(item, 'div', attrs = {'class': 'item_description'})[0]
+					except: plot = client.parseDOM(item, 'p', attrs = {'class': '""'})[0]
 				plot = plot.rsplit('<span>', 1)[0].strip()
 				plot = re.sub('<.+?>|</.+?>', '', plot)
 				if plot == '': plot = '0'
@@ -853,7 +840,6 @@ class Movies:
 									'tmdb': '0', 'tvdb': '0', 'poster': poster, 'fanart': '0', 'next': next})
 			except:
 				log_utils.error()
-				pass
 		return list
 
 
@@ -885,7 +871,6 @@ class Movies:
 				self.list.append({'name': name, 'url': url, 'image': image})
 			except:
 				log_utils.error()
-				pass
 		return self.list
 
 
@@ -897,8 +882,7 @@ class Movies:
 			items = client.parseDOM(result, 'li', attrs = {'class': 'ipl-zebra-list__item user-list'})
 			# Gaia uses this but breaks the IMDb user list
 			# items = client.parseDOM(result, 'div', attrs = {'class': 'list_name'})
-		except:
-			 pass
+		except: pass
 
 		for item in items:
 			try:
@@ -914,8 +898,7 @@ class Movies:
 				url = url.encode('utf-8')
 
 				list.append({'name': name, 'url': url, 'context': url})
-			except:
-				pass
+			except: pass
 
 		list = sorted(list, key=lambda k: re.sub('(^the |^a |^an )', '', k['name'].lower()))
 		return list
@@ -1077,14 +1060,12 @@ class Movies:
 				plot = trans_item.get('overview') or plot
 			except:
 				log_utils.error()
-				pass
 
 			item = {'title': title, 'originaltitle': originaltitle, 'year': year, 'imdb': imdb, 'tmdb': tmdb, 'premiered': premiered,
 						'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa, 'director': director,
 						'writer': writer, 'castandart': castandart, 'plot': plot, 'tagline': tagline, 'poster2': '0', 'poster3': poster3,
 						'banner': '0', 'banner2': '0', 'fanart2': '0', 'fanart3': fanart3, 'clearlogo': '0', 'clearart': '0', 'landscape': '0',
 						'discart': '0', 'mediatype': 'movie', 'trailer': trailer, 'metacache': False}
-
 			meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'lang': self.lang, 'user': self.user, 'item': item}
 
 			if self.disable_fanarttv != 'true':
@@ -1103,7 +1084,6 @@ class Movies:
 			self.meta.append(meta)
 		except:
 			log_utils.error()
-			pass
 
 
 	# @timeIt
@@ -1236,8 +1216,7 @@ class Movies:
 					else:
 						cm.append((watchedMenu, 'RunPlugin(%s?action=playcount_Movie&name=%s&imdb=%s&query=7)' % (sysaddon, sysname, imdb)))
 						meta.update({'playcount': 0, 'overlay': 6})
-				except:
-					pass
+				except: pass
 
 				sysmeta = quote_plus(json.dumps(meta))
 				sysart = quote_plus(json.dumps(art))
@@ -1286,24 +1265,19 @@ class Movies:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=False)
 			except:
 				log_utils.error()
-				pass
 
 		if next:
 			try:
 				url = items[0]['next']
 				if url == '': raise Exception()
 				nextMenu = control.lang(32053)
-				url_params = dict(parse_qsl(url))
-
-				if 'imdb.com' in url:
-					start = int(url_params.get('start'))
-					page = '  [I](%s)[/I]' % str(((start - 1) / self.count) + 1)
+				url_params = dict(parse_qsl(urlsplit(url).query))
+				if 'imdb.com' in url and 'start' in url_params:
+					page = '  [I](%s)[/I]' % str(((int(url_params.get('start')) - 1) / self.count) + 1)
 				else:
-					page = url_params.get('page')
-					page = '  [I](%s)[/I]' % page
+					page = '  [I](%s)[/I]' % url_params.get('page')
 
 				nextMenu = '[COLOR skyblue]' + nextMenu + page + '[/COLOR]'
-
 				u = urlparse(url).netloc.lower()
 				if u not in self.tmdb_link:
 					url = '%s?action=moviePage&url=%s' % (sysaddon, quote_plus(url))
@@ -1317,7 +1291,6 @@ class Movies:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
 			except:
 				log_utils.error()
-				pass
 		control.content(syshandle, 'movies')
 		control.directory(syshandle, cacheToDisc=True)
 		control.sleep(500)
@@ -1370,7 +1343,6 @@ class Movies:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
 			except:
 				log_utils.error()
-				pass
 
 		control.content(syshandle, 'addons')
 		control.directory(syshandle, cacheToDisc=True)

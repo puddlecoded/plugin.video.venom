@@ -23,7 +23,6 @@ def getMovieIndicators(refresh=False):
 			return indicators
 	except:
 		log_utils.error()
-		pass
 
 
 def getTVShowIndicators(refresh=False):
@@ -40,7 +39,6 @@ def getTVShowIndicators(refresh=False):
 			return indicators
 	except:
 		log_utils.error()
-		pass
 
 
 def getSeasonIndicators(imdb, refresh=False):
@@ -57,10 +55,10 @@ def getSeasonIndicators(imdb, refresh=False):
 			return indicators
 	except:
 		log_utils.error()
-		pass
 
 
 def getMovieOverlay(indicators, imdb):
+	if not indicators: return '6'
 	try:
 		if traktIndicators:
 			playcount = [i for i in indicators if i == imdb]
@@ -105,6 +103,7 @@ def getSeasonOverlay(indicators, imdb, tvdb, season):
 
 
 def getEpisodeOverlay(indicators, imdb, tvdb, season, episode):
+	if not indicators: return '6'
 	try:
 		if traktIndicators:
 			playcount = [i[2] for i in indicators if i[0] == tvdb]
@@ -159,6 +158,7 @@ def getShowCount(indicators, imdb, tvdb):
 				result = trakt.showCount(imdb)
 				return result
 		else:
+			if not indicators: return None
 			for indicator in indicators:
 				if indicator[0] == tvdb:
 					total = indicator[1]
@@ -176,8 +176,7 @@ def getSeasonCount(imdb, season=None, season_special=False):
 		if not traktIndicators: return None
 		result = trakt.seasonCount(imdb=imdb)
 		if not result: return None
-		if season is None:
-			return result
+		if not season: return result
 		else:
 			if control.setting('tv.specials') == 'true' and season_special: result = result[int(season)]
 			else: 
@@ -186,8 +185,7 @@ def getSeasonCount(imdb, season=None, season_special=False):
 			return result
 	except:
 		log_utils.error()
-		pass
-	return None
+		return None
 
 
 def markMovieDuringPlayback(imdb, watched):
@@ -205,7 +203,6 @@ def markMovieDuringPlayback(imdb, watched):
 			metaget.change_watched('movie', name='', imdb_id=imdb, watched=int(watched))
 	except:
 		log_utils.error()
-		pass
 
 
 def markEpisodeDuringPlayback(imdb, tvdb, season, episode, watched):
@@ -224,7 +221,6 @@ def markEpisodeDuringPlayback(imdb, tvdb, season, episode, watched):
 			metaget.change_watched('episode', '', imdb_id=imdb, season=season, episode=episode, watched=int(watched))
 	except:
 		log_utils.error()
-		pass
 
 
 def movies(name, imdb, watched):
@@ -240,7 +236,6 @@ def movies(name, imdb, watched):
 			control.refresh()
 	except:
 		log_utils.error()
-		pass
 
 
 def episodes(name, imdb, tvdb, season, episode, watched):
@@ -257,7 +252,6 @@ def episodes(name, imdb, tvdb, season, episode, watched):
 			tvshowsUpdate(imdb=imdb, tvdb=tvdb) # control.refresh() done in this function
 	except:
 		log_utils.error()
-		pass
 
 
 def seasons(tvshowtitle, imdb, tvdb, season, watched):

@@ -4,10 +4,11 @@
 	Venom Add-on
 '''
 
+from datetime import datetime
 try:
-	from sqlite3 import dbapi2 as database
-except:
-	from pysqlite2 import dbapi2 as database
+	from sqlite3 import dbapi2 as db
+except ImportError:
+	from pysqlite2 import dbapi2 as db
 
 from resources.lib.modules import cleandate
 from resources.lib.modules import control
@@ -19,62 +20,52 @@ def fetch_bookmarks(imdb, tmdb='', tvdb='', season=None, episode=None):
 	try:
 		if not control.existsPath(control.dataPath):
 			control.makeFile(control.dataPath)
-		dbcon = database.connect(control.traktSyncFile)
+		dbcon = db.connect(control.traktSyncFile)
 		dbcur = dbcon.cursor()
-		dbcur.execute("CREATE TABLE IF NOT EXISTS bookmarks (""imdb TEXT, ""tmdb TEXT, ""tvdb TEXT, ""season TEXT, ""episode TEXT, ""percent_played TEXT, ""paused_at TEXT"", UNIQUE(imdb, tmdb, tvdb, season, episode)"");")
-		dbcur.connection.commit()
-	except:
-		log_utils.error()
-		try: dbcon.close()
-		except: pass
-		return progress
-
-	type = 'episode' if episode else 'movie'
-	try:
-		if type == 'movie':
-			try:
-				# Lookup both IMDb and TMDb for more accurate match.
-				dbcur.execute("SELECT * FROM bookmarks WHERE (imdb = '%s' and tmdb = '%s' and not imdb = '' and not tmdb = '')" % (imdb, tmdb))
-				match = dbcur.fetchone()
+		ck_table = dbcur.execute('''SELECT * FROM sqlite_master WHERE type='table' AND name='bookmarks';''').fetchone()
+		if not ck_table:
+			dbcur.execute('''CREATE TABLE IF NOT EXISTS bookmarks (imdb TEXT, tmdb TEXT, tvdb TEXT, season TEXT, episode TEXT, percent_played TEXT, paused_at TEXT,
+			UNIQUE(imdb, tmdb, tvdb, season, episode));''')
+			dbcur.connection.commit()
+			dbcur.close() ; dbcon.close()
+			return progress
+		if not episode:
+			try: # Lookup both IMDb and TMDb first for more accurate match.
+				match = dbcur.execute('''SELECT * FROM bookmarks WHERE (imdb=? AND tmdb=? AND NOT imdb='' AND NOT tmdb='')''', (imdb, tmdb)).fetchone()
 				progress = match[5]
-				# if match: progress = match[5].encode('utf-8')
 			except:
 				try:
-					dbcur.execute("SELECT * FROM bookmarks WHERE (imdb = '%s' and not imdb = '')" % imdb)
-					match = dbcur.fetchone()
+					match = dbcur.execute('''SELECT * FROM bookmarks WHERE (imdb=? AND NOT imdb='')''', (imdb,)).fetchone()
 					progress = match[5]
-					# if match: progress = match[5].encode('utf-8')
-				except:
-					pass
+				except: pass
 		else:
-			try:
-				# Lookup both IMDb and TVDb for more accurate match.
-				dbcur.execute("SELECT * FROM bookmarks WHERE (imdb = '%s' and tvdb = '%s' and season = '%s' and episode = '%s' and not imdb = '' and not tvdb = '')" % (imdb, tvdb, season, episode))
-				match = dbcur.fetchone()
+			try: # Lookup both IMDb and TVDb first for more accurate match.
+				match = dbcur.execute('''SELECT * FROM bookmarks WHERE (imdb=? AND tvdb=? AND season=? AND episode=? AND NOT imdb='' AND NOT tvdb='')''', (imdb, tvdb, season, episode)).fetchone()
 				progress = match[5]
-				# if match: progress = match[5].encode('utf-8')
 			except:
 				try:
-					dbcur.execute("SELECT * FROM bookmarks WHERE (tvdb = '%s' and season = '%s' and episode = '%s' and not tvdb = '')" % (tvdb, season, episode))
-					match = dbcur.fetchone()
+					match = dbcur.execute('''SELECT * FROM bookmarks WHERE (tvdb=? AND season=? AND episode=? AND NOT tvdb='')''', (tvdb, season, episode)).fetchone()
 					progress = match[5]
-					# if match: progress = match[5].encode('utf-8')
 				except: pass
 	except:
 		log_utils.error()
-		pass
-	try: dbcon.close()
-	except: pass
+	finally:
+		dbcur.close() ; dbcon.close()
 	return progress
 
 
-def insert_bookmarks(items):
+def insert_bookmarks(items, new_scrobble=False):
 	try:
 		if not control.existsPath(control.dataPath):
 			control.makeFile(control.dataPath)
-		dbcon = database.connect(control.traktSyncFile)
+		dbcon = db.connect(control.traktSyncFile)
 		dbcur = dbcon.cursor()
-		dbcur.execute("CREATE TABLE IF NOT EXISTS bookmarks (""imdb TEXT, ""tmdb TEXT, ""tvdb TEXT, ""season TEXT, ""episode TEXT, ""percent_played TEXT, ""paused_at TEXT"", UNIQUE(imdb, tmdb, tvdb, season, episode)"");")
+		dbcur.execute('''CREATE TABLE IF NOT EXISTS bookmarks (imdb TEXT, tmdb TEXT, tvdb TEXT, season TEXT, episode TEXT, percent_played TEXT, paused_at TEXT,
+		UNIQUE(imdb, tmdb, tvdb, season, episode));''')
+		dbcur.execute('''CREATE TABLE IF NOT EXISTS service (setting TEXT, value TEXT, UNIQUE(setting));''')
+		if not new_scrobble:
+			dbcur.execute('''DELETE FROM bookmarks''')
+			dbcur.execute('''VACUUM''')
 		for i in items:
 			imdb, tmdb, tvdb, season, episode = '', '', '', '', ''
 			if i.get('type') == 'episode':
@@ -83,31 +74,28 @@ def insert_bookmarks(items):
 			else:
 				ids = i.get('movie').get('ids')
 				imdb, tmdb = str(ids.get('imdb', '')), str(ids.get('tmdb', ''))
-			try: dbcur.execute("INSERT OR REPLACE INTO bookmarks Values (?, ?, ?, ?, ?, ?, ?)", (imdb, tmdb, tvdb, season, episode, i.get('progress', ''), i.get('paused_at', '')))
-			except:
-				log_utils.error()
-				pass
+			dbcur.execute('''INSERT OR REPLACE INTO bookmarks Values (?, ?, ?, ?, ?, ?, ?)''', (imdb, tmdb, tvdb, season, episode, i.get('progress', ''), i.get('paused_at', '')))
+		timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.000Z")
+		dbcur.execute('''INSERT OR REPLACE INTO service Values (?, ?)''', ('last_paused_at', timestamp))
 		dbcur.connection.commit()
 	except:
 		log_utils.error()
-		pass
-	try: dbcon.close()
-	except: pass
-	return
+	finally:
+		dbcur.close() ; dbcon.close()
 
 
 def delete_bookmark(items):
 	try:
 		if not control.existsPath(control.dataPath):
 			control.makeFile(control.dataPath)
-		dbcon = database.connect(control.traktSyncFile)
+		dbcon = db.connect(control.traktSyncFile)
 		dbcur = dbcon.cursor()
-		dbcur.execute("SELECT * FROM sqlite_master WHERE type='table' AND name='bookmarks';")
-		ck_table = dbcur.fetchone()
+		ck_table = dbcur.execute('''SELECT * FROM sqlite_master WHERE type='table' AND name='bookmarks';''').fetchone()
 		if not ck_table:
-			dbcur.execute("CREATE TABLE IF NOT EXISTS bookmarks (""imdb TEXT, ""tmdb TEXT, ""tvdb TEXT, ""season TEXT, ""episode TEXT, ""percent_played TEXT, ""paused_at TEXT"", UNIQUE(imdb, tmdb, tvdb, season, episode)"");")
+			dbcur.execute('''CREATE TABLE IF NOT EXISTS bookmarks (imdb TEXT, tmdb TEXT, tvdb TEXT, season TEXT, episode TEXT, percent_played TEXT, paused_at TEXT,
+			UNIQUE(imdb, tmdb, tvdb, season, episode));''')
+			dbcur.execute('''CREATE TABLE IF NOT EXISTS service (setting TEXT, value TEXT, UNIQUE(setting));''')
 			dbcur.connection.commit()
-			cursor.close()
 			return
 		for i in items:
 			if i.get('type') == 'episode':
@@ -117,36 +105,32 @@ def delete_bookmark(items):
 				tvdb, season, episode = '', '', ''
 				ids = i.get('movie').get('ids')
 				imdb = str(ids.get('imdb', ''))
-			try: dbcur.execute("DELETE FROM bookmarks WHERE imdb = '%s' AND tvdb = '%s' AND season = '%s' AND episode = '%s'" % (imdb, tvdb, season, episode))
-			except:
-				log_utils.error()
-				pass
-		dbcur.connection.commit()
+			try:
+				dbcur.execute('''DELETE FROM bookmarks WHERE (imdb=? AND tvdb=? AND season=? AND episode=?)''', (imdb, tvdb, season, episode))
+				dbcur.execute('''INSERT OR REPLACE INTO service Values (?, ?)''', ('last_paused_at', i.get('paused_at', '')))
+				dbcur.connection.commit()
+			except: pass
 	except:
 		log_utils.error()
-		pass
-	try: dbcon.close()
-	except: pass
-	return
+	finally:
+		dbcur.close() ; dbcon.close()
 
 
 def last_paused_at():
+	last_paused = 0
 	try:
 		if not control.existsPath(control.dataPath):
 			control.makeFile(control.dataPath)
-		dbcon = database.connect(control.traktSyncFile)
+		dbcon = db.connect(control.traktSyncFile)
 		dbcur = dbcon.cursor()
-		dbcur.execute("SELECT * FROM sqlite_master WHERE type='table' AND name='bookmarks';")
-		ck_table = dbcur.fetchone()
-		if not ck_table:
-			dbcur.execute("CREATE TABLE IF NOT EXISTS bookmarks (""imdb TEXT, ""tmdb TEXT, ""tvdb TEXT, ""season TEXT, ""episode TEXT, ""percent_played TEXT, ""paused_at TEXT"", UNIQUE(imdb, tmdb, tvdb, season, episode)"");")
-			dbcur.connection.commit()
-			cursor.close()
-			return 0
-		match = dbcur.execute("SELECT * FROM bookmarks ORDER BY paused_at DESC LIMIT 1").fetchone()
-		return int(cleandate.iso_2_utc(match[6]))
+		ck_table = dbcur.execute('''SELECT * FROM sqlite_master WHERE type='table' AND name='service';''').fetchone()
+		if ck_table:
+			match = dbcur.execute('''SELECT * FROM service WHERE setting="last_paused_at";''').fetchone()
+			if match: last_paused = int(cleandate.iso_2_utc(match[1]))
+			else: dbcur.execute('''INSERT OR REPLACE INTO service Values (?, ?)''', ('last_paused_at', '1970-01-01T20:00:00.000Z'))
+		else: dbcur.execute('''CREATE TABLE IF NOT EXISTS service (setting TEXT, value TEXT, UNIQUE(setting));''')
 	except:
 		log_utils.error()
-		try: dbcon.close()
-		except: pass
-		return 0
+	finally:
+		dbcur.close() ; dbcon.close()
+	return last_paused

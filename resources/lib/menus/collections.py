@@ -730,7 +730,6 @@ class Collections:
 			return self.list
 		except:
 			log_utils.error()
-			pass
 
 
 	def sort(self):
@@ -770,7 +769,6 @@ class Collections:
 				self.list = reversed(self.list)
 		except:
 			log_utils.error()
-			pass
 
 
 	def tmdb_sort(self):
@@ -924,9 +922,7 @@ class Collections:
 				try: plot = client.parseDOM(item, 'p', attrs = {'class': 'text-muted'})[0]
 				except:
 					try: plot = client.parseDOM(item, 'div', attrs = {'class': 'item_description'})[0]
-					except:
-						plot = client.parseDOM(item, 'p', attrs = {'class': '""'})[0]
-						pass
+					except: plot = client.parseDOM(item, 'p', attrs = {'class': '""'})[0]
 				plot = plot.rsplit('<span>', 1)[0].strip()
 				plot = re.sub('<.+?>|</.+?>', '', plot)
 				if plot == '': plot = '0'
@@ -938,7 +934,6 @@ class Collections:
 									'tmdb': '0', 'tvdb': '0', 'poster': poster, 'fanart': '0', 'next': next})
 			except:
 				log_utils.error()
-				pass
 		return list
 
 
@@ -1087,7 +1082,6 @@ class Collections:
 				plot = trans_item.get('overview') or plot
 			except:
 				log_utils.error()
-				pass
 
 			item = {'title': title, 'originaltitle': originaltitle, 'year': year, 'imdb': imdb, 'tmdb': tmdb, 'premiered': premiered,
 						'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa, 'director': director,
@@ -1113,7 +1107,6 @@ class Collections:
 			self.meta.append(meta)
 		except:
 			log_utils.error()
-			pass
 
 
 	def movieDirectory(self, items, next=True):
@@ -1242,8 +1235,7 @@ class Collections:
 					else:
 						cm.append((watchedMenu, 'RunPlugin(%s?action=playcount_Movie&name=%s&imdb=%s&query=7)' % (sysaddon, sysname, imdb)))
 						meta.update({'playcount': 0, 'overlay': 6})
-				except:
-					pass
+				except: pass
 
 				sysmeta = quote_plus(json.dumps(meta))
 				sysart = quote_plus(json.dumps(art))
@@ -1293,7 +1285,6 @@ class Collections:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=False)
 			except:
 				log_utils.error()
-				pass
 
 		if next:
 			try:
@@ -1318,7 +1309,6 @@ class Collections:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
 			except:
 				log_utils.error()
-				pass
 
 		control.content(syshandle, 'movies')
 		control.directory(syshandle, cacheToDisc=True)

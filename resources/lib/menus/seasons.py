@@ -95,8 +95,7 @@ class Seasons:
 				if not found:
 					result.append(i)
 			self.list = result
-		except:
-			pass
+		except: pass
 		self.seasonDirectory(self.list)
 
 
@@ -104,14 +103,11 @@ class Seasons:
 		episodes = episodesx.Episodes(type = self.type)
 		userlists = []
 		try:
-			if not self.traktCredentials:
-				raise Exception()
+			if not self.traktCredentials: raise Exception()
 			activity = trakt.getActivity()
-		except:
-			pass
+		except: pass
 		try:
-			if not self.traktCredentials:
-				raise Exception()
+			if not self.traktCredentials: raise Exception()
 			self.list = []
 			try:
 				if activity > cache.timeout(episodes.trakt_user_list, self.traktlists_link, self.trakt_user):
@@ -119,19 +115,15 @@ class Seasons:
 				userlists += cache.get(episodes.trakt_user_list, 3, self.traktlists_link, self.trakt_user)
 			except:
 				userlists += cache.get(episodes.trakt_user_list, 0, self.traktlists_link, self.trakt_user)
-		except:
-			pass
+		except: pass
 		try:
-			if not self.traktCredentials:
-				raise Exception()
+			if not self.traktCredentials: raise Exception()
 			self.list = []
 			try:
 				if activity > cache.timeout(episodes.trakt_user_list, self.traktlikedlists_link, self.trakt_user): raise Exception()
 				userlists += cache.get(episodes.trakt_user_list, 3, self.traktlikedlists_link, self.trakt_user)
-			except:
-				userlists += cache.get(episodes.trakt_user_list, 0, self.traktlikedlists_link, self.trakt_user)
-		except:
-			pass
+			except: userlists += cache.get(episodes.trakt_user_list, 0, self.traktlikedlists_link, self.trakt_user)
+		except: pass
 
 		self.list = []
 		# Filter the user's own lists that were
@@ -142,8 +134,7 @@ class Seasons:
 				if adapted == self.list[j]['url'].replace('/me/', '/%s/' % self.trakt_user):
 					contains = True
 					break
-			if not contains:
-				self.list.append(userlists[i])
+			if not contains: self.list.append(userlists[i])
 
 		for i in range(0, len(self.list)): self.list[i].update({'image': 'traktlists.png', 'action': 'seasonsList'})
 
@@ -168,7 +159,6 @@ class Seasons:
 						if not tmdb or tmdb == 'None': tmdb = '0'
 			except:
 				log_utils.error()
-				pass
 
 		if imdb == '0' or tmdb == '0' or tvdb == '0':
 			try:
@@ -187,7 +177,6 @@ class Seasons:
 					if not tvdb or tvdb == 'None': tvdb = '0'
 			except:
 				log_utils.error()
-				pass
 
 ###--Check TVDb by IMDB_ID for missing ID's
 		if tvdb == '0' and imdb != '0':
@@ -214,7 +203,6 @@ class Seasons:
 				tvdb = tvdb[0] or '0'
 			except:
 				log_utils.error()
-				pass
 ##########################
 
 ###--Check TVDb by seriesname
@@ -235,7 +223,6 @@ class Seasons:
 				if tvdb == '': tvdb = '0'
 			except:
 				log_utils.error()
-				pass
 #############################
 
 		if tvdb == '0': return None
@@ -399,12 +386,9 @@ class Seasons:
 				try: role = client.replaceHTMLCodes(person[3])
 				except: pass
 				try:
-					try:
-						castandart.append({'name': name.encode('utf-8'), 'role': role.encode('utf-8'), 'thumbnail': ((self.tvdb_image + image) if image is not None else '0')})
-					except:
-						castandart.append({'name': name, 'role': role, 'thumbnail': ((self.tvdb_image + image) if image is not None else '0')})
-				except:
-					castandart = []
+					try: castandart.append({'name': name.encode('utf-8'), 'role': role.encode('utf-8'), 'thumbnail': ((self.tvdb_image + image) if image is not None else '0')})
+					except: castandart.append({'name': name, 'role': role, 'thumbnail': ((self.tvdb_image + image) if image is not None else '0')})
+				except: castandart = []
 				if len(castandart) == 150: break
 
 			try: label = client.parseDOM(item2, 'SeriesName')[0]
@@ -436,8 +420,7 @@ class Seasons:
 				elif premiered == '0': pass
 				elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.today_date))):
 					unaired = 'true'
-					if self.showunaired != 'true':
-						continue
+					if self.showunaired != 'true': continue
 
 				season = client.parseDOM(item, 'SeasonNumber')[0]
 				season = '%01d' % int(season)
@@ -593,7 +576,6 @@ class Seasons:
 
 			except:
 				log_utils.error()
-				pass
 		return self.list
 
 
@@ -670,7 +652,6 @@ class Seasons:
 				tvdb = tvdb[0] or '0'
 			except:
 				log_utils.error()
-				pass
 ##########################
 
 ###--Check TVDb by seriesname
@@ -772,13 +753,11 @@ class Seasons:
 
 				if not self.season_special and control.setting('tv.specials') == 'true':
 					self.season_special = True if int(season) == 0 else False
-
 				try:
 					if i['unaired'] == 'true': label = '[COLOR %s][I]%s[/I][/COLOR]' % (self.unairedcolor, label)
 				except: pass
 
 				systitle = quote_plus(title)
-
 				meta = dict((k, v) for k, v in i.iteritems() if v != '0')
 				meta.update({'code': imdb, 'imdbnumber': imdb})
 				meta.update({'mediatype': 'tvshow'})
@@ -807,8 +786,7 @@ class Seasons:
 					yearNew = re.findall('(\d{4})', yearNew)[0]
 					yearNew = yearNew.encode('utf-8')
 					meta.update({'year': yearNew})
-				except:
-					pass
+				except: pass
 
 				# First check thumbs, since they typically contains the seasons poster. The normal poster contains the show poster.
 				poster1 = meta.get('poster')
@@ -857,8 +835,7 @@ class Seasons:
 					else: 
 						meta.update({'playcount': 0, 'overlay': 6})
 						cm.append((watchedMenu, 'RunPlugin(%s?action=playcount_TVShow&name=%s&imdb=%s&tvdb=%s&season=%s&query=7)' % (sysaddon, systitle, imdb, tvdb, season)))
-				except:
-					pass
+				except: pass
 
 				url = '%s?action=episodes&tvshowtitle=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s' % (sysaddon, systitle, year, imdb, tmdb, tvdb, season)
 				cm.append((playRandom, 'RunPlugin(%s?action=random&rtype=episode&tvshowtitle=%s&year=%s&imdb=%s&tvdb=%s&season=%s)' % (
@@ -899,7 +876,6 @@ class Seasons:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
 			except:
 				log_utils.error()
-				pass
 
 		try: control.property(syshandle, 'showplot', items[0]['plot'])
 		except: pass

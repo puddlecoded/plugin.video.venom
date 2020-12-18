@@ -33,8 +33,7 @@ class yt_index:  # initializes as musicvids, functions can override based on act
 			self.submenu = self.submenu % (self.base_url, '%s')
 			self.default_icon = self.default_icon % (self.base_url)
 			self.default_fanart = self.default_fanart % (self.base_url)
-		except:
-			pass
+		except: pass
 
 
 	def root(self, action):
@@ -59,8 +58,7 @@ class yt_index:  # initializes as musicvids, functions can override based on act
 				elif section != 'false': # Means this is a section placeholder/info line
 					youtube_menu.youtube_menu().addSectionItem(name, self.default_icon, self.default_fanart)
 			self.endDirectory()
-		except:
-			pass
+		except: pass
 
 
 	def get(self, action, subid):
@@ -86,8 +84,7 @@ class yt_index:  # initializes as musicvids, functions can override based on act
 				elif section != 'false': # Means this is a section placeholder/info line
 					youtube_menu.youtube_menu().addSectionItem(name, self.default_icon, self.default_fanart)
 			self.endDirectory()
-		except:
-			pass
+		except: pass
 
 
 	def endDirectory(self):

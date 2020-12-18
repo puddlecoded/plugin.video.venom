@@ -389,8 +389,7 @@ class cfcookie:
 
 			cookie = '; '.join(['%s=%s' % (i.name, i.value) for i in cookies])
 			if 'cf_clearance' in cookie: self.cookie = cookie
-		except:
-			pass
+		except: pass
 
 
 	def parseJSString(self, s):
@@ -398,8 +397,7 @@ class cfcookie:
 			offset=1 if s[0]=='+' else 0
 			val = int(eval(s.replace('!+[]','1').replace('!![]','1').replace('[]','0').replace('(','str(')[offset:]))
 			return val
-		except:
-			pass
+		except: pass
 
 
 class bfcookie:
@@ -468,8 +466,7 @@ class sucuri:
 			self.cookie = re.compile('([^=]+)=(.*)').findall(cookie)[0]
 			self.cookie = '%s=%s' % (self.cookie[0], self.cookie[1])
 			return self.cookie
-		except:
-			pass
+		except: pass
 
 
 def _get_keyboard(default="", heading="", hidden=False):

@@ -14,9 +14,9 @@ from resources.lib.debrid import realdebrid
 
 def debrid_resolvers(order_matters=True):
 	try:
-		ad_enabled = control.setting('alldebrid.token') != ''
-		pm_enabled = control.setting('premiumize.token') != ''
-		rd_enabled = control.setting('realdebrid.token') != ''
+		ad_enabled = control.setting('alldebrid.token') != '' and control.setting('alldebrid.enable') == 'true'
+		pm_enabled = control.setting('premiumize.token') != '' and control.setting('premiumize.enable') == 'true'
+		rd_enabled = control.setting('realdebrid.token') != '' and control.setting('realdebrid.enable') == 'true'
 
 		premium_resolvers = []
 		if ad_enabled: premium_resolvers.append(alldebrid.AllDebrid())
@@ -29,7 +29,6 @@ def debrid_resolvers(order_matters=True):
 		return premium_resolvers
 	except:
 		log_utils.error()
-		pass
 
 
 def status():
@@ -44,15 +43,3 @@ def get_priority(cls):
 	except:
 		log_utils.error()
 		return 10
-
-
-# def resolver(url, debrid):
-	# try:
-		# debrid_resolver = [resolver for resolver in debrid_resolvers if resolver.name == debrid][0]
-		# debrid_resolver.login()
-		# _host, _media_id = debrid_resolver.get_host_and_id(url)
-		# stream_url = debrid_resolver.get_media_url(_host, _media_id)
-		# return stream_url
-	# except Exception as e:
-		# log_utils.log('%s Resolve Failure: %s' % (debrid, e), log_utils.LOGWARNING)
-		# return None

@@ -21,13 +21,12 @@ def getFavourites(content):
 	try:
 		dbcon = database.connect(favouritesFile)
 		dbcur = dbcon.cursor()
-		dbcur.execute("SELECT * FROM %s" % content)
-		items = dbcur.fetchall()
+		items = dbcur.execute("SELECT * FROM %s" % content).fetchall()
 		items = [(i[0].encode('utf-8'), eval(i[1].encode('utf-8'))) for i in items]
 	except:
 		items = []
-
-	dbcon.close()
+	finally:
+		dbcur.close() ; dbcon.close()
 	return items
 
 
@@ -35,13 +34,12 @@ def getProgress(content):
 	try:
 		dbcon = database.connect(progressFile)
 		dbcur = dbcon.cursor()
-		dbcur.execute("SELECT * FROM %s" % content)
-		items = dbcur.fetchall()
+		items = dbcur.execute("SELECT * FROM %s" % content).fetchall()
 		items = [(i[0].encode('utf-8'), eval(i[1].encode('utf-8'))) for i in items]
 	except:
 		items = []
-
-	dbcon.close()
+	finally:
+		dbcur.close() ; dbcon.close()
 	return items
 
 
@@ -49,12 +47,8 @@ def addFavourite(meta, content):
 	try:
 		item = dict()
 		meta = json.loads(meta)
-		# print("META DUMP FAVOURITES %s" % meta)
-
-		try:
-			id = meta['imdb']
-		except:
-			id = meta['tvdb']
+		try: id = meta['imdb']
+		except: id = meta['tvdb']
 
 		if 'title' in meta: title = item['title'] = meta['title']
 		if 'tvshowtitle' in meta: title = item['title'] = meta['tvshowtitle']
@@ -72,16 +66,16 @@ def addFavourite(meta, content):
 		control.makeFile(dataPath)
 		dbcon = database.connect(favouritesFile)
 		dbcur = dbcon.cursor()
-		dbcur.execute("CREATE TABLE IF NOT EXISTS %s (""id TEXT, ""items TEXT, ""UNIQUE(id)"");" % content)
+		dbcur.execute('''CREATE TABLE IF NOT EXISTS %s (id TEXT, items TEXT, UNIQUE(id));''' % content)
 		dbcur.execute("DELETE FROM %s WHERE id = '%s'" % (content, id))
 		dbcur.execute("INSERT INTO %s Values (?, ?)" % content, (id, repr(item)))
 		dbcur.connection.commit()
-		dbcon.close()
-
 		control.refresh()
 		control.notification(title=title, message=32117)
 	except:
 		return
+	finally:
+		dbcur.close() ; dbcon.close()
 
 
 def addEpisodes(meta, content):
@@ -89,7 +83,6 @@ def addEpisodes(meta, content):
 		item = dict()
 		meta = json.loads(meta)
 		content = "episode"
-
 		try:
 			id = meta['imdb']
 			if id == '' or id is None:
@@ -117,52 +110,48 @@ def addEpisodes(meta, content):
 		control.makeFile(dataPath)
 		dbcon = database.connect(favouritesFile)
 		dbcur = dbcon.cursor()
-		dbcur.execute("CREATE TABLE IF NOT EXISTS %s (""id TEXT, ""items TEXT, ""UNIQUE(id)"");" % content)
+		dbcur.execute('''CREATE TABLE IF NOT EXISTS %s (id TEXT, items TEXT, UNIQUE(id));''' % content)
 		dbcur.execute("DELETE FROM %s WHERE id = '%s'" % (content, id))
 		dbcur.execute("INSERT INTO %s Values (?, ?)" % content, (id, repr(item)))
 		dbcur.connection.commit()
-		dbcon.close()
-
 		control.refresh()
 		control.notification(title=title, message=32117)
 	except:
 		return
+	finally:
+		dbcur.close() ; dbcon.close()
 
 
 def deleteFavourite(meta, content):
 	try:
 		meta = json.loads(meta)
-		if 'title' in meta:
-			title = meta['title']
-		if 'tvshowtitle' in meta:
-			title = meta['tvshowtitle']
-
+		if 'title' in meta: title = meta['title']
+		if 'tvshowtitle' in meta: title = meta['tvshowtitle']
 		dbcon = database.connect(favouritesFile)
 		dbcur = dbcon.cursor()
 		dbcur.execute("DELETE FROM %s WHERE id = '%s'" % (content, meta['imdb']))
 		dbcur.execute("DELETE FROM %s WHERE id = '%s'" % (content, meta['tvdb']))
 		dbcur.execute("DELETE FROM %s WHERE id = '%s'" % (content, meta['tmdb']))
 		dbcur.connection.commit()
-		dbcon.close()
-
 		control.refresh()
 		control.notification(title=title, message=32118)
 	except:
 		return
+	finally:
+		dbcur.close() ; dbcon.close()
 
 
 def deleteProgress(meta, content):
 	try:
 		meta = json.loads(meta)
-
 		dbcon = database.connect(progressFile)
 		dbcur = dbcon.cursor()
 		dbcur.execute("DELETE FROM %s WHERE id = '%s'" % (content, meta['imdb']))
 		dbcur.execute("DELETE FROM %s WHERE id = '%s'" % (content, meta['tvdb']))
 		dbcur.execute("DELETE FROM %s WHERE id = '%s'" % (content, meta['tmdb']))
 		dbcur.connection.commit()
-		dbcon.close()
-
 		control.refresh()
 	except:
 		return
+	finally:
+		dbcur.close() ; dbcon.close()

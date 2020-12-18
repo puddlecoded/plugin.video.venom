@@ -17,9 +17,6 @@ except ImportError:
 
 from resources.lib.modules import control
 
-sysaddon = argv[0]
-syshandle = int(argv[1])
-
 
 class youtube_menu(object):
 	def __init__(self):
@@ -43,18 +40,18 @@ class youtube_menu(object):
 
 
 	def addMenuItem(self, name, action, subid, iconimage, fanart, description='', isFolder=True):
-		url = '%s?action=%s&id=%s' % (sysaddon, action, subid)
+		url = '%s?action=%s&id=%s' % (argv[0], action, subid)
 		liz = control.item(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
 		liz.setInfo(type='video', infoLabels={'title': name, 'plot': description})
 		liz.setProperty('Fanart_Image', fanart)
-		control.addItem(handle=syshandle, url=url, listitem=liz, isFolder=isFolder)
+		control.addItem(handle=int(argv[1]), url=url, listitem=liz, isFolder=isFolder)
 
 
 	def addSectionItem(self, name, iconimage, fanart):
-		url = '%s?action=sectionItem' % sysaddon
+		url = '%s?action=sectionItem' % argv[0]
 		liz = control.item(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
 		liz.setProperty('Fanart_Image', fanart)
-		control.addItem(handle=syshandle, url=url, listitem=liz, isFolder=False)
+		control.addItem(handle=int(argv[1]), url=url, listitem=liz, isFolder=False)
 
 
 	def addSearchItem(self, name, search_id, icon, fanart):
@@ -62,7 +59,7 @@ class youtube_menu(object):
 		liz = control.item(name)
 		liz.setInfo( type='video', infoLabels={'title': name})
 		liz.setArt({'thumb': icon, 'banner': 'DefaultVideo.png', 'fanart': fanart})
-		control.addItem(handle=syshandle, url=work_url, listitem=liz, isFolder=True)
+		control.addItem(handle=int(argv[1]), url=work_url, listitem=liz, isFolder=True)
 
 
 	def addChannelItem(self, name, channel_id, icon, fanart):
@@ -70,7 +67,7 @@ class youtube_menu(object):
 		liz = control.item(name)
 		liz.setInfo( type='video', infoLabels={'title': name})
 		liz.setArt({'thumb': icon, 'banner': 'DefaultVideo.png', 'fanart': fanart})
-		control.addItem(handle=syshandle, url=work_url, listitem=liz, isFolder=True)
+		control.addItem(handle=int(argv[1]), url=work_url, listitem=liz, isFolder=True)
 
 
 	def addUserItem(self, name, channel_id, icon, fanart):
@@ -79,7 +76,7 @@ class youtube_menu(object):
 		liz = control.item(name)
 		liz.setInfo( type='video', infoLabels={'title': name})
 		liz.setArt({'thumb': icon, 'banner': 'DefaultVideo.png', 'fanart': fanart})
-		control.addItem(handle=syshandle, url=work_url, listitem=liz, isFolder=True)
+		control.addItem(handle=int(argv[1]), url=work_url, listitem=liz, isFolder=True)
 
 
 	def addPlaylistItem(self, name, playlist_id, icon, fanart):
@@ -87,7 +84,7 @@ class youtube_menu(object):
 		liz = control.item(name)
 		liz.setInfo( type='video', infoLabels={'title': name})
 		liz.setArt({'thumb': icon, 'banner': 'DefaultVideo.png', 'fanart': fanart})
-		control.addItem(handle=syshandle, url=work_url, listitem=liz, isFolder=True)
+		control.addItem(handle=int(argv[1]), url=work_url, listitem=liz, isFolder=True)
 
 
 	def addVideoItem(self, name, video_id, icon, fanart):
@@ -96,4 +93,4 @@ class youtube_menu(object):
 		liz.setInfo( type='video', infoLabels={'title': name})
 		liz.setArt({'thumb': icon, 'banner': 'DefaultVideo.png', 'fanart': fanart})
 		liz.setProperty('IsPlayable', 'true')
-		control.addItem(handle=syshandle, url=work_url, listitem=liz, isFolder=False)
+		control.addItem(handle=int(argv[1]), url=work_url, listitem=liz, isFolder=False)

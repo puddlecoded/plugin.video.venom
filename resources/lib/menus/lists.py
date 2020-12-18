@@ -25,14 +25,16 @@ except:
 	from pysqlite2 import dbapi2 as database
 
 from resources.lib.modules import cache
-from resources.lib.modules import metacache
 from resources.lib.modules import client
 from resources.lib.modules import control
+from resources.lib.modules import log_utils
+from resources.lib.modules import metacache
 from resources.lib.modules import regex
 from resources.lib.modules import trailer
+from resources.lib.modules import views
 from resources.lib.modules import workers
 from resources.lib.modules import youtube
-from resources.lib.modules import views
+
 
 
 class indexer:
@@ -49,7 +51,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_porn(self):
@@ -61,7 +63,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_kids(self):
@@ -73,7 +75,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_kids1(self):
@@ -85,7 +87,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_kids_random(self):
@@ -97,7 +99,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_kids_dis1(self):
@@ -109,7 +111,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_iptv_usa(self):
@@ -121,7 +123,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_iptv_uk(self):
@@ -133,7 +135,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_iptv_world(self):
@@ -145,7 +147,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_iptv_cctv(self):
@@ -157,7 +159,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_test(self):
@@ -169,7 +171,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_247movies(self):
@@ -181,7 +183,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_247tv(self):
@@ -193,7 +195,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_4k(self):
@@ -205,7 +207,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_1click(self):
@@ -217,7 +219,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def root_1clickcollections(self):
@@ -229,7 +231,8 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
+
 
 	def root_porn1(self):
 		try:
@@ -240,7 +243,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def get(self, url):
@@ -250,7 +253,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def getq(self, url):
@@ -260,7 +263,7 @@ class indexer:
 			self.addDirectory(self.list, queue=True)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def getx(self, url, worker=False):
@@ -273,7 +276,7 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def developer(self):
@@ -285,13 +288,12 @@ class indexer:
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def youtube(self, url, action):
 		try:
 			key = trailer.trailer().key_link.split('=', 1)[-1]
-
 			if 'PlaylistTuner' in action:
 				self.list = cache.get(youtube.youtube(key=key).playlist, 1, url)
 			elif 'Playlist' in action:
@@ -300,7 +302,6 @@ class indexer:
 				self.list = cache.get(youtube.youtube(key=key).videos, 1, url)
 			elif 'Channel' in action:
 				self.list = cache.get(youtube.youtube(key=key).videos, 1, url, True)
-
 			if 'Tuner' in action:
 				for i in self.list: i.update({'name': i['title'], 'poster': i['image'], 'action': 'plugin', 'folder': False})
 				if 'Tuner2' in action: self.list = sorted(self.list, key=lambda x: random.random())
@@ -308,21 +309,16 @@ class indexer:
 			else:
 				for i in self.list: i.update({'name': i['title'], 'poster': i['image'], 'nextaction': action, 'action': 'play', 'folder': False})
 				self.addDirectory(self.list)
-
 			return self.list
 		except:
-			pass
-
+			log_utils.error()
 
 	def tvtuner(self, url):
 		try:
 			preset = re.findall('<preset>(.+?)</preset>', url)[0]
-
 			today = ((datetime.datetime.utcnow() - datetime.timedelta(hours = 5))).strftime('%Y-%m-%d')
 			today = int(re.sub('[^0-9]', '', str(today)))
-
 			url, imdb, tvdb, tvshowtitle, year, thumbnail, fanart = re.findall('<url>(.+?)</url>', url)[0], re.findall('<imdb>(.+?)</imdb>', url)[0], re.findall('<tvdb>(.+?)</tvdb>', url)[0], re.findall('<tvshowtitle>(.+?)</tvshowtitle>', url)[0], re.findall('<year>(.+?)</year>', url)[0], re.findall('<thumbnail>(.+?)</thumbnail>', url)[0], re.findall('<fanart>(.+?)</fanart>', url)[0]
-
 			tvm = client.request('https://api.tvmaze.com/lookup/shows?thetvdb=%s' % tvdb)
 			if tvm  is None: tvm = client.request('https://api.tvmaze.com/lookup/shows?imdb=%s' % imdb)
 			tvm ='https://api.tvmaze.com/shows/%s/episodes' % str(json.loads(tvm).get('id'))
@@ -335,19 +331,14 @@ class indexer:
 				items = items[:100]
 
 			result = ''
-
 			for i in items:
 				try:
 					if int(re.sub('[^0-9]', '', str(i[3]))) > today: raise Exception()
 					result += '<item><title> %01dx%02d . %s</title><meta><content>episode</content><imdb>%s</imdb><tvdb>%s</tvdb><tvshowtitle>%s</tvshowtitle><year>%s</year><title>%s</title><premiered>%s</premiered><season>%01d</season><episode>%01d</episode></meta><link><sublink>search</sublink><sublink>searchsd</sublink></link><thumbnail>%s</thumbnail><fanart>%s</fanart></item>' % (int(i[0]), int(i[1]), i[2], imdb, tvdb, tvshowtitle, year, i[2], i[3], int(i[0]), int(i[1]), thumbnail, fanart)
-				except:
-					pass
+				except: pass
 
 			result = re.sub(r'[^\x00-\x7F]+', ' ', result)
-
-			if preset == 'tvtuner':
-				result = result.replace('<sublink>searchsd</sublink>', '')
-
+			if preset == 'tvtuner': result = result.replace('<sublink>searchsd</sublink>', '')
 			self.list = self.it_list('', result=result)
 
 			if preset == 'tvtuner':
@@ -356,7 +347,8 @@ class indexer:
 				self.worker()
 				self.addDirectory(self.list)
 		except:
-			pass
+			log_utils.error()
+
 
 	def search(self, url):
 		try:
@@ -383,13 +375,12 @@ class indexer:
 						if not '|SPLITER|' in url:
 							try: self.list += [{'name': '%s...' % url, 'url': url, 'action': 'addSearch'}]
 							except: pass
-			except:
-				pass
+			except: pass
 
 			self.addDirectory(self.list)
 			return self.list
 		except:
-			pass
+			log_utils.error()
 
 
 	def delSearch(self):
@@ -397,7 +388,7 @@ class indexer:
 			cache.clear('rel_srch')
 			control.refresh()
 		except:
-			pass
+			log_utils.error()
 
 
 	def addSearch(self, url):
@@ -433,10 +424,8 @@ class indexer:
 
 			if (url is None or url == ''): return
 
-			if section == 1:
-				input = keep
-			else: 
-				input = url
+			if section == 1: input = keep
+			else: input = url
 			def search(): return [input]
 			query = cache.get(search, 600000000, table='rel_srch')
 
@@ -460,18 +449,15 @@ class indexer:
 					if not i['vip'] in ['No-Name TV']: name += '[B]%s[/B] | ' % i['vip'].upper()
 					name += i['name']
 					i.update({'name' : name})
-				except:
-					pass
+				except: pass
 
 			for i in self.list: i.update({'content': 'videos'})
 			self.addDirectory(self.list)
 
 
 	def it_list(self, url, result=None):
-
 		try:
 			if result is None: result = cache.get(client.request, 0, url)
-
 			if result.strip().startswith('#EXTM3U') and '#EXTINF' in result:
 				result = re.compile('#EXTINF:.+?\,(.+?)\n(.+?)\n', re.MULTILINE|re.DOTALL).findall(result)
 				result = ['<item><title>%s</title><link>%s</link></item>' % (i[0], i[1]) for i in result]
@@ -482,15 +468,12 @@ class indexer:
 			if '</link>' in r: result = r
 
 			result = str(result)
-
 			info = result.split('<item>')[0].split('<dir>')[0]
 
 			try: vip = re.findall('<poster>(.+?)</poster>', info)[0]
 			except: vip = '0'
-
 			try: image = re.findall('<thumbnail>(.+?)</thumbnail>', info)[0]
 			except: image = '0'
-
 			try: fanart = re.findall('<fanart>(.+?)</fanart>', info)[0]
 			except: fanart = '0'
 
@@ -499,10 +482,10 @@ class indexer:
 
 			items = re.compile('((?:<item>.+?</item>|<dir>.+?</dir>|<plugin>.+?</plugin>|<info>.+?</info>|<name>[^<]+</name><link>[^<]+</link><thumbnail>[^<]+</thumbnail><mode>[^<]+</mode>|<name>[^<]+</name><link>[^<]+</link><thumbnail>[^<]+</thumbnail><date>[^<]+</date>))', re.MULTILINE|re.DOTALL).findall(result)
 		except:
+			log_utils.error()
 			return
 
 		for item in items:
-
 			try:
 				regdata = re.compile('(<regex>.+?</regex>)', re.MULTILINE|re.DOTALL).findall(item)
 				regdata = ''.join(regdata)
@@ -538,7 +521,6 @@ class indexer:
 					try:
 						url_api = 'https://api.themoviedb.org/3/movie/' + imdb + '?api_key=' + tmdb_api
 						item_json = client.request(url_api, timeout='5')
-
 						item_json = json.loads(item_json)
 					except: pass
 
@@ -696,13 +678,11 @@ class indexer:
 				except: episode = '0'
 
 				self.list.append({'name': name, 'vip': vip, 'url': url, 'action': action, 'folder': folder, 'poster': image2, 'banner': '0', 'fanart': fanart2, 'content': content, 'imdb': imdb, 'tvdb': tvdb, 'tmdb': '0', 'title': title, 'originaltitle': title, 'tvshowtitle': tvshowtitle, 'year': year, 'premiered': premiered, 'season': season, 'episode': episode})
-
 			except:
-				pass
-
+				log_utils.error()
 		regex.insert(self.hash)
-
 		return self.list
+
 
 	def worker(self):
 		if not control.setting('metadata') == 'true': return
@@ -737,14 +717,13 @@ class indexer:
 			[i.start() for i in threads]
 			[i.join() for i in threads]
 
-			if self.meta:
-				metacache.insert(self.meta)
+		if self.meta:
+			metacache.insert(self.meta)
 
 
 	def movie_info(self, i):
 		try:
 			if self.list[i]['metacache'] is True: raise Exception()
-
 			if not self.list[i]['content'] == 'movies': raise Exception()
 
 			imdb = self.list[i]['imdb']
@@ -842,13 +821,12 @@ class indexer:
 
 			self.meta.append({'imdb': imdb, 'tmdb': '0', 'tvdb': '0', 'lang': self.lang, 'item': {'title': title, 'year': year, 'code': imdb, 'imdb': imdb, 'premiered': premiered, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa, 'director': director, 'writer': writer, 'cast': cast, 'plot': plot}})
 		except:
-			pass
+			log_utils.error()
 
 
 	def tv_info(self, i):
 		try:
 			if self.list[i]['metacache'] is True: raise Exception()
-
 			if not self.list[i]['content'] in ['tvshows', 'seasons', 'episodes']: raise Exception()
 
 			tvdb = self.list[i]['tvdb']
@@ -911,13 +889,11 @@ class indexer:
 
 			self.meta.append({'imdb': imdb, 'tmdb': '0', 'tvdb': tvdb, 'lang': self.lang, 'item': {'tvshowtitle': tvshowtitle, 'year': year, 'code': imdb, 'imdb': imdb, 'tvdb': tvdb, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'plot': plot}})
 		except:
-			pass
+			log_utils.error()
 
 
 	def addDirectory(self, items, queue=False):
-		if items is None or len(items) == 0:
-			return
-
+		if items is None or len(items) == 0: return
 		sysaddon = sys.argv[0]
 		addonPoster = addonBanner = control.addonInfo('icon')
 		addonFanart = control.addonInfo('fanart')
@@ -938,13 +914,9 @@ class indexer:
 
 		for i in items:
 			try: 
-				try:
-					name = control.lang(int(i['name']))
-				except:
-					name = i['name']
-
-				if name == '':
-					name = i['name']
+				try: name = control.lang(int(i['name']))
+				except: name = i['name']
+				if name == '': name = i['name']
 
 				url = '%s?action=%s' % (sysaddon, i['action'])
 				try: url += '&url=%s' % quote_plus(i['url'])
@@ -966,10 +938,8 @@ class indexer:
 				elif banner == '0': banner = poster
 
 				content = i['content'] if 'content' in i else '0'
-
 				folder = i['folder'] if 'folder' in i else True
 
-				# meta = dict((k, v) for k, v in i.iteritems() if v != '0')
 				meta = dict((k, v) for k, v in i.iteritems() if v != '0' and v != '')
 				cm = []
 
@@ -1026,7 +996,7 @@ class indexer:
 					item.setInfo(type='Video', infoLabels = meta)
 					playlist.add(url=url, listitem=item)
 			except:
-				pass
+				log_utils.error()
 
 		if not queue is False:
 			return control.player.play(playlist)
@@ -1045,7 +1015,7 @@ class indexer:
 			item.setArt({'addonPoster': addonPoster, 'thumb': addonPoster, 'poster': addonPoster, 'fanart': addonFanart, 'tvshow.poster': addonPoster, 'season.poster': addonPoster, 'banner': addonPoster, 'tvshow.banner': addonPoster, 'season.banner': addonPoster})
 			control.addItem(handle=int(sys.argv[1]), url=url, listitem=item, isFolder=True)
 		except:
-			pass
+			log_utils.error()
 
 		if not mode is None: control.content(int(sys.argv[1]), mode)
 		control.directory(int(sys.argv[1]), cacheToDisc=True)
@@ -1057,42 +1027,37 @@ class resolver:
 	def browser(self, url):
 		try:
 			url = self.get(url)
-			if url is False: return
+			if not url: return
 			control.execute('RunPlugin(plugin://plugin.program.chrome.launcher/?url=%s&mode=showSite&stopPlayback=no)' % quote_plus(url))
 		except:
-			pass
+			log_utils.error()
 
 
 	def link(self, url):
 		try:
 			url = self.get(url)
 			if url is False: return
-
 			control.execute('ActivateWindow(busydialog)')
 			url = self.process(url)
 			control.execute('Dialog.Close(busydialog)')
-			if url is None:
+			if not url:
 				return control.notification(message=30705)
 			return url
 		except:
-			pass
+			log_utils.error()
 
 
 	def get(self, url):
 		try:
 			items = re.compile('<sublink(?:\s+name=|)(?:\'|\"|)(.*?)(?:\'|\"|)>(.+?)</sublink>').findall(url)
-
 			if len(items) == 0: return url
 			if len(items) == 1: return items[0][1]
-
 			items = [('Link %s' % (int(items.index(i))+1) if i[0] == '' else i[0], i[1]) for i in items]
-
 			select = control.selectDialog([i[0] for i in items], control.infoLabel('listitem.label'))
-
 			if select == -1: return False
 			else: return items[select][1]
 		except:
-			pass
+			log_utils.error()
 
 
 	def f4m(self, url, name):
@@ -1127,7 +1092,7 @@ class resolver:
 				from F4mProxy import f4mProxyHelper
 				return f4mProxyHelper().playF4mLink(url, name, proxy, proxy_use_chunks, maxbitrate, simpleDownloader, auth_string, streamtype, False, swf)
 			except:
-				pass
+				log_utils.error()
 
 
 	def process(self, url, direct=True):
@@ -1143,10 +1108,9 @@ class resolver:
 				f.close()
 				control.execute('ShowPicture("%s")' % i)
 				return False
-			except:
-				return
+			except: return
 		except:
-			pass
+			log_utils.error()
 
 		try:
 			r, x = re.findall('(.+?)\|regex=(.+?)$', url)[0]
@@ -1155,71 +1119,60 @@ class resolver:
 			if not '</regex>' in r: raise Exception()
 			u = regex.resolve(r)
 			if not u is None: url = u
-		except:
-			pass
+		except: pass
 
 		try:
 			if not url.startswith('rtmp'): raise Exception()
 			if len(re.compile('\s*timeout=(\d*)').findall(url)) == 0: url += ' timeout=10'
 			return url
-		except:
-			pass
+		except: pass
 
 		try:
 			if not any(i in url for i in ['.m3u8', '.f4m', '.ts']): raise Exception()
 			ext = url.split('?')[0].split('&')[0].split('|')[0].rsplit('.')[-1].replace('/', '').lower()
 			if not ext in ['m3u8', 'f4m', 'ts']: raise Exception()
 			return url
-		except:
-			pass
+		except: pass
 
 		try:
 			preset = re.findall('<preset>(.+?)</preset>', url)[0]
-
 			if not 'search' in preset: raise Exception()
-
 			title, year, imdb = re.findall('<title>(.+?)</title>', url)[0], re.findall('<year>(.+?)</year>', url)[0], re.findall('<imdb>(.+?)</imdb>', url)[0]
 
 			try: tvdb, tvshowtitle, premiered, season, episode = re.findall('<tvdb>(.+?)</tvdb>', url)[0], re.findall('<tvshowtitle>(.+?)</tvshowtitle>', url)[0], re.findall('<premiered>(.+?)</premiered>', url)[0], re.findall('<season>(.+?)</season>', url)[0], re.findall('<episode>(.+?)</episode>', url)[0]
 			except: tvdb = tvshowtitle = premiered = season = episode = None
 
 			direct = False
-
 			quality = 'HD' if not preset == 'searchsd' else 'SD'
 
 			from resources.lib.modules import sources
 			u = sources.Sources().getSources(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, quality)
-			if u:
-				return u
+			if u: return u
 		except:
-			pass
+			log_utils.error()
 
 		try:
 			from resources.lib.modules import sources
 			u = sources.Sources().getURISource(url)
-
 			if u: direct = False
 
 			if not u: raise Exception()
 			return u
-		except:
-			pass
+		except: pass
 
 		try:
 			if '.google.com' not in url: raise Exception()
 			from resources.lib.modules import directstream
 			u = directstream.google(url)[0]['url']
 			return u
-		except:
-			pass
+		except: pass
 
 		try:
 			if not 'filmon.com/' in url: raise Exception()
 			from resources.lib.modules import filmon
 			u = filmon.resolve(url)
 			return u
-		except:
-			pass
+		except: pass
 
 		try:
 			try: headers = dict(parse_qsl(url.rsplit('|', 1)[1]))
@@ -1236,21 +1189,16 @@ class resolver:
 				try: dialog.close()
 				except: pass
 				return u
-		except:
-			pass
+		except: pass
 
 		try:
 # resolveURL dependency has been removed
 			import resolveurl
 			hmf = resolveurl.HostedMediaFile(url=url)
 			if hmf.valid_url() is False: raise Exception()
-
 			direct = False ; u = hmf.resolve()
-
 			if not u is False: return u
-		except:
-			pass
-
+		except: pass
 		if direct is True: return url
 
 
@@ -1302,12 +1250,10 @@ class player(xbmc.Player):
 				try:
 					self.totalTime = self.getTotalTime()
 					self.currentTime = self.getTime()
-				except:
-					pass
+				except: pass
 				control.sleep(2000)
 			control.sleep(5000)
-		except:
-			pass
+		except: pass
 
 
 	def onPlayBackStarted(self):
@@ -1339,32 +1285,27 @@ class bookmarks:
 
 			dbcon = database.connect(control.bookmarksFile)
 			dbcur = dbcon.cursor()
-			dbcur.execute("SELECT * FROM bookmark WHERE idFile = '%s'" % idFile)
-			match = dbcur.fetchone()
-			self.offset = str(match[1])
-			dbcon.commit()
-
+			match = dbcur.execute("SELECT * FROM bookmark WHERE idFile = '%s'" % idFile).fetchone()
+			if match: self.offset = str(match[1])
 			if self.offset == '0': raise Exception()
 
 			minutes, seconds = divmod(float(self.offset), 60) ; hours, minutes = divmod(minutes, 60)
 			label = '%02d:%02d:%02d' % (hours, minutes, seconds)
 			label = (control.lang(32502) % label)
 
-			try:
-				yes = control.dialog.contextmenu([label, control.lang(32501)])
-			except:
-				yes = control.yesnoDialog(label, '', '', str(name), control.lang(32503), control.lang(32501))
+			try: yes = control.dialog.contextmenu([label, control.lang(32501)])
+			except: yes = control.yesnoDialog(label, '', '', str(name), control.lang(32503), control.lang(32501))
 			if yes: self.offset = '0'
 
 			return self.offset
 		except:
 			return offset
+		finally:
+			dbcur.close() ; dbcon.close()
 
 
 	def reset(self, currentTime, totalTime, name, year='0'):
 		try:
-			#if not control.setting('bookmarks') == 'true': raise Exception()
-
 			timeInSeconds = str(currentTime)
 			ok = int(currentTime) > 180 and (currentTime / totalTime) <= .92
 
@@ -1376,12 +1317,12 @@ class bookmarks:
 			control.makeFile(control.dataPath)
 			dbcon = database.connect(control.bookmarksFile)
 			dbcur = dbcon.cursor()
-			dbcur.execute("CREATE TABLE IF NOT EXISTS bookmark (""idFile TEXT, ""timeInSeconds TEXT, ""UNIQUE(idFile)"");")
-			dbcur.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
+			dbcur.execute('''CREATE TABLE IF NOT EXISTS bookmark (idFile TEXT, timeInSeconds TEXT, UNIQUE(idFile));''')
+			dbcur.execute('''DELETE FROM bookmark WHERE idFile=?''', (idFile,))
 			if ok:
-				dbcur.execute("INSERT INTO bookmark Values (?, ?)", (idFile, timeInSeconds))
+				dbcur.execute('''INSERT INTO bookmark Values (?, ?)''', (idFile, timeInSeconds))
 			dbcur.connection.commit()
-			dbcon.close()
 		except:
-			pass
-
+			log_utils.error()
+		finally:
+			dbcur.close() ; dbcon.close()

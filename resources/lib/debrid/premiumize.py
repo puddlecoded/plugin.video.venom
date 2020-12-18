@@ -112,7 +112,7 @@ class Premiumize:
 		self.token = token['access_token']
 		self.headers = {'User-Agent': 'Venom for Kodi', 'Authorization': 'Bearer %s' % self.token}
 		control.sleep(500)
-		account_info = self.get_account_info()
+		account_info = self.account_info()
 		control.setSetting('premiumize.token', token['access_token'])
 		control.setSetting('premiumize.username', str(account_info['customer_id']))
 		return False, True
@@ -122,7 +122,7 @@ class Premiumize:
 		return url + '|' + urlencode(self.headers)
 
 
-	def get_account_info(self):
+	def account_info(self):
 		try:
 			accountInfo = self._get(account_info_url)
 			return accountInfo
@@ -136,7 +136,7 @@ class Premiumize:
 		from datetime import datetime
 		import math
 		try:
-			accountInfo = self.get_account_info()
+			accountInfo = self.account_info()
 			expires = datetime.fromtimestamp(accountInfo['premium_until'])
 			days_remaining = (expires - datetime.today()).days
 			expires = expires.strftime("%A, %B %d, %Y")
@@ -181,57 +181,6 @@ class Premiumize:
 			log_utils.error()
 			pass
 		return hosts_dict
-
-
-# # from resolveURL
-	# def get_all_hosters(self):
-		# try:
-			# response = self._get(list_services_path_url)
-			# if not response:
-				# return None
-			# aliases = response.get('aliases', {})
-			# patterns = response.get('regexpatterns', {})
-
-			# tldlist = []
-			# for tlds in aliases.values():
-				# for tld in tlds:
-					# tldlist.append(tld)
-			# if self.get_setting('torrents') == 'true':
-				# tldlist.extend([u'torrent', u'magnet'])
-			# regex_list = []
-			# for regexes in patterns.values():
-				# for regex in regexes:
-					# try:
-						# regex_list.append(re.compile(regex))
-					# except:
-						# log_utils.log('Throwing out bad Premiumize regex: %s' % regex, __name__, log_utils.LOGDEBUG)
-			# log_utils.log('Premiumize.me patterns: %s regex: (%d) hosts: %s' % (patterns, len(regex_list), tldlist), __name__, log_utils.LOGDEBUG)
-			# return tldlist, regex_list
-		# except Exception as e:
-			# log_utils.log('Error getting Premiumize hosts: %s' % e, __name__, log_utils.LOGDEBUG)
-		# return [], []
-
-
-# # from resolveURL
-	# def valid_url(self, url, host):
-		# if url and self.get_setting('torrents') == 'true':
-			# url_lc = url.lower()
-			# if url_lc.endswith('.torrent') or url_lc.startswith('magnet:'):
-				# return True
-		# if not self.patterns or not self.hosts:
-			# self.hosts, self.patterns = self.get_all_hosters()
-		# if url:
-			# if not url.endswith('/'):
-				# url += '/'
-			# for pattern in self.patterns:
-				# if pattern.findall(url):
-					# return True
-		# elif host:
-			# if host.startswith('www.'):
-				# host = host.replace('www.', '')
-			# if any(host in item for item in self.hosts):
-				# return True
-		# return False
 
 
 	def unrestrict_link(self, link):
@@ -312,10 +261,9 @@ class Premiumize:
 						return item
 			return {}
 		def _return_failed(message=control.lang(33586)):
-			try:
-				control.progressDialog.close()
-			except:
-				pass
+			try: control.progressDialog.close()
+			except: pass
+			self.delete_transfer(transfer_id)
 			control.hide()
 			control.sleep(500)
 			control.okDialog(title=control.lang(40018), message=message)
@@ -333,7 +281,6 @@ class Premiumize:
 		if not transfer_info:
 			return _return_failed()
 		if pack:
-			# self.clear_cache()
 			control.hide()
 			control.okDialog(title='default', message=control.lang(40017) % control.lang(40057))
 			return True
@@ -351,7 +298,12 @@ class Premiumize:
 				return sys.exit()
 			try:
 				if control.progressDialog.iscanceled():
-					return _return_failed(control.lang(40014))
+					if control.yesnoDialog('Delete PM download also?', 'No will continue the download', 'but close dialog'):
+						return _return_failed(control.lang(40014))
+					else:
+						control.progressDialog.close()
+						control.hide()
+						return False
 			except:
 				pass
 			if transfer_info.get('status') == 'stalled':
@@ -428,13 +380,13 @@ class Premiumize:
 		return
 
 
-	def delete_transfer(self, media_id, folder_name=None):
+	def delete_transfer(self, media_id, folder_name=None, silent=True):
 		try:
-			if not control.yesnoDialog(control.lang(40050) % folder_name, '', ''): return
+			if not silent:
+				if not control.yesnoDialog(control.lang(40050) % '?[CR]' + folder_name, '', ''): return
 			data = {'id': media_id}
 			response = self._post(transfer_delete_url, data)
-			if not response:
-				return
+			if not response: return
 			if 'status' in response:
 				if response.get('status') == 'success':
 					log_utils.log('Transfer successfully deleted from the Premiumize.me cloud', __name__, log_utils.LOGDEBUG)
@@ -442,19 +394,14 @@ class Premiumize:
 					return
 		except:
 			log_utils.error()
-			pass
-		return
 
 
 	def my_files(self, folder_id=None):
 		try:
-			if folder_id:
-				url = folder_list_url + '?id=%s' % folder_id
-			else:
-				url = folder_list_url
+			if folder_id: url = folder_list_url + '?id=%s' % folder_id
+			else: url = folder_list_url
 			response = self._get(url)
-			if response:
-				return response.get('content')
+			if response: return response.get('content')
 		except:
 			log_utils.error()
 			pass
@@ -481,8 +428,7 @@ class Premiumize:
 			try:
 				cm = []
 				type = item['type']
-				name = item['name']
-				# name = control.strip_non_ascii_and_unprintable(item['name']) #keep an eye out if this is needed
+				name = control.strip_non_ascii_and_unprintable(item['name'])
 				if type == 'folder':
 					isFolder = True
 					size = 0
@@ -547,17 +493,14 @@ class Premiumize:
 			try:
 				cm = []
 				type = 'folder' if item['file_id'] is None else 'file'
-				name = item['name']
-				# name = control.strip_non_ascii_and_unprintable(item['name']) #keep an eye out if this is needed
+				name = control.strip_non_ascii_and_unprintable(item['name'])
 				status = item['status']
 				progress = item['progress']
 				if status == 'finished':
 					progress = 100
 				else:
-					try:
-						progress = re.findall(r'(?:\d{0,1}\.{0,1})(\d+)', str(progress))[0][:2]
-					except:
-						progress = 'UNKNOWN'
+					try: progress = re.findall(r'(?:\d{0,1}\.{0,1})(\d+)', str(progress))[0][:2]
+					except: progress = 'UNKNOWN'
 				if type == 'folder':
 					isFolder = True if status == 'finished' else False
 					status_str = '[COLOR %s]%s[/COLOR]' % (control.getColor(control.setting('highlight.color')), status.capitalize())
@@ -637,18 +580,66 @@ class Premiumize:
 
 	def delete(self, type, folder_id=None, folder_name=None):
 		try:
-			if type == 'folder':
-				url = folder_delete_url
-			else:
-				url = item_delete_url
+			if type == 'folder': url = folder_delete_url
+			else: url = item_delete_url
 			if not control.yesnoDialog(control.lang(40050) % folder_name, '', ''): return
 			data = {'id': folder_id}
 			response = self._post(url, data=data)
-			if not response:
-				return
+			if not response: return
 			if 'status' in response:
 				if response.get('status') == 'success':
 					control.refresh()
 		except:
 			log_utils.error()
 			pass
+
+
+# # from resolveURL
+	# def get_all_hosters(self):
+		# try:
+			# response = self._get(list_services_path_url)
+			# if not response:
+				# return None
+			# aliases = response.get('aliases', {})
+			# patterns = response.get('regexpatterns', {})
+
+			# tldlist = []
+			# for tlds in aliases.values():
+				# for tld in tlds:
+					# tldlist.append(tld)
+			# if self.get_setting('torrents') == 'true':
+				# tldlist.extend([u'torrent', u'magnet'])
+			# regex_list = []
+			# for regexes in patterns.values():
+				# for regex in regexes:
+					# try:
+						# regex_list.append(re.compile(regex))
+					# except:
+						# log_utils.log('Throwing out bad Premiumize regex: %s' % regex, __name__, log_utils.LOGDEBUG)
+			# log_utils.log('Premiumize.me patterns: %s regex: (%d) hosts: %s' % (patterns, len(regex_list), tldlist), __name__, log_utils.LOGDEBUG)
+			# return tldlist, regex_list
+		# except Exception as e:
+			# log_utils.log('Error getting Premiumize hosts: %s' % e, __name__, log_utils.LOGDEBUG)
+		# return [], []
+
+
+# # from resolveURL
+	# def valid_url(self, url, host):
+		# if url and self.get_setting('torrents') == 'true':
+			# url_lc = url.lower()
+			# if url_lc.endswith('.torrent') or url_lc.startswith('magnet:'):
+				# return True
+		# if not self.patterns or not self.hosts:
+			# self.hosts, self.patterns = self.get_all_hosters()
+		# if url:
+			# if not url.endswith('/'):
+				# url += '/'
+			# for pattern in self.patterns:
+				# if pattern.findall(url):
+					# return True
+		# elif host:
+			# if host.startswith('www.'):
+				# host = host.replace('www.', '')
+			# if any(host in item for item in self.hosts):
+				# return True
+		# return False

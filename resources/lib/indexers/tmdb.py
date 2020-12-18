@@ -42,7 +42,6 @@ def get_request(url):
 		# API REQUESTS ARE BEING THROTTLED, INTRODUCE WAIT TIME (removed 12-6-20)
 		throttleTime = response.headers['Retry-After']
 		control.notification(message='TMDB Throttling Applied, Sleeping for %s seconds' % throttleTime)
-		# sleep(int(throttleTime) + 1)
 		control.sleep((int(throttleTime) + 1) * 1000)
 		return get_request(url)
 	else:
@@ -64,10 +63,8 @@ def userlists(url):
 	try:
 		page = int(result['page'])
 		total = int(result['total_pages'])
-		if page >= total:
-			raise Exception()
-		if 'page=' not in url:
-			raise Exception()
+		if page >= total: raise Exception()
+		if 'page=' not in url: raise Exception()
 		next = '%s&page=%s' % (url.split('&page=', 1)[0], page+1)
 	except:
 		next = ''
@@ -89,13 +86,9 @@ def popular_people(url):
 def tmdb_sort():
 	sort = int(control.setting('sort.movies.type'))
 	tmdb_sort = 'original_order'
-	if sort == 1:
-		tmdb_sort = 'title'
-	if sort in [2, 3]:
-		tmdb_sort = 'vote_average'
-	if sort in [4, 5, 6]:
-		tmdb_sort = 'release_date'
-
+	if sort == 1: tmdb_sort = 'title'
+	if sort in [2, 3]: tmdb_sort = 'vote_average'
+	if sort in [4, 5, 6]: tmdb_sort = 'release_date'
 	tmdb_sort_order = '.asc' if int(control.setting('sort.movies.order')) == 0 else '.desc'
 	sort_string = tmdb_sort + tmdb_sort_order
 	return sort_string
@@ -117,21 +110,16 @@ class Movies:
 		try:
 			result = get_request(url % API_key)
 			items = result['results']
-		except:
-			return
+		except: return
 
-		list = []
-		sortList = []
+		list = [] ; sortList = []
 		try:
 			page = int(result['page'])
 			total = int(result['total_pages'])
-			if page >= total:
-				raise Exception()
-			if 'page=' not in url:
-				raise Exception()
+			if page >= total: raise Exception()
+			if 'page=' not in url: raise Exception()
 			next = '%s&page=%s' % (url.split('&page=', 1)[0], page+1)
-		except:
-			next = ''
+		except: next = ''
 
 		for item in items:
 			try: title = item.get('title').encode('utf-8')
@@ -141,7 +129,6 @@ class Movies:
 			except: originaltitle = title
 
 			year = str(item.get('release_date')[:4])
-
 			tmdb = str(item.get('id'))
 			sortList.append(tmdb)
 
@@ -159,8 +146,7 @@ class Movies:
 				# tagline = item.get('tagline', '0')
 				# if tagline == '' or tagline == '0' or tagline is None:
 					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			# except:
-				# tagline = '0'
+			# except: tagline = '0'
 			tagline = '0'
 
 			values = {'next': next, 'title': title, 'originaltitle': originaltitle, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
@@ -168,8 +154,7 @@ class Movies:
 			self.list.append(values)
 
 		def items_list(i):
-			if i['metacache']:
-				return
+			if i['metacache']: return
 			try:
 				next, title, originaltitle, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = \
 					i['next'], i['title'], i['originaltitle'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
@@ -185,12 +170,11 @@ class Movies:
 				# except: studio = '0'
 
 				genre = []
-				for x in item['genres']:
-					genre.append(x.get('name'))
+				for x in item['genres']: genre.append(x.get('name'))
 				if genre == []: genre = 'NA'
 
 				duration = str(item.get('runtime', '0'))
-
+				if duration == 'None': duration = '0'
 				mpaa = item['release_dates']['results']
 				mpaa = [x for x in mpaa if x['iso_3166_1'] == 'US']
 				try:
@@ -200,8 +184,7 @@ class Movies:
 						if not mpaa:
 							mpaa = mpaa[0].get('release_dates')[1].get('certification')
 					mpaa = str(mpaa)
-				except:
-					mpaa = '0'
+				except: mpaa = '0'
 
 				credits = item['credits']
 				director = writer = '0'
@@ -214,20 +197,15 @@ class Movies:
 				castandart = []
 				for person in item['credits']['cast']:
 					try:
-						try:
-							castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-						except:
-							castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-					except:
-						castandart = []
+						try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+					except: castandart = []
 					if len(castandart) == 150: break
 
 				try:
-					# trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube'][0]['key']
 					trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube' and i['type'] == 'Trailer'][0]['key']
 					trailer = control.trailer % trailer
-				except:
-					trailer = ''
+				except: trailer = ''
 
 				values = {'content': 'movie', 'title': title, 'originaltitle': originaltitle, 'year': year, 'premiered': premiered,
 							'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa, 'director': director, 'writer': writer,
@@ -249,8 +227,7 @@ class Movies:
 					if str(self.list[i]['tmdb']) == str(tmdb):
 						self.list[i].update(values)
 
-				if 'next' in meta.get('item'):
-					del meta['item']['next']
+				if 'next' in meta.get('item'): del meta['item']['next']
 
 				self.meta.append(meta)
 				metacache.insert(self.meta)
@@ -276,10 +253,8 @@ class Movies:
 	def tmdb_collections_list(self, url):
 		try:
 			result = get_request(url)
-			if '/3/' in url:
-				items = result['items']
-			else:
-				items = result['results']
+			if '/3/' in url: items = result['items']
+			else: items = result['results']
 		except:
 			log_utils.error()
 			return
@@ -288,18 +263,14 @@ class Movies:
 		try:
 			page = int(result['page'])
 			total = int(result['total_pages'])
-			if page >= total:
-				raise Exception()
-			if 'page=' not in url:
-				raise Exception()
+			if page >= total: raise Exception()
+			if 'page=' not in url: raise Exception()
 			next = '%s&page=%s' % (url.split('&page=', 1)[0], page+1)
-		except:
-			next = ''
+		except: next = ''
 
 		for item in items:
 			media_type = item.get('media_type', '0')
-			if media_type == 'tv':
-				continue
+			if media_type == 'tv': continue
 
 			try: title = item.get('title').encode('utf-8')
 			except: title = item.get('title')
@@ -308,7 +279,6 @@ class Movies:
 			except: originaltitle = title
 
 			year = str(item.get('release_date')[:4])
-
 			tmdb = str(item.get('id'))
 
 			poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
@@ -325,8 +295,7 @@ class Movies:
 				# tagline = item.get('tagline', '0')
 				# if tagline == '' or tagline == '0' or tagline is None:
 					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			# except:
-				# tagline = '0'
+			# except: tagline = '0'
 			tagline = '0'
 
 			values = {'next': next, 'title': title, 'originaltitle': originaltitle, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
@@ -336,7 +305,6 @@ class Movies:
 		def items_list(i):
 			try:
 				next, title, originaltitle, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = i['next'], i['title'], i['originaltitle'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
-
 				url = self.tmdb_info_link % tmdb
 				item = get_request(url)
 
@@ -348,11 +316,11 @@ class Movies:
 				# except: studio = '0'
 
 				genre = []
-				for x in item['genres']:
-					genre.append(x.get('name'))
+				for x in item['genres']: genre.append(x.get('name'))
 				if genre == []: genre = 'NA'
 
 				duration = str(item.get('runtime', '0'))
+				if duration == 'None': duration = '0'
 
 				mpaa = item['release_dates']['results']
 				mpaa = [x for x in mpaa if x['iso_3166_1'] == 'US']
@@ -363,8 +331,7 @@ class Movies:
 						if not mpaa:
 							mpaa = mpaa[0].get('release_dates')[1].get('certification')
 					mpaa = str(mpaa)
-				except:
-					mpaa = '0'
+				except: mpaa = '0'
 
 				credits = item['credits']
 				director = writer = '0'
@@ -377,26 +344,21 @@ class Movies:
 				castandart = []
 				for person in item['credits']['cast']:
 					try:
-						try:
-							castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-						except:
-							castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-					except:
-						castandart = []
+						try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+					except: castandart = []
 					if len(castandart) == 150: break
 
 				try:
 					trailer = [i for i in item['videos']['results'] if i['site'] == 'YouTube' and i['type'] == 'Trailer'][0]['key']
 					trailer = control.trailer % trailer
-				except:
-					trailer = ''
+				except: trailer = ''
 
 				values = {'content': 'movie', 'title': title, 'originaltitle': originaltitle, 'year': year, 'premiered': premiered,
 							'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa, 'director': director, 'writer': writer,
 							'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'poster': poster,
 							'poster2': '0', 'poster3': '0', 'banner': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0',
 							'landscape': fanart, 'mediatype': 'movie', 'trailer': trailer, 'metacache': False, 'next': next}
-
 				meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'lang': self.lang, 'user': API_key, 'item': values}
 
 				if disable_fanarttv != 'true':
@@ -429,31 +391,24 @@ class Movies:
 
 	def get_details(self, tmdb, imdb):
 		item = None
-		if tmdb != '0':
-			item = get_request(self.tmdb_info_link % tmdb)
+		if tmdb != '0': item = get_request(self.tmdb_info_link % tmdb)
 		if not item:
-			if imdb != '0':
-				item = get_request(self.tmdb_info_link % imdb)
+			if imdb != '0': item = get_request(self.tmdb_info_link % imdb)
 		return item
 
 
 	def get_external_ids(self, tmdb, imdb):
 		item = None
-		if tmdb != '0':
-			items = get_request(self.tmdb_external_ids % tmdb)
+		if tmdb != '0': items = get_request(self.tmdb_external_ids % tmdb)
 		if not item:
-			if imdb != '0':
-				item = get_request(self.tmdb_external_ids % imdb)
+			if imdb != '0': item = get_request(self.tmdb_external_ids % imdb)
 		return item
 
 
 	def get_art(self, tmdb):
-		if API_key == '' or (tmdb == '0' or tmdb == 'None' or tmdb is None):
-			return None
+		if API_key == '' or (tmdb == '0' or tmdb == 'None' or tmdb is None): return None
 		art3 = get_request(self.tmdb_art_link % tmdb)
-		if not art3:
-			return None
-
+		if not art3: return None
 		try:
 			poster3 = art3['posters']
 			poster3 = [(x['width'], x['file_path']) for x in poster3]
@@ -461,7 +416,6 @@ class Movies:
 			poster3 = poster_path + poster3[0]
 		except:
 			poster3 = '0'
-
 		try:
 			fanart3 = art3['backdrops']
 			fanart3 = [(x['width'], x['file_path']) for x in fanart3]
@@ -469,18 +423,15 @@ class Movies:
 			fanart3 = fanart_path + fanart3[0]
 		except:
 			fanart3 = '0'
-
 		extended_art = {'extended': True, 'poster3': poster3, 'fanart3': fanart3}
 		return extended_art
 
 
 	def get_credits(self, tmdb):
 		url = base_link + '/3/movie/%s/credits?api_key=%s' % ('%s', API_key)
-		if API_key == '' or (tmdb == '0' or tmdb is None):
-			return None
+		if API_key == '' or (tmdb == '0' or tmdb is None): return None
 		people = get_request(url % tmdb)
-		if not people:
-			return None
+		if not people: return None
 		return people
 
 
@@ -505,18 +456,14 @@ class TVshows:
 		except:
 			return
 
-		list = []
-		sortList = []
+		list = [] ; sortList = []
 		try:
 			page = int(result['page'])
 			total = int(result['total_pages'])
-			if page >= total:
-				raise Exception()
-			if 'page=' not in url:
-				raise Exception()
+			if page >= total: raise Exception()
+			if 'page=' not in url: raise Exception()
 			next = '%s&page=%s' % (url.split('&page=', 1)[0], page+1)
-		except:
-			next = ''
+		except: next = ''
 
 		for item in items:
 			try: title = item.get('name').encode('utf-8')
@@ -541,8 +488,7 @@ class TVshows:
 				# tagline = item.get('tagline', '0')
 				# if tagline == '' or tagline == '0' or tagline is None:
 					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			# except:
-				# tagline = '0'
+			# except: tagline = '0'
 			tagline = '0'
 
 			values = {'next': next, 'title': title, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
@@ -567,16 +513,14 @@ class TVshows:
 					imdb = '0'
 
 				genre = []
-				for x in item['genres']:
-					genre.append(x.get('name'))
+				for x in item['genres']: genre.append(x.get('name'))
 				if genre == []: genre = 'NA'
 
 				try: duration = str(item.get('episode_run_time', '0')[0])
 				except: duration = '0'
-				# log_utils.log('duration = %s' % str(duration), __name__, log_utils.LOGDEBUG)
+				if duration == 'None': duration = '0'
 
-				try:
-					mpaa = [x['rating'] for x in item['content_ratings']['results'] if x['iso_3166_1'] == 'US'][0]
+				try: mpaa = [x['rating'] for x in item['content_ratings']['results'] if x['iso_3166_1'] == 'US'][0]
 				except: 
 					try: mpaa = item['content_ratings'][0]['rating']
 					except: mpaa = 'NR'
@@ -600,19 +544,15 @@ class TVshows:
 				castandart = []
 				for person in item['credits']['cast']:
 					try:
-						try:
-							castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-						except:
-							castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-					except:
-						castandart = []
+						try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+					except: castandart = []
 					if len(castandart) == 150: break
 
 				values = {'content': 'tvshow', 'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating,
 								'votes': votes, 'mpaa': mpaa, 'status': status, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb,
 								'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'poster2': '0', 'banner': '0', 'banner2': '0', 'fanart': fanart, 'fanart2': '0', 'clearlogo': '0', 'clearart': '0', 'landscape': fanart,
 								'total_seasons': total_seasons, 'metacache': False, 'next': next}
-
 				meta = {'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'lang': self.lang, 'user': self.user, 'item': values}
 
 				if disable_fanarttv != 'true':
@@ -625,8 +565,7 @@ class TVshows:
 				values = dict((k,v) for k, v in values.iteritems() if v != '0')
 				self.list.append(values)
 
-				if 'next' in meta.get('item'):
-					del meta['item']['next']
+				if 'next' in meta.get('item'): del meta['item']['next']
 
 				self.meta.append(meta)
 				metacache.insert(self.meta)
@@ -644,38 +583,30 @@ class TVshows:
 		sorted_list = []
 		for i in sortList:
 			sorted_list += [item for item in self.list if item['tmdb'] == i]
-
 		return sorted_list
 
 
 	def tmdb_collections_list(self, url):
 		try:
 			result = get_request(url)
-			if '/3/' in url:
-				items = result['items']
-			else:
-				items = result['results']
+			if '/3/' in url: items = result['items']
+			else: items = result['results']
 		except:
 			log_utils.error()
 			return
 
-		list = []
-		sortList = []
+		list = [] ; sortList = []
 		try:
 			page = int(result['page'])
 			total = int(result['total_pages'])
-			if page >= total:
-				raise Exception()
-			if 'page=' not in url:
-				raise Exception()
+			if page >= total: raise Exception()
+			if 'page=' not in url: raise Exception()
 			next = '%s&page=%s' % (url.split('&page=', 1)[0], page+1)
-		except:
-			next = ''
+		except: next = ''
 
 		for item in items:
 			media_type = item.get('media_type', '0')
-			if media_type == 'movie':
-				continue
+			if media_type == 'movie': 	continue
 
 			try: title = item.get('name').encode('utf-8')
 			except: title = item.get('name')
@@ -723,17 +654,16 @@ class TVshows:
 					imdb = '0'
 
 				genre = []
-				for i in item['genres']:
-					genre.append(i.get('name'))
+				for i in item['genres']: genre.append(i.get('name'))
 				if genre == []: genre = 'NA'
 
-				duration = str(item.get('episode_run_time', '0'))
+				try: duration = str(item.get('episode_run_time', '0'))
+				except: duration = '0'
+				if duration == 'None': duration = '0'
 
-				try:
-					mpaa = [i['rating'] for i in item['content_ratings']['results'] if i['iso_3166_1'] == 'US'][0]
+				try: mpaa = [i['rating'] for i in item['content_ratings']['results'] if i['iso_3166_1'] == 'US'][0]
 				except: 
-					try:
-						mpaa = item['content_ratings'][0]['rating']
+					try: mpaa = item['content_ratings'][0]['rating']
 					except: mpaa = 'NR'
 
 				status = item.get('status', '0')
@@ -752,19 +682,16 @@ class TVshows:
 				castandart = []
 				for person in item['credits']['cast']:
 					try:
-						try:
-							castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-						except:
-							castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-					except:
-						castandart = []
+						try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+					except: castandart = []
 					if len(castandart) == 150: break
 
 				values = {'content': 'tvshow', 'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes,
 								'mpaa': mpaa, 'status': status, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster,
 								'poster2': '0', 'poster3': '0', 'banner': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0', 'landscape': fanart, 'metacache': False, 'next': next}
-
 				meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'lang': self.lang, 'user': self.user, 'item': values}
+
 				if disable_fanarttv != 'true':
 					from resources.lib.indexers import fanarttv
 					extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
@@ -775,8 +702,7 @@ class TVshows:
 				values = dict((k,v) for k, v in values.iteritems() if v != '0')
 				self.list.append(values)
 
-				if 'next' in meta.get('item'):
-					del meta['item']['next']
+				if 'next' in meta.get('item'): del meta['item']['next']
 
 				self.meta.append(meta)
 				metacache.insert(self.meta)
@@ -799,21 +725,16 @@ class TVshows:
 
 	def get_details(self, tmdb, imdb):
 		item = None
-		if tmdb != '0':
-			item = get_request(self.tmdb_info_link % tmdb)
+		if tmdb != '0': item = get_request(self.tmdb_info_link % tmdb)
 		if not item:
-			if imdb != '0':
-				item = get_request(self.tmdb_info_link % imdb)
+			if imdb != '0': item = get_request(self.tmdb_info_link % imdb)
 		return item
 
 
 	def get_art(self, tmdb):
-		if API_key == '' or (tmdb == '0' or tmdb == 'None' or tmdb is None):
-			return None
+		if API_key == '' or (tmdb == '0' or tmdb == 'None' or tmdb is None): return None
 		art3 = get_request(self.tmdb_art_link % tmdb)
-		if not art3:
-			return None
-
+		if not art3: return None
 		try:
 			poster3 = art3['posters']
 			poster3 = [(x['width'], x['file_path']) for x in poster3]
@@ -821,7 +742,6 @@ class TVshows:
 			poster3 = poster_path + poster3[0]
 		except:
 			poster3 = '0'
-
 		try:
 			fanart3 = art3['backdrops']
 			fanart3 = [(x['width'], x['file_path']) for x in fanart3]
@@ -829,18 +749,15 @@ class TVshows:
 			fanart3 = fanart_path + fanart3[0]
 		except:
 			fanart3 = '0'
-
 		extended_art = {'extended': True, 'poster3': poster3, 'fanart3': fanart3}
 		return extended_art
 
 
 	def get_credits(self, tmdb):
 		url = base_link + '/3/tv/%s/credits?api_key=%s' % ('%s', API_key)
-		if API_key == '' or (tmdb == '0' or tmdb is None):
-			return None
+		if API_key == '' or (tmdb == '0' or tmdb is None): return None
 		people = get_request(url % tmdb)
-		if not people:
-			return None
+		if not people: return None
 		return people
 
 

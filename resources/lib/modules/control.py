@@ -6,7 +6,7 @@
 
 from datetime import datetime
 import glob
-import os
+import os.path
 import re
 import string
 from sys import argv
@@ -627,7 +627,7 @@ def datetime_workaround(string_date, format="%Y-%m-%d", date_only=True):
 	except:
 		import traceback
 		traceback.print_exc()
-		pass
+
 
 
 def add_source(source_name, source_path, source_content, source_thumbnail, type='video'):

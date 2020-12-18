@@ -17,7 +17,6 @@ from resources.lib.modules import log_utils
 from resources.lib.modules.source_utils import supported_video_extensions
 
 base_url = 'https://api.alldebrid.com/v4/'
-# user_agent = 'Venom for Kodi'
 user_agent = 'Venom%20for%20Kodi'
 ad_icon = control.joinPath(control.artPath(), 'alldebrid.png')
 addonFanart = control.addonFanart()
@@ -51,7 +50,6 @@ class AllDebrid:
 			control.notification(message='Failed to connect to All Debrid', icon=ad_icon)
 		except BaseException:
 			log_utils.error()
-			pass
 		return response
 
 
@@ -72,7 +70,6 @@ class AllDebrid:
 			control.notification(message='Failed to connect to All Debrid', icon=ad_icon)
 		except BaseException:
 			log_utils.error()
-			pass
 		return response
 
 
@@ -141,7 +138,6 @@ class AllDebrid:
 			return control.selectDialog(items, 'All Debrid')
 		except:
 			log_utils.error()
-			pass
 		return
 
 
@@ -207,12 +203,11 @@ class AllDebrid:
 	def delete_transfer(self, transfer_id, folder_name=None, silent=True):
 		try:
 			if not silent:
-				if not control.yesnoDialog(control.lang(40050) % folder_name, '', ''): return
+				if not control.yesnoDialog(control.lang(40050) % '?[CR]' + folder_name, '', ''): return
 			url = 'magnet/delete'
 			url_append = '&id=%s' % transfer_id
 			response = self._get(url, url_append)
-			if silent:
-				return
+			if silent: return
 			else:
 				if response and 'message' in response:
 					control.notification(message=response.get('message'))
@@ -221,18 +216,16 @@ class AllDebrid:
 					return
 		except:
 			log_utils.error()
-			pass
 
 
 	def restart_transfer(self, transfer_id, folder_name=None, silent=True):
 		try:
 			if not silent:
-				if not control.yesnoDialog(control.lang(40007) % folder_name, '', ''): return
+				if not control.yesnoDialog(control.lang(40007) % '[CR]' + folder_name, '', ''): return
 			url = 'magnet/restart'
 			url_append = '&id=%s' % transfer_id
 			response = self._get(url, url_append)
-			if silent:
-				return
+			if silent: return
 			else:
 				if response and 'message' in response:
 					control.notification(message=response.get('message'))
@@ -240,7 +233,6 @@ class AllDebrid:
 					return
 		except:
 			log_utils.error()
-			pass
 
 
 	def user_cloud(self):
@@ -257,7 +249,6 @@ class AllDebrid:
 			return
 		folder_str, deleteMenu, restartMenu = control.lang(40046).upper(), control.lang(40050), control.lang(40008)
 		for count, item in enumerate(transfer_files, 1):
-			# log_utils.log('item = %s' % str(item), __name__, log_utils.LOGDEBUG)
 			try:
 				status_code = item['statusCode'] 
 				if status_code in (0,1, 2, 3):
@@ -268,8 +259,7 @@ class AllDebrid:
 					except: percent = '0'
 				else:
 					active = False
-				folder_name = item['filename']
-				# normalized_folder_name = normalize(folder_name)
+				folder_name = control.strip_non_ascii_and_unprintable(item['filename'])
 				id = item['id']
 				status_str = '[COLOR %s]%s[/COLOR]' % (control.getColor(control.setting('highlight.color')), item['status'].capitalize())
 				if active:
@@ -277,7 +267,7 @@ class AllDebrid:
 				else:
 					label = '%02d | [B]%s[/B] | [B]%s[/B] | [I]%s [/I]' % (count, status_str, folder_str, folder_name)
 				if status_code == 4:
-					url = '%s?action=ad_BrowseUserCloud&source=%s' % (sysaddon, json.dumps(item))
+					url = '%s?action=ad_BrowseUserCloud&source=%s' % (sysaddon, quote_plus(json.dumps(item)))
 					isFolder = True
 				else:
 					url = ''
@@ -297,7 +287,6 @@ class AllDebrid:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=isFolder)
 			except:
 				log_utils.error()
-				pass
 		control.content(syshandle, 'files')
 		control.directory(syshandle, cacheToDisc=True)
 
@@ -311,12 +300,12 @@ class AllDebrid:
 		for count, item in enumerate(cloud_dict, 1):
 			try:
 				cm = []
-				folder_name = item['filename']
-				# normalized_folder_name = normalize(folder_name)
+				folder_name = control.strip_non_ascii_and_unprintable(item['filename'])
 				id = item['id']
 				status_str = '[COLOR %s]%s[/COLOR]' % (control.getColor(control.setting('highlight.color')), item['status'].capitalize())
 				label = '%02d | [B]%s[/B] | [B]%s[/B] | [I]%s [/I]' % (count, status_str, folder_str, folder_name)
-				url = '%s?action=ad_BrowseUserCloud&source=%s' % (sysaddon, json.dumps(item))
+				url = '%s?action=ad_BrowseUserCloud&source=%s' % (sysaddon, quote_plus(json.dumps(item)))
+
 				cm.append((deleteMenu % 'Transfer', 'RunPlugin(%s?action=ad_DeleteTransfer&id=%s&name=%s)' %
 					(sysaddon, id, folder_name)))
 				item = control.item(label=label)
@@ -328,7 +317,6 @@ class AllDebrid:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
 			except:
 				log_utils.error()
-				pass
 		control.content(syshandle, 'files')
 		control.directory(syshandle, cacheToDisc=True)
 
@@ -337,6 +325,8 @@ class AllDebrid:
 		sysaddon = sys.argv[0]
 		syshandle = int(sys.argv[1])
 		extensions = supported_video_extensions()
+
+
 		torrent_folder = json.loads(folder)
 		links = torrent_folder['links']
 		links = [i for i in links if i['filename'].lower().endswith(tuple(extensions))]
@@ -347,8 +337,7 @@ class AllDebrid:
 			try:
 				cm = []
 				url_link = item['link']
-				# name = clean_file_name(item['filename']).upper()
-				name = item['filename']
+				name = control.strip_non_ascii_and_unprintable(item['filename'])
 				size = item['size']
 				display_size = float(int(size))/1073741824
 				label = '%02d | [B]%s[/B] | %.2f GB | [I]%s [/I]' % (count, file_str, display_size, name)
@@ -367,7 +356,6 @@ class AllDebrid:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=False)
 			except:
 				log_utils.error()
-				pass
 		control.content(syshandle, 'files')
 		control.directory(syshandle, cacheToDisc=True)
 
@@ -433,10 +421,8 @@ class AllDebrid:
 
 	def add_uncached_torrent(self, magnet_url, pack=False):
 		def _return_failed(message=control.lang(33586)):
-			try:
-				control.progressDialog.close()
-			except:
-				pass
+			try: control.progressDialog.close()
+			except: pass
 			self.delete_transfer(transfer_id)
 			control.hide()
 			control.sleep(500)
@@ -450,7 +436,6 @@ class AllDebrid:
 		if not transfer_info:
 			return _return_failed()
 		if pack:
-			# self.clear_cache()
 			control.hide()
 			control.okDialog(title='default', message=control.lang(40017) % control.lang(40059))
 			return True
@@ -480,16 +465,18 @@ class AllDebrid:
 				return sys.exit()
 			try:
 				if control.progressDialog.iscanceled():
-					return _return_failed(control.lang(40014))
-			except:
-				pass
+					if control.yesnoDialog('Delete AD download also?', 'No will continue the download', 'but close dialog'):
+						return _return_failed(control.lang(40014))
+					else:
+						control.progressDialog.close()
+						control.hide()
+						return False
+			except: pass
 			if 5 <= transfer_info['statusCode'] <= 10:
 				return _return_failed()
 		control.sleep(1000 * interval)
-		try:
-			control.progressDialog.close()
-		except:
-			pass
+		try: control.progressDialog.close()
+		except: pass
 		control.hide()
 		return True
 
@@ -518,9 +505,13 @@ class AllDebrid:
 			hosts_dict['AllDebrid'] = list(set(hosts))
 		except:
 			log_utils.error()
-			pass
 		return hosts_dict
 
+
+	def revoke_auth(self):
+		control.setSetting('alldebrid.token', '')
+		control.setSetting('alldebrid.username', '')
+		control.okDialog(title=40059, message=40009)
 
 
 # # from resolveURL
@@ -592,10 +583,3 @@ class AllDebrid:
 			# if any(host in item for item in self.hosts):
 				# return True
 		# return False
-
-
-
-	def revoke_auth(self):
-		control.setSetting('alldebrid.token', '')
-		control.setSetting('alldebrid.username', '')
-		control.okDialog(title=40059, message=40009)

@@ -519,7 +519,6 @@ if action and action.startswith('download'):
 			except:
 				import traceback
 				traceback.print_exc()
-				pass
 		if caller == 'premiumize':
 			control.busy()
 			try:
@@ -529,7 +528,6 @@ if action and action.startswith('download'):
 			except:
 				import traceback
 				traceback.print_exc()
-				pass
 		if caller == 'realdebrid':
 			control.busy()
 			try:
@@ -542,7 +540,6 @@ if action and action.startswith('download'):
 			except:
 				import traceback
 				traceback.print_exc()
-				pass
 		if caller == 'alldebrid':
 			control.busy()
 			try:
@@ -552,7 +549,6 @@ if action and action.startswith('download'):
 			except:
 				import traceback
 				traceback.print_exc()
-				pass
 
 
 ####################################################
@@ -608,7 +604,7 @@ if action and action.startswith('tools_'):
 		control.syncMyAccounts()
 		control.sleep(100)
 		if params.get('opensettings') == 'true':
-			control.openSettings('8.0', 'plugin.video.venom')
+			control.openSettings(params.get('query2'), 'plugin.video.venom')
 
 	elif action == 'tools_syncMyAccount':
 		control.syncMyAccounts()
@@ -730,7 +726,10 @@ elif action == 'cacheTorrent':
 		from resources.lib.debrid.premiumize import Premiumize as debrid_function
 	elif caller == 'AD':
 		from resources.lib.debrid.alldebrid import AllDebrid as debrid_function
-	debrid_function().add_uncached_torrent(url, pack=pack)
+	success = debrid_function().add_uncached_torrent(url, pack=pack)
+	if success:
+		from resources.lib.modules import sources
+		sources.Sources().playItem(title, source)
 
 elif action == 'random':
 	rtype = params.get('rtype')
