@@ -72,7 +72,8 @@ class RealDebrid:
 				url += "?auth_token=%s" % self.token
 			else:
 				url += "&auth_token=%s" % self.token
-			response = requests.get(url, timeout=15).json()
+			response = requests.get(url, timeout=30).json()
+
 			if 'bad_token' in str(response) or 'Bad Request' in str(response):
 				if not fail_check:
 					if self.refresh_token() and token_ck:
@@ -392,7 +393,7 @@ class RealDebrid:
 
 	def check_cache_list(self, hashList):
 		if isinstance(hashList, list):
-			hashList = [hashList[x:x+100] for x in range(0, len(hashList), 100)]
+			hashList = [hashList[x : x + 100] for x in range(0, len(hashList), 100)]
 			# Need to check token, and refresh if needed, before blasting threads at it
 			ck_token = self._get('user', token_ck=True)
 			threads = []

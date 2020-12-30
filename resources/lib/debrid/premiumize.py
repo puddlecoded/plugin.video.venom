@@ -323,7 +323,11 @@ class Premiumize:
 			media_id = media_id.encode('ascii', errors='ignore').decode('ascii', errors='ignore')
 			media_id = media_id.replace(' ', '')
 			url = '%s?items[]=%s' % (cache_check_url, media_id)
-			result = requests.get(url, headers=self.headers).json()
+			result = requests.get(url, headers=self.headers)
+			if any(value in response for value in ['500', '502', '504']):
+				log_utils.log('Premiumize.me Service Unavailable: %s' % response, __name__, log_utils.LOGNOTICE)
+			else:
+				response = response.json()
 			if 'status' in result:
 				if result.get('status') == 'success':
 					response = result.get('response', False)
@@ -333,14 +337,17 @@ class Premiumize:
 					control.notification(message=result.get('message'))
 		except:
 			log_utils.error()
-			pass
 		return False
 
 
 	def check_cache_list(self, hashList):
 		try:
 			postData = {'items[]': hashList}
-			response = requests.post(cache_check_url, data=postData, headers=self.headers, timeout=10).json()
+			response = requests.post(cache_check_url, data=postData, headers=self.headers, timeout=10)
+			if any(value in response for value in ['500', '502', '504']):
+				log_utils.log('Premiumize.me Service Unavailable: %s' % response, __name__, log_utils.LOGNOTICE)
+			else:
+				response = response.json()
 			if 'status' in response:
 				if response.get('status') == 'success':
 					response = response.get('response', False)
@@ -348,7 +355,6 @@ class Premiumize:
 						return response
 		except:
 			log_utils.error()
-			pass
 		return False
 
 
@@ -376,7 +382,6 @@ class Premiumize:
 					return
 		except:
 			log_utils.error()
-			pass
 		return
 
 

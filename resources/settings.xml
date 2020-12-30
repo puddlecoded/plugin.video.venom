@@ -170,19 +170,18 @@
 		<setting id="remove.3D.sources" type="bool" label="32051" default="true" />
 
 		<setting type="lsep" label="32387" /> <!-- Sources Select -->
-		<setting id="prem.color" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="6" />
-		<setting id="autoplay.sd" type="bool" label="32656" default="false" />
 		<setting id="enable.resquality.icons" type="bool" label="32052" default="false" />
-		<setting id="sources.extrainfo" type="bool" label="32587" default="true" />
+		<setting id="sources.cached.color" type="select" label="32634" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="5" visible = "true" />
+		<setting id="sources.uncached.color" type="select" label="32635" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="13" visible = "true" />
+		<setting id="sources.prem.color" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="6" />
+		<setting id="sources.sec.color" type="select" label="32636" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="4" />
+		<setting id="sources.sec.type" type="select" label="32637" values="std info line|link title" default="link title" />
+		<setting id="autoplay.sd" type="bool" label="32656" default="false" />
 	</category>
 
 	<!-- Torrent Settings - 6 -->
 	<category label="Torrent Settings">
 		<setting type="lsep" label="Sources Select" />
-		<setting id="torrent.cached.color" type="select" label="32634" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="5" visible = "true" />
-		<setting id="torrent.uncached.color" type="select" label="32635" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="13" visible = "true" />
-		<setting id="torrent.sec.color" type="select" label="32636" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="4" />
-		<setting id="torrent.sec.type" type="select" label="32637" values="std info line|magnet title" default="magnet title" />
 		<setting id="torrent.min.seeders" type="slider" label="32638" default="1" range="1,100" option="int" visible="false" /> <!-- Hard coded to 1 by Fenomscrapers so not visible for now-->
 		<setting id="torrent.group.sort" type="select" label="Torent/Hoster sorting method" lvalues="32021|32022" default="1" visible = "true" />
 		<setting id="torrent.size.sort" type="bool" label="Sort torrents by size" default="true" />

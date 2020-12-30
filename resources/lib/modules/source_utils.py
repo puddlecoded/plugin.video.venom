@@ -5,7 +5,6 @@
 """
 
 import re
-
 try:
 	from urllib import unquote, unquote_plus
 except:
@@ -13,20 +12,20 @@ except:
 
 from resources.lib.modules import log_utils
 
-HDCAM = ['hdcam', '.hd.cam.', 'hdts', '.hd.ts.', '.hdtc.', '.hd.tc.', '.hctc.', 'hc.tc.']
+
+HDCAM = ['hdcam', '.hd.cam', 'hdts', '.hd.ts', '.hdtc', '.hd.tc', '.hctc', '.hc.tc']
 
 CODEC_H265 = ['hevc', 'h265', 'h.265', 'x265', 'x.265']
 CODEC_H264 = ['avc', 'h264', 'h.264', 'x264', 'x.264']
-CODEC_XVID = ['xvid', 'x.vid']
+CODEC_XVID = ['xvid', '.x.vid']
 CODEC_DIVX = ['divx', 'divx ', 'div2', 'div2 ', 'div3']
-CODEC_MPEG = ['mpeg', 'm4v', 'mpg', 'mpg1', 'mpg2', 'mpg3', 'mpg4', 'mp4 ', '.mp.4.', 'msmpeg', 'msmpeg4',
-							'msmpeg.4.', 'mpegurl']
+CODEC_MPEG = ['mpeg', 'm4v', 'mpg', 'mpg1', 'mpg2', 'mpg3', 'mpg4', 'mp4 ', '.mp.4.', 'msmpeg', 'msmpeg4', 'msmpeg.4.', 'mpegurl']
 CODEC_MKV = ['mkv', '.mkv', 'matroska']
 
 AUDIO_8CH = ['ch8.', '8ch.', '.7.1.']
 AUDIO_7CH = ['ch7.', '7ch.', '.6.1.']
 AUDIO_6CH = ['ch6.', '6ch.', '.5.1.']
-AUDIO_2CH = ['ch2.', '2ch.', '2.0', 'audio.2.0.', 'stereo']
+AUDIO_2CH = ['ch2', '2ch', '2.0', 'audio.2.0.', 'stereo']
 
 MULTI_LANG = ['hindi.eng', 'ara.eng', 'ces.eng', 'chi.eng', 'cze.eng', 'dan.eng', 'dut.eng', 'ell.eng', 'esl.eng',
 			  'esp.eng', 'fin.eng', 'fra.eng', 'fre.eng', 'frn.eng', 'gai.eng', 'ger.eng', 'gle.eng', 'gre.eng',
@@ -34,7 +33,7 @@ MULTI_LANG = ['hindi.eng', 'ara.eng', 'ces.eng', 'chi.eng', 'cze.eng', 'dan.eng'
 			  'lat.eng', 'lebb.eng', 'lit.eng', 'nor.eng', 'pol.eng', 'por.eng', 'rus.eng', 'som.eng', 'spa.eng', 'sve.eng',
 			  'swe.eng', 'tha.eng', 'tur.eng', 'uae.eng', 'ukr.eng', 'vie.eng', 'zho.eng', 'dual.audio', 'multi']
 
-SUBS = ['subita', 'subfrench', 'subs', 'subspanish', 'subtitula', 'swesub']
+SUBS = ['subita', 'subfrench', 'subspanish', 'subtitula', 'swesub', 'nl.subs']
 ADDS = ['1xbet', 'betwin']
 
 
@@ -112,10 +111,11 @@ def supported_video_extensions():
 	return [i for i in supported_video_extensions if i != '' and i != '.zip']
 
 
-def getFileType(url):
+def getFileType(name_info=None, url=None):
 	try:
 		type = ''
-		fmt = url_strip(url)
+		if name_info: fmt = name_info
+		elif url: fmt = url_strip(url)
 		if not fmt: return type
 		if any(value in fmt for value in ['blu.ray', 'bluray', '.bd.']):
 			type += ' BLURAY /'
@@ -133,7 +133,7 @@ def getFileType(url):
 			type += ' SDTV /'
 		if any(value in fmt for value in ['hd.rip', 'hdrip']):
 			type += ' HDRIP /'
-		if 'hdr.' in fmt:
+		if '.hdr' in fmt:
 			type += ' HDR /'
 		if any(value in fmt for value in ['dd.5.1.', 'dd.5.1ch.', 'dd5.1.', 'dolby.digital', 'dolbydigital']):
 			type += ' DOLBYDIGITAL /'
@@ -145,7 +145,7 @@ def getFileType(url):
 			type += ' DOLBY-TRUEHD /'
 		if 'atmos' in fmt:
 			type += ' ATMOS /'
-		if '.dts.' in fmt:
+		if '.dts' in fmt:
 			type += ' DTS /'
 		if any(value in fmt for value in ['dts.hd.', 'dtshd']):
 			type += ' DTS-HD /'
@@ -169,7 +169,7 @@ def getFileType(url):
 			type += ' MPEG /'
 		if '.avi' in fmt:
 			type += ' AVI /'
-		if any(value in fmt for value in ['.ac3', '.ac.3.']):
+		if any(value in fmt for value in ['.ac3', '.ac.3']):
 			type += ' AC3 /'
 		if any(value in fmt for value in CODEC_H264):
 			type += ' X264 /'

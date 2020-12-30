@@ -597,6 +597,7 @@ def trigger_widget_refresh():
 	homeWindow.setProperty('widgetreload-tvshows', timestr)
 	homeWindow.setProperty('widgetreload-episodes', timestr)
 	homeWindow.setProperty('widgetreload-movies', timestr)
+	execute('UpdateLibrary(video,/fake/path/to/force/refresh/on/home)') # make sure this is ok coupled with above
 
 
 def get_video_database_path():
@@ -611,18 +612,13 @@ def get_video_database_path():
 def datetime_workaround(string_date, format="%Y-%m-%d", date_only=True):
 	sleep(200)
 	try:
-		if string_date == '':
-			return None
+		if string_date == '': return None
 		try:
-			if date_only:
-				res = datetime.strptime(string_date, format).date()
-			else:
-				res = datetime.strptime(string_date, format)
+			if date_only: res = datetime.strptime(string_date, format).date()
+			else: res = datetime.strptime(string_date, format)
 		except TypeError:
-			if date_only:
-				res = datetime(*(time.strptime(string_date, format)[0:6])).date()
-			else:
-				res = datetime(*(time.strptime(string_date, format)[0:6]))
+			if date_only: res = datetime(*(time.strptime(string_date, format)[0:6])).date()
+			else: res = datetime(*(time.strptime(string_date, format)[0:6]))
 		return res
 	except:
 		import traceback

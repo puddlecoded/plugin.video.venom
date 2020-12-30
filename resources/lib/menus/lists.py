@@ -439,7 +439,8 @@ class indexer:
 
 			self.list = [] ; threads = []
 			for link in links: threads.append(workers.Thread(self.it_list, link))
-			[i.start() for i in threads] ; [i.join() for i in threads]
+			[i.start() for i in threads]
+			[i.join() for i in threads]
 
 			self.list = [i for i in self.list if url.lower() in i['name'].lower()]
 

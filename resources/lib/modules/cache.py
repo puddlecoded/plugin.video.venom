@@ -225,7 +225,7 @@ def cache_clear_bookmark(name, year='0'):
 	years = [str(year), str(int(year)+1), str(int(year)-1)]
 	try:
 		# cursor.execute("DELETE FROM bookmark WHERE idFile = '%s'" % idFile)
-		cursor.execute('''DELETE FROM bookmark WHERE Name=? AND year IN (?)''', (name, ','.join(i for i in years)))
+		cursor.execute('''DELETE FROM bookmark WHERE Name="%s" AND year IN (%s)''' % (name, ','.join(i for i in years)))
 		cursor.connection.commit()
 		control.refresh()
 		control.trigger_widget_refresh()

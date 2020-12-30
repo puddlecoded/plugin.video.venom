@@ -909,12 +909,9 @@ class Movies:
 			if not self.list: return
 			self.meta = []
 			total = len(self.list)
-
 			for i in range(0, total):
 				self.list[i].update({'metacache': False})
-
 			self.list = metacache.fetch(self.list, self.lang, self.user)
-
 			for r in range(0, total, 40):
 				threads = []
 				for i in range(r, r + 40):
@@ -922,10 +919,8 @@ class Movies:
 						threads.append(workers.Thread(self.super_info, i))
 				[i.start() for i in threads]
 				[i.join() for i in threads]
-
 			if self.meta:
 				metacache.insert(self.meta)
-
 			self.list = [i for i in self.list if (i['imdb'] and i['tmdb'] != '0')]
 		except:
 			log_utils.error()
@@ -1232,9 +1227,7 @@ class Movies:
 					cm.append(('Rescrape Item', 'RunPlugin(%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, tmdb, sysmeta)))
 				elif control.setting('hosts.mode') != '1':
 					cm.append(('Rescrape Item', 'PlayMedia(%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&meta=%s&rescrape=true)' % (sysaddon, systitle, year, imdb, tmdb, sysmeta)))
-
-				if control.setting('library.service.update') == 'true':
-					cm.append((addToLibrary, 'RunPlugin(%s?action=library_movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
+				cm.append((addToLibrary, 'RunPlugin(%s?action=library_movieToLibrary&name=%s&title=%s&year=%s&imdb=%s&tmdb=%s)' % (sysaddon, sysname, systitle, year, imdb, tmdb)))
 				cm.append(('Find similar', 'ActivateWindow(10025,%s?action=movies&url=https://api.trakt.tv/movies/%s/related,return)' % (sysaddon, imdb)))
 				cm.append((control.lang(32611), 'RunPlugin(%s?action=cache_clearSources)' % sysaddon))
 				cm.append(('[COLOR red]Venom Settings[/COLOR]', 'RunPlugin(%s?action=tools_openSettings)' % sysaddon))

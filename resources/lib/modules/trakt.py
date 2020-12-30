@@ -418,7 +418,8 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 		items += [(control.lang(33653), 'rate')]
 		items += [(control.lang(33654), 'unrate')]
 		items += [(control.lang(40075) % media_type, 'hideItem')]
-		items += [(control.lang(40076), 'scrobbleReset')]
+		if control.setting('trakt.scrobble') == 'true' and control.setting('resume.source') == '1':
+			items += [(control.lang(40076), 'scrobbleReset')]
 		items += [(control.lang(33575), '/sync/collection')]
 		items += [(control.lang(33576), '/sync/collection/remove')]
 		if season or episode:

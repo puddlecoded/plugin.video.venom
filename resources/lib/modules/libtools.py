@@ -898,7 +898,6 @@ class libepisodes:
 				dbcur.connection.commit()
 			except:
 				log_utils.error()
-			finally: dbcur.close() ; dbcon.close()
 
 			try:
 				id = [item['imdb'], item['tvdb']]
@@ -933,6 +932,9 @@ class libepisodes:
 						control.notification(title=item['tvshowtitle'], message=32678)
 				except:
 					log_utils.error()
+
+		try: dbcur.close() ; dbcon.close()
+		except: pass
 
 		if files_added == 0 and service_notification :
 			control.notification(message=32109)

@@ -1040,8 +1040,8 @@ msgid "Enable Torrent Scrapers"
 msgstr "Schakel Torrent Scrapers in"
 
 msgctxt "#32637"
-msgid "Real-Debrid Torrent Settings"
-msgstr "Real-Debrid Torrent-instellingen"
+msgid "Secondary Line Content Type"
+msgstr "Secondary Line Content Type"
 
 msgctxt "#32638"
 msgid "Minimum Seeders"

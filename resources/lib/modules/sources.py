@@ -168,7 +168,7 @@ class Sources:
 			allowed = ['poster', 'season_poster', 'fanart', 'thumb', 'title', 'year', 'tvshowtitle', 'season', 'episode']
 			return {k: v for k, v in metadata.iteritems() if k in allowed}
 
-		control.playlist.clear()
+		control.playlist.clear() # ?
 		items = control.homeWindow.getProperty(self.itemProperty)
 		items = json.loads(items)
 
@@ -182,12 +182,10 @@ class Sources:
 
 		sysaddon = sys.argv[0]
 		syshandle = int(sys.argv[1])
+		systitle = sysname = quote_plus(title)
 
 		downloads = True if control.setting('downloads') == 'true' and (control.setting(
 			'movie.download.path') != '' or control.setting('tv.download.path') != '') else False
-
-		systitle = sysname = quote_plus(title)
-
 		poster = meta.get('poster') or control.addonPoster()
 		if 'tvshowtitle' in meta and 'season' in meta and 'episode' in meta:
 			poster = meta.get('season_poster') or poster or control.addonPoster()
@@ -210,7 +208,7 @@ class Sources:
 				sysurl = '%s?action=playItem&title=%s&source=%s' % (sysaddon, systitle, syssource)
 
 				cm = []
-				type = 'pack' if 'package' in items[i] else 'single'
+				link_type = 'pack' if 'package' in items[i] else 'single'
 				isCached = True if re.match(r'^cached.*torrent', items[i]['source']) else False
 				if downloads and (isCached or items[i]['direct'] == True or (items[i]['debridonly'] == True and 'magnet:' not in items[i]['url'])):
 					try: new_sysname = quote_plus(items[i]['name'])
@@ -218,17 +216,17 @@ class Sources:
 					cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&source=%s&caller=sources&title=%s)' %
 										(sysaddon, new_sysname, sysimage, syssource, sysname)))
 
-				if type == 'pack' and isCached:
+				if link_type == 'pack' and isCached:
 					cm.append(('[B]Browse Debrid Pack[/B]', 'RunPlugin(%s?action=showDebridPack&caller=%s&name=%s&url=%s&source=%s)' %
 									(sysaddon, quote_plus(items[i]['debrid']), quote_plus(items[i]['name']), quote_plus(items[i]['url']), quote_plus(items[i]['hash']))))
 
 				if not isCached and 'magnet:' in items[i]['url']:
 					d = self.debrid_abv(items[i]['debrid'])
 					if d in ('PM', 'RD', 'AD'):
-						try: seeders = int(items[i]['seeders'])
-						except: seeders = 0
+						try: seeders = items[i]['seeders']
+						except: seeders = '0'
 						cm.append(('[B]Cache to %s Cloud (seeders=%s)[/B]' % (d, seeders), 'RunPlugin(%s?action=cacheTorrent&caller=%s&type=%s&title=%s&url=%s&source=%s)' %
-											(sysaddon, d, type, sysname, quote_plus(items[i]['url']), syssource)))
+											(sysaddon, d, link_type, sysname, quote_plus(items[i]['url']), syssource)))
 
 				if resquality_icons:
 					quality = items[i]['quality']
@@ -559,7 +557,6 @@ class Sources:
 			sources = call.sources(url, self.hostprDict)
 			if sources:
 				sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
-				for i in sources: i.update({'provider': source})
 				self.scraper_sources.extend(sources)
 				dbcur.execute('''INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)''', (source, imdb, '', '', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 				dbcur.connection.commit()
@@ -675,7 +672,6 @@ class Sources:
 			sources = call.sources(ep_url, self.hostprDict)
 			if sources:
 				sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
-				for i in sources: i.update({'provider': source})
 				self.scraper_sources.extend(sources)
 				dbcur.execute('''INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)''', (source, imdb, season, episode, repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 				dbcur.connection.commit()
@@ -692,7 +688,6 @@ class Sources:
 				sources = call.sources_packs(ep_url, self.hostprDict, bypass_filter=self.dev_disable_season_filter)
 				if sources:
 					sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
-					for i in sources: i.update({'provider': source})
 					self.scraper_sources.extend(sources)
 					dbcur.execute('''INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)''', (source, imdb, season,'', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 					dbcur.connection.commit()
@@ -708,7 +703,6 @@ class Sources:
 				sources = call.sources_packs(ep_url, self.hostprDict, search_series=True, total_seasons=self.total_seasons, bypass_filter=self.dev_disable_show_filter)
 				if sources:
 					sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
-					for i in sources: i.update({'provider': source})
 					sources = [i for i in sources if i.get('last_season') >= int(season)] # filter out range items that do not apply to current season
 					self.scraper_sources.extend(sources)
 					dbcur.execute('''INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)''', (source, imdb, '', '', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
@@ -717,7 +711,6 @@ class Sources:
 			log_utils.error()
 		finally:
 			dbcon.close() ; dbcon.close()
-
 
 
 	def alterSources(self, url, meta):
@@ -735,29 +728,21 @@ class Sources:
 		control.busy()
 		quality = control.setting('hosts.quality')
 		if quality == '': quality = '0'
-
 		if control.setting('remove.duplicates') == 'true':
 			self.sources = self.filter_dupes()
-
 		if control.setting('source.enablesizelimit') == 'true':
 			self.sources = [i for i in self.sources if i.get('size', 0) <= int(control.setting('source.sizelimit'))]
-
 		if control.setting('remove.hevc') == 'true':
 			self.sources = [i for i in self.sources if 'HEVC' not in i.get('info', '')] # scrapers write HEVC to info
-
 		if control.setting('remove.CamSd.sources') == 'true':
 			if any(i for i in self.sources if any(value in i['quality'] for value in ['4K', '1080p', '720p'])): #only remove CAM and SD if better quality does exist
 				self.sources = [i for i in self.sources if not any(value in i['quality'] for value in ['CAM', 'SD'])]
-
 		if control.setting('remove.3D.sources') == 'true':
 			self.sources = [i for i in self.sources if '3D' not in i.get('info', '')]
-
 		if control.setting('hosts.sort.provider') == 'true':
 			self.sources = sorted(self.sources, key=lambda k: k['provider'])
-
 		if self.mediatype == 'episode':
 			self.sources = self.calc_pack_size()
-
 		if control.setting('torrent.size.sort') == 'true':
 			filter = []
 			filter += [i for i in self.sources if 'magnet:' in i['url']]
@@ -770,54 +755,61 @@ class Sources:
 
 		filter = []
 		from copy import deepcopy
-		for d in self.debrid_resolvers:
-			valid_hoster = set([i['source'] for i in self.sources])
-			valid_hoster = [i for i in valid_hoster if d.valid_url(i)]
+		start = time.time()
+		deepcopy_sources = deepcopy(self.sources)
+		deepcopy_sources = [i for i in deepcopy_sources if 'magnet:' in i['url']]
+		threads = []
+		self.filter = []
+		valid_hosters = set([i['source'] for i in self.sources])
 
+		def checkStatus(function, debrid_name, valid_hoster, remove_uncached):
+			try:
+				cached = function(deepcopy_sources, d)
+				self.uncached_sources += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if re.match(r'^uncached.*torrent', i['source'])]
+				if remove_uncached:
+					self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if re.match(r'^cached.*torrent', i['source'])]
+				else: self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
+				self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
+			except:
+				log_utils.error()
+
+		for d in self.debrid_resolvers:
 			if d.name == 'Premiumize.me' and control.setting('premiumize.enable') == 'true':
 				try:
-					pmTorrent_List = deepcopy(self.sources)
-					pmTorrent_List = [i for i in pmTorrent_List if 'magnet:' in i['url']]
-					if pmTorrent_List == []: raise Exception()
-					pmCached = self.pm_cache_chk_list(pmTorrent_List, d)
-					# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if re.match(r'^uncached.*torrent', i['source'])]
-					if control.setting('pm.remove.uncached') == 'true':
-						filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if re.match(r'^cached.*torrent', i['source'])]
-					else: filter += [dict(i.items() + [('debrid', d.name)]) for i in pmCached if 'magnet:' in i['url']]
+					if deepcopy_sources:
+						valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
+						remove_uncached = control.setting('pm.remove.uncached') == 'true'
+						threads.append(workers.Thread(checkStatus, self.pm_cache_chk_list, d.name, valid_hoster, remove_uncached))
 				except:
 					log_utils.error()
-				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 
 			if d.name == 'Real-Debrid' and control.setting('realdebrid.enable') == 'true':
 				try:
-					rdTorrent_List = deepcopy(self.sources)
-					rdTorrent_List = [i for i in rdTorrent_List if 'magnet:' in i['url']]
-					if rdTorrent_List == []: raise Exception()
-					rdCached = self.rd_cache_chk_list(rdTorrent_List, d)
-					# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if re.match(r'^uncached.*torrent', i['source'])]
-					if control.setting('rd.remove.uncached') == 'true':
-						filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if re.match(r'^cached.*torrent', i['source'])]
-					else: filter += [dict(i.items() + [('debrid', d.name)]) for i in rdCached if 'magnet:' in i['url']]
+					if deepcopy_sources:
+						valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
+						remove_uncached = control.setting('rd.remove.uncached') == 'true'
+						threads.append(workers.Thread(checkStatus, self.rd_cache_chk_list, d.name, valid_hoster, remove_uncached))
 				except:
 					log_utils.error()
-				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 
 			if d.name == 'AllDebrid' and control.setting('alldebrid.enable') == 'true':
 				try:
-					adTorrent_List = deepcopy(self.sources)
-					adTorrent_List = [i for i in adTorrent_List if 'magnet:' in i['url']]
-					if adTorrent_List == []: raise Exception()
-					adCached = self.ad_cache_chk_list(adTorrent_List, d)
-					# self.uncached_sources += [dict(i.items() + [('debrid', d.name)]) for i in adCached if re.match(r'^uncached.*torrent', i['source'])]
-					if control.setting('ad.remove.uncached') == 'true':
-						filter += [dict(i.items() + [('debrid', d.name)]) for i in adCached if re.match(r'^cached.*torrent', i['source'])]
-					else: filter += [dict(i.items() + [('debrid', d.name)]) for i in adCached if 'magnet:' in i['url']]
+					if not deepcopy_sources == []:
+						valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
+						remove_uncached = control.setting('ad.remove.uncached') == 'true'
+						threads.append(workers.Thread(checkStatus, self.ad_cache_chk_list, d.name, valid_hoster, remove_uncached))
 				except:
 					log_utils.error()
-				filter += [dict(i.items() + [('debrid', d.name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 
-		filter += [i for i in self.sources if i['direct'] == True]
-		self.sources = filter
+		if threads:
+			[i.start() for i in threads]
+			[i.join() for i in threads]
+
+		self.filter += [i for i in self.sources if i['direct'] == True]
+		self.sources = self.filter
+
+		end = time.time()
+		log_utils.log('Tikis Cache check total time = %s' % str(end - start), __name__, log_utils.LOGNOTICE)
 
 		if control.setting('torrent.group.sort') == '1':
 			filter = []
@@ -849,61 +841,70 @@ class Sources:
 
 		self.sources = [i for i in self.sources if not i['source'] in self.hostblockDict]
 		self.sources = self.sources[:4000]
-		extra_info = control.setting('sources.extrainfo')
 
-		torr_cached_color = control.getColor(control.setting('torrent.cached.color'))
-		torr_uncached_color = control.getColor(control.setting('torrent.uncached.color'))
-		prem_color = control.getColor(control.setting('prem.color'))
-		torr_sec_color = control.getColor(control.setting('torrent.sec.color'))
-		torr_sec_type = control.setting('torrent.sec.type')
+		cached_color = control.getColor(control.setting('sources.cached.color'))
+		uncached_color = control.getColor(control.setting('sources.uncached.color'))
+		prem_color = control.getColor(control.setting('sources.prem.color'))
+		line2_color = control.getColor(control.setting('sources.sec.color'))
+		line2_type = control.setting('sources.sec.type')
 
 		for i in range(len(self.sources)):
-			if extra_info == 'true': t = source_utils.getFileType(self.sources[i]['url'])
-			else: t = ''
+			t = ''
+			if line2_type == 'link title' and 'name' in self.sources[i]:
+				t = self.sources[i]['name']
+			else:
+				try: f = (' / '.join(['%s ' % info.strip() for info in self.sources[i]['info'].split('|')]))
+				except: f = ''
+				if 'name_info' in self.sources[i]:
+					t = source_utils.getFileType(name_info=self.sources[i]['name_info'])
+				else:
+					t = source_utils.getFileType(url=self.sources[i]['url'])
+				t = '%s / %s' % (f, t) if (f != '' and f != '0 ' and f != ' ') else t
+			if t == '':
+				t = source_utils.getFileType(url=self.sources[i]['url'])
+
+			try:
+				size = self.sources[i]['info'].split('|', 1)[0]
+				if any(value in size for value in ['HEVC', '3D']): size = ''
+			except: size = ''
+
 			u = self.sources[i]['url']
 			q = self.sources[i]['quality']
 			p = self.sources[i]['provider'].upper()
-			s = self.sources[i]['source'].upper()
-			s = s.rsplit('.', 1)[0]
-			try: f = (' / '.join(['%s ' % info.strip() for info in self.sources[i]['info'].split('|')]))
-			except: f = ''
+			s = self.sources[i]['source'].upper().rsplit('.', 1)[0]
+
 			if 'debrid' in self.sources[i]: d = self.debrid_abv(self.sources[i]['debrid'])
 			else: d = self.sources[i]['debrid'] = ''
-
 			if d:
-				if 'UNCACHED' in s and torr_uncached_color != 'nocolor':
-					color = torr_uncached_color
-					sec_color = torr_uncached_color
-				elif 'CACHED' in s and torr_cached_color != 'nocolor':
-					color = torr_cached_color
-					sec_color = torr_sec_color
+				if 'UNCACHED' in s and uncached_color != 'nocolor':
+					color = uncached_color
+					sec_color = uncached_color
+				elif 'CACHED' in s and cached_color != 'nocolor':
+					color = cached_color
+					sec_color = line2_color
 				elif 'TORRENT' not in s and prem_color != 'nocolor':
 					color = prem_color
-					sec_color = prem_color
-
-			if d != '': label = '[COLOR %s]%02d  |  [B]%s[/B]  |  %s  |  %s  |  [B]%s[/B][/COLOR]' % (color, int(i + 1), q, d, p, s)
-			else: label = '%02d  |  %s  |  %s  |  %s' % (int(i + 1), q, p, s)
-			l1 = label
-
-			if t != '':
-				if f != '' and f != '0 ' and f != ' ': label += '\n       [COLOR %s][I]%s / %s[/I][/COLOR]' % (sec_color, f, t)
-				else: label += '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_color, t)
+					sec_color = line2_color
 			else:
-				if f != '' and f != '0 ' and f != ' ': label += '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_color, f)
+				sec_color = line2_color
 
-			if torr_sec_type == 'magnet title':
-				if 'magnet:' in u:
-					link_title = self.sources[i]['name'] ; size = ''
-					if f:
-						size = f.split(' /', 1)[0]
-						l1 += '[COLOR %s]  |  %s[/COLOR]' % (color, size)
-						l1l = len(l1)-58
-						l2 = '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_color, link_title)
-						l2l = len(l2)-27
-						if l2l > l1l:
-							adjust = l2l - l1l
-							l1 = l1.ljust(l1l+76+adjust)
-					label = l1 + l2
+			if d != '':
+				if size: line1 = '[COLOR %s]%02d  |  [B]%s[/B]  |  %s  |  %s  |  %s  |  [B]%s[/B][/COLOR]' % (color, int(i + 1), q, d, p, s, size)
+				else: line1 = '[COLOR %s]%02d  |  [B]%s[/B]  |  %s  |  %s  |  %s[/COLOR]' % (color, int(i + 1), q, d, p, s)
+			else:
+				if size: line1 = '%02d  |  [B]%s[/B]  |  %s  |  %s  |  [B]%s[/B]' % (int(i + 1), q, p, s, size)
+				else: line1 = '%02d  |  [B]%s[/B]  |  %s  |  %s' % (int(i + 1), q, p, s)
+			line1_len = len(line1)-20
+
+			if t != '': line2 = '\n       [COLOR %s][I]%s[/I][/COLOR]' % (sec_color, t)
+			else: line2 = ''
+			line2_len = len(line2)
+
+			if line2_len > line1_len:
+				adjust = line2_len - line1_len
+				line1 = line1.ljust(line1_len+30+adjust)
+			label = line1 + line2
+
 			self.sources[i]['label'] = label
 			# self.uncached_sources[i]['label'] = label
 
@@ -1241,6 +1242,7 @@ class Sources:
 						break
 				except:
 					log_utils.error()
+					pass
 			filter.append(i)
 		header = control.homeWindow.getProperty(self.labelProperty)
 		control.notification(title=header, message='Removed %s duplicate sources from list' % (len(self.sources) - len(filter)))
@@ -1359,6 +1361,7 @@ class Sources:
 		try:
 			hashList = [i['hash'] for i in torrent_List]
 			cached = premiumize.Premiumize().check_cache_list(hashList)
+			if not cached: return None
 			count = 0
 			for i in torrent_List:
 				if cached[count] is False:
@@ -1379,6 +1382,7 @@ class Sources:
 		try:
 			hashList = [i['hash'] for i in torrent_List]
 			cached = realdebrid.RealDebrid().check_cache_list(hashList)
+			if not cached: return None
 			for i in torrent_List:
 				if 'rd' not in cached.get(i['hash'].lower(), {}):
 					if 'package' in i: i.update({'source': 'uncached (pack) torrent'})

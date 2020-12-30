@@ -1823,7 +1823,7 @@ msgid "Secondary(info) Line Color"
 msgstr ""
 
 msgctxt "#32637"
-msgid "Secondary Line Torrent content"
+msgid "Secondary Line Content Type"
 msgstr ""
 
 msgctxt "#32638"

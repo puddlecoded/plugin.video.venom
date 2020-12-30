@@ -574,7 +574,7 @@ class Bookmarks:
 		if not runtime or runtime == 'None': return offset # TMDB sometimes return None as string
 		scrobbble = 'Local Bookmark'
 		if control.setting('bookmarks') != 'true': return offset
-		if control.setting('resume.source') == '1':
+		if control.setting('trakt.scrobble') == 'true' and control.setting('resume.source') == '1':
 			try:
 				scrobbble = 'Trakt Scrobble'
 				from resources.lib.modules import traktsync
@@ -640,13 +640,12 @@ class Bookmarks:
 			message = control.lang(32660)
 			control.notification(title=name, message=message + '(' + label + ')')
 		dbcur.connection.commit()
-		dbcon.close()
-
+		try: dbcur.close ; dbcon.close()
+		except: pass
 
 	def set_scrobble(self, current_time, media_length, media_type, imdb='', tmdb='', tvdb='', season='', episode=''):
 		try:
 			percent = float((current_time / media_length)) * 100
-			# seekable = (2 <= percent <= 85) # 2% could potentially be shorter than the 3min from bookmarks.reset
 			seekable = (int(current_time) > 180 and (percent <= 85))
 			if seekable:
 				trakt.scrobbleMovie(imdb, tmdb, percent) if media_type == 'movie' else trakt.scrobbleEpisode(imdb, tmdb, tvdb, season, episode, percent)
