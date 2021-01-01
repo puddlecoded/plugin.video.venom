@@ -34,9 +34,7 @@ class CheckSettingsFile:
 				xbmc.log('%s : already exists' % settings_xml, 2)
 			return xbmc.log('[ plugin.video.venom ]  Finished CheckSettingsFile Service', 2)
 		except:
-			import traceback
-			traceback.print_exc()
-			pass
+			log_utils.error()
 
 
 class SettingsMonitor(xbmc.Monitor):
@@ -88,7 +86,6 @@ class ReuseLanguageInvokerCheck:
 			return
 		except:
 			log_utils.error()
-			pass
 
 
 class AddonCheckUpdate:
@@ -111,7 +108,6 @@ class AddonCheckUpdate:
 			return xbmc.log('[ plugin.video.venom ]  Addon update check complete', 2)
 		except:
 			log_utils.error()
-			pass
 
 
 class LibraryService:

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 '''
 	Venom Add-on
 '''
@@ -82,7 +81,6 @@ class RealDebrid:
 			return response
 		except:
 			log_utils.error()
-			pass
 		return None
 
 
@@ -175,7 +173,6 @@ class RealDebrid:
 			return control.selectDialog(items, 'Real-Debrid')
 		except:
 			log_utils.error()
-			pass
 		return
 
 
@@ -185,7 +182,6 @@ class RealDebrid:
 			return self._get(url)
 		except:
 			log_utils.error()
-			pass
 
 
 	def user_torrents_to_listItem(self):
@@ -216,12 +212,10 @@ class RealDebrid:
 					control.addItem(handle=syshandle, url=url, listitem=item, isFolder=isFolder)
 				except:
 					log_utils.error()
-					pass
 			control.content(syshandle, 'files')
 			control.directory(syshandle, cacheToDisc=True)
 		except:
 			log_utils.error()
-			pass
 
 
 	def browse_user_torrents(self, folder_id):
@@ -275,7 +269,6 @@ class RealDebrid:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=False)
 			except:
 				log_utils.error()
-				pass
 		control.content(syshandle, 'files')
 		control.directory(syshandle, cacheToDisc=True)
 
@@ -308,7 +301,7 @@ class RealDebrid:
 			return json.loads(response.text), pages
 		except:
 			log_utils.error()
-			pass
+
 
 
 	def my_downloads_to_listItem(self, page):
@@ -353,7 +346,6 @@ class RealDebrid:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=False)
 			except:
 				log_utils.error()
-				pass
 
 		if page < pages:
 			page += 1
@@ -371,7 +363,6 @@ class RealDebrid:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
 			except:
 				log_utils.error()
-				pass
 		control.content(syshandle, 'files')
 		control.directory(syshandle, cacheToDisc=True)
 
@@ -415,7 +406,6 @@ class RealDebrid:
 			self.cache_check_results.update(response)
 		except:
 			log_utils.error()
-			pass
 
 
 	def resolve_magnet(self, magnet_url, info_hash, season, episode, ep_title):
@@ -477,7 +467,6 @@ class RealDebrid:
 						match, index = True, 0
 				except:
 					log_utils.error()
-					pass
 			if match:
 				rd_link = torrent_info['links'][index]
 				rd_url = self.unrestrict_link(rd_link)
@@ -546,8 +535,7 @@ class RealDebrid:
 			active_count = self.torrents_activeCount()
 			if active_count['nb'] >= active_count['limit']:
 				return _return_failed()
-		except:
-			pass
+		except: pass
 		interval = 5
 		stalled = ['magnet_error', 'error', 'virus', 'dead']
 		extensions = supported_video_extensions()
@@ -573,8 +561,7 @@ class RealDebrid:
 				try:
 					if control.progressDialog.iscanceled():
 						return _return_failed(control.lang(40014))
-				except:
-					pass
+				except: pass
 				timeout -= interval
 				control.sleep(1000 * interval)
 				torrent_info = self.torrent_info(torrent_id)
@@ -582,10 +569,8 @@ class RealDebrid:
 				if any(x in status for x in stalled):
 					return _return_failed()
 				line3 = control.lang(40012) % str(torrent_info['seeders'])
-			try:
-				control.progressDialog.close()
-			except:
-				pass
+			try: control.progressDialog.close()
+			except: pass
 		if status == 'magnet_conversion':
 			return _return_failed()
 		if status == 'waiting_files_selection':
@@ -644,14 +629,11 @@ class RealDebrid:
 							control.progressDialog.close()
 							control.hide()
 							return False
-				except:
-					pass
+				except: pass
 				if any(x in status for x in stalled):
 					return _return_failed()
-			try:
-				control.progressDialog.close()
-			except Exception:
-				pass
+			try: control.progressDialog.close()
+			except: pass
 			control.hide()
 			return True
 		control.hide()
@@ -737,7 +719,6 @@ class RealDebrid:
 			hosts_dict['Real-Debrid'] = result
 		except:
 			log_utils.error()
-			pass
 		return hosts_dict
 
 
@@ -748,7 +729,6 @@ class RealDebrid:
 			hosts_regexDict['Real-Debrid'] = result
 		except:
 			log_utils.error()
-			pass
 		return hosts_regexDict
 
 
@@ -801,7 +781,6 @@ class RealDebrid:
 			control.setSetting('realdebrid.username', '')
 		except:
 			log_utils.error()
-			pass
 
 
 # from resolveURL

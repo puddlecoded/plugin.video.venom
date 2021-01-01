@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-
-"""
+'''
 	Venom Add-on
-"""
+'''
 
 import datetime
 import json
@@ -324,22 +323,23 @@ class Movies:
 			from sqlite3 import dbapi2 as database
 		except:
 			from pysqlite2 import dbapi2 as database
-		dbcon = database.connect(control.searchFile)
-		dbcur = dbcon.cursor()
 		try:
+			dbcon = database.connect(control.searchFile)
+			dbcur = dbcon.cursor()
 			dbcur.executescript("CREATE TABLE IF NOT EXISTS movies (ID Integer PRIMARY KEY AUTOINCREMENT, term);")
+			dbcur.execute("SELECT * FROM movies ORDER BY ID DESC")
 			dbcur.connection.commit()
+			lst = []
+			delete_option = False
+			for (id, term) in dbcur.fetchall():
+				if term not in str(lst):
+					delete_option = True
+					navigator.Navigator().addDirectoryItem(term, 'movieSearchterm&name=%s' % term, 'search.png', 'DefaultAddonsSearch.png', isSearch=True, table='movies')
+					lst += [(term)]
 		except:
 			log_utils.error()
-		dbcur.execute("SELECT * FROM movies ORDER BY ID DESC")
-		lst = []
-		delete_option = False
-		for (id, term) in dbcur.fetchall():
-			if term not in str(lst):
-				delete_option = True
-				navigator.Navigator().addDirectoryItem(term, 'movieSearchterm&name=%s' % term, 'search.png', 'DefaultAddonsSearch.png', isSearch=True, table='movies')
-				lst += [(term)]
-		dbcon.close()
+		finally:
+			dbcur.close() ; dbcon.close()
 		if delete_option:
 			navigator.Navigator().addDirectoryItem(32605, 'cache_clearSearch', 'tools.png', 'DefaultAddonService.png', isFolder=False)
 		navigator.Navigator().endDirectory()
@@ -356,17 +356,22 @@ class Movies:
 			from sqlite3 import dbapi2 as database
 		except:
 			from pysqlite2 import dbapi2 as database
-		dbcon = database.connect(control.searchFile)
-		dbcur = dbcon.cursor()
-		dbcur.execute("INSERT INTO movies VALUES (?,?)", (None, q))
-		dbcur.connection.commit()
-		dbcon.close()
+		try:
+			dbcon = database.connect(control.searchFile)
+			dbcur = dbcon.cursor()
+			dbcur.execute("INSERT INTO movies VALUES (?,?)", (None, q))
+			dbcur.connection.commit()
+		except:
+			log_utils.error()
+		finally:
+			dbcur.close() ; dbcon.close()
 		url = self.search_link + quote_plus(q)
 		if control.getKodiVersion() >= 18:
 			self.get(url)
 		else:
 			url = '%s?action=moviePage&url=%s' % (sys.argv[0], quote_plus(url))
 			control.execute('Container.Update(%s)' % url)
+
 
 
 	def search_term(self, name):

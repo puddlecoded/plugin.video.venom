@@ -116,11 +116,11 @@ msgid "Box Office"
 msgstr ""
 
 msgctxt "#32021"
-msgid "group by debrid provider"
+msgid "Do Not Group(quality, size priority)"
 msgstr ""
 
 msgctxt "#32022"
-msgid "ignore debrid provider"
+msgid "Group(Torrents, Acct Sources, Prem Hosters)"
 msgstr ""
 
 msgctxt "#32023"
@@ -536,27 +536,64 @@ msgid "Scraper Preperation"
 msgstr ""
 
 msgctxt "#32126"
-msgid ""
+msgid "Furk Username"
 msgstr ""
 
 msgctxt "#32127"
-msgid ""
+msgid "Furk Password"
 msgstr ""
 
 msgctxt "#32128"
-msgid ""
+msgid "Furk API Key"
 msgstr ""
 
 msgctxt "#32129"
-msgid ""
+msgid "Enable Furk.net Menu"
 msgstr ""
 
 msgctxt "#32130"
 msgid ""
 msgstr ""
 
+msgctxt "#32131"
+msgid ""
+msgstr ""
 
+msgctxt "#32132"
+msgid ""
+msgstr ""
 
+msgctxt "#32133"
+msgid ""
+msgstr ""
+
+msgctxt "#32134"
+msgid ""
+msgstr ""
+
+msgctxt "#32135"
+msgid ""
+msgstr ""
+
+msgctxt "#32136"
+msgid ""
+msgstr ""
+
+msgctxt "#32137"
+msgid ""
+msgstr ""
+
+msgctxt "#32138"
+msgid ""
+msgstr ""
+
+msgctxt "#32139"
+msgid ""
+msgstr ""
+
+msgctxt "#32140"
+msgid ""
+msgstr ""
 
 
 

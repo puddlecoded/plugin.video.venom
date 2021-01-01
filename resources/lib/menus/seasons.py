@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-
-"""
+'''
 	Venom Add-on
-"""
+'''
 
 import datetime
 import json
@@ -406,7 +405,6 @@ class Seasons:
 			unaired = ''
 		except:
 			log_utils.error()
-			pass
 
 		for item in seasons:
 			try:
@@ -449,7 +447,6 @@ class Seasons:
 				self.list = sorted(self.list, key=lambda k: int(k['season'])) # fix for TVDb new sort by ID
 			except:
 				log_utils.error()
-				pass
 
 		for item in episodes:
 			try:

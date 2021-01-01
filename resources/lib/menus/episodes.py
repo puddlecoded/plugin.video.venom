@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-
-"""
+'''
 	Venom Add-on
-"""
+'''
 
 import copy
 import datetime
@@ -346,8 +345,7 @@ class Episodes:
 				for i in range(0, len(item['seasons'])):
 					if item['seasons'][i]['number'] > 0: num_1 += len(item['seasons'][i]['episodes'])
 				num_2 = int(item['show']['aired_episodes'])
-				if num_1 >= num_2:
-					continue
+				if num_1 >= num_2: continue
 
 				# trakt sometimes places season0 at end and episodes out of order. So we sort it to be sure.
 				season_sort = sorted(item['seasons'][:], key=lambda k: k['number'], reverse=False)
@@ -358,8 +356,7 @@ class Episodes:
 
 				try: tvshowtitle = (item['show']['title']).encode('utf-8')
 				except: tvshowtitle = item['show']['title']
-				if tvshowtitle is None or tvshowtitle == '':
-					continue
+				if tvshowtitle is None or tvshowtitle == '': continue
 
 				year = str(item.get('show').get('year'))
 
@@ -460,10 +457,8 @@ class Episodes:
 				status = i['status'] or client.parseDOM(item2, 'Status')[0]
 
 				unaired = ''
-				if status.lower() == 'ended':
-					pass
-				elif premiered == '0':
-					raise Exception()
+				if status.lower() == 'ended': pass
+				elif premiered == '0': raise Exception()
 				elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.today_date))):
 					unaired = 'true'
 					if self.showunaired != 'true': raise Exception()
@@ -493,26 +488,21 @@ class Episodes:
 				season_poster = [x for x in artwork if client.parseDOM(x, 'Season')[0] == season]
 				try: season_poster = client.parseDOM(season_poster[0], 'BannerPath')[0]
 				except: season_poster = ''
-				if season_poster != '':
-					season_poster = '%s%s' % (self.tvdb_image, season_poster)
-				else:
-					season_poster = '0'
+				if season_poster != '': season_poster = '%s%s' % (self.tvdb_image, season_poster)
+				else: season_poster = '0'
 				season_poster = client.replaceHTMLCodes(season_poster)
 				season_poster = season_poster.encode('utf-8')
 
 				banner = client.parseDOM(item2, 'banner')[0]
-				if banner and banner != '':
-					banner = '%s%s' % (self.tvdb_image, banner)
+				if banner and banner != '': banner = '%s%s' % (self.tvdb_image, banner)
 				else: banner = '0'
 
 				fanart = client.parseDOM(item2, 'fanart')[0]
-				if fanart and fanart != '':
-					fanart = '%s%s' % (self.tvdb_image, fanart)
+				if fanart and fanart != '': fanart = '%s%s' % (self.tvdb_image, fanart)
 				else: fanart = '0'
 
 				thumb = client.parseDOM(item, 'filename')[0]
-				if thumb and thumb != '':
-					thumb = '%s%s' % (self.tvdb_image, thumb)
+				if thumb and thumb != '': thumb = '%s%s' % (self.tvdb_image, thumb)
 				else: thumb = '0'
 
 				if poster != '0': pass
@@ -553,8 +543,7 @@ class Episodes:
 				castandart = tvdb_v1.parseActors(actors) or []
 
 				plot = client.parseDOM(item, 'Overview')[0]
-				if not plot:
-					plot = client.parseDOM(item2, 'Overview')[0]
+				if not plot: plot = client.parseDOM(item2, 'Overview')[0]
 				plot = client.replaceHTMLCodes(plot)
 				plot = plot.encode('utf-8')
 
@@ -566,8 +555,7 @@ class Episodes:
 								'poster': poster, 'season_poster': season_poster,  'banner': banner, 'fanart': fanart, 'thumb': thumb,
 								'snum': i['snum'], 'enum': i['enum'], 'unaired': unaired, 'trailer': trailer, 'episodeIDS': episodeIDS, 'traktProgress': True}
 
-				if not direct:
-					values['action'] = 'episodes'
+				if not direct: values['action'] = 'episodes'
 
 				if 'airday' in i and i['airday'] is not None and i['airday'] != '':
 					values['airday'] = i['airday']
@@ -614,29 +602,24 @@ class Episodes:
 
 		for item in items:
 			try:
-				if 'show' not in item or 'episode' not in item:
-					continue
+				if 'show' not in item or 'episode' not in item: continue
 
 				try: title = (item['episode']['title']).encode('utf-8')
 				except: title = item['episode']['title']
-				if title is None or title == '':
-					continue
+				if title is None or title == '': continue
 
 				season = item['episode']['season']
 				season = re.sub('[^0-9]', '', '%01d' % int(season))
 
-				if control.setting('tv.specials') == 'false' and season == '0':
-					continue
+				if control.setting('tv.specials') == 'false' and season == '0': continue
 
 				episode = item['episode']['number']
 				episode = re.sub('[^0-9]', '', '%01d' % int(episode))
-				if episode == '0':
-					continue
+				if episode == '0': continue
 
 				try: tvshowtitle = (item['show']['title']).encode('utf-8')
 				except: tvshowtitle = item['show']['title']
-				if tvshowtitle is None or tvshowtitle == '':
-					continue
+				if tvshowtitle is None or tvshowtitle == '': continue
 
 				year = str(item.get('show').get('year'))
 
@@ -917,28 +900,21 @@ class Episodes:
 		itemlist = []
 		for item in items:
 			try:
-				if not item['show']['language']:
-					continue
-				if 'english' not in item['show']['language'].lower():
-					continue
-
-				if limit and 'scripted' not in item['show']['type'].lower():
-					continue
+				if not item['show']['language']: continue
+				if 'english' not in item['show']['language'].lower(): continue
+				if limit and 'scripted' not in item['show']['type'].lower(): continue
 
 				try: title = (item.get('name')).encode('utf-8')
 				except: title = item.get('name')
 
 				season = item['season']
-				if not season:
-					continue
+				if not season: continue
 				season = re.sub('[^0-9]', '', '%01d' % int(season))
 
-				if control.setting('tv.specials') == 'false' and season == '0':
-					continue
+				if control.setting('tv.specials') == 'false' and season == '0': continue
 
 				episode = item['number']
-				if episode is None:
-					continue
+				if episode is None: continue
 				episode = re.sub('[^0-9]', '', '%01d' % int(episode))
 
 				premiered = item.get('airdate', '0')

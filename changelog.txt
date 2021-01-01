@@ -1,3 +1,11 @@
+[B][COLOR red]Update - v4.3.3 - Jan. 01, 2021[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed issue where torrents turned off produced no sources
+    with premium hosters only enabled.[/I]
+[COLOR yellow]--[/COLOR][I] Reworked file size sorting. Provider sorting has been removed.
+    Now sorting is base on group sort option and
+    (quality/size) priority sorting.[/I]
+[COLOR yellow]--[/COLOR][I] See "Source Options"-"Soures Select" for above changes.[/I]
+
 [B][COLOR red]Update - v4.3.2 - Dec. 30, 2020[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed Library Update failure issue due to closed database.[/I]
 [COLOR yellow]--[/COLOR][I] Fixed Global Context Menu option "Clear Bookmark" call.[/I]

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-
-"""
+'''
 	Venom Add-on
-"""
+'''
 
 from datetime import datetime
 import glob
@@ -152,6 +151,14 @@ def syncMyAccounts(silent=False):
 	imdb_acct = all_acct.get('imdb')
 	if setting('imdb.user') != imdb_acct.get('user'):
 		setSetting('imdb.user', imdb_acct.get('user'))
+
+	fu_acct = all_acct.get('furk')
+	if setting('furk.username') != fu_acct.get('username'):
+		setSetting('furk.username', fu_acct.get('username'))
+		setSetting('furk.password', fu_acct.get('password'))
+	if fu_acct.get('api_key', None):
+		if setting('furk.api') != fu_acct.get('api_key'):
+			setSetting('furk.api', fu_acct.get('api_key'))
 	if not silent:
 		notification(message=32114)
 

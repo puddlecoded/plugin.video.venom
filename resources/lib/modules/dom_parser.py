@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+'''
+	Venom Add-on
+'''
 
 import re
 from collections import namedtuple
@@ -87,8 +90,7 @@ def __get_attribs(element):
 		value1 = match.get('value1')
 		value2 = match.get('value2')
 		value = value1 if value1 is not None else value2
-		if value is None:
-			continue
+		if value is None: continue
 		attribs[match['key'].lower().strip()] = value
 	return attribs
 
@@ -134,8 +136,7 @@ def parse_dom(html, name='', attrs=None, req=False, exclude_comments=False):
 		results = []
 		for element in __get_dom_elements(item, name, attrs):
 			attribs = __get_attribs(element)
-			if req and not req <= set(attribs.keys()):
-				continue
+			if req and not req <= set(attribs.keys()): continue
 			temp = __get_dom_content(item, name, element).strip()
 			results.append(DomMatch(attribs, temp))
 			item = item[item.find(temp, item.find(element)):]

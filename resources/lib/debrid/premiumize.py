@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 '''
 	Venom Add-on
 '''
@@ -60,7 +59,6 @@ class Premiumize:
 					control.notification(message=response.get('message'))
 		except:
 			log_utils.error()
-			pass
 		return response
 
 
@@ -74,7 +72,6 @@ class Premiumize:
 					control.notification(message=response.get('message'))
 		except:
 			log_utils.error()
-			pass
 		return response
 
 
@@ -128,7 +125,6 @@ class Premiumize:
 			return accountInfo
 		except:
 			log_utils.error()
-			pass
 		return None
 
 
@@ -153,7 +149,6 @@ class Premiumize:
 			return control.selectDialog(items, 'Premiumize')
 		except:
 			log_utils.error()
-			pass
 		return
 
 
@@ -179,7 +174,6 @@ class Premiumize:
 			hosts_dict['Premiumize.me'] = list(set(hosts))
 		except:
 			log_utils.error()
-			pass
 		return hosts_dict
 
 
@@ -304,8 +298,7 @@ class Premiumize:
 						control.progressDialog.close()
 						control.hide()
 						return False
-			except:
-				pass
+			except: pass
 			if transfer_info.get('status') == 'stalled':
 				return _return_failed()
 		control.sleep(1000 * interval)
@@ -313,7 +306,6 @@ class Premiumize:
 			control.progressDialog.close()
 		except:
 			log_utils.error()
-			pass
 		control.hide()
 		return True
 
@@ -409,7 +401,6 @@ class Premiumize:
 			if response: return response.get('content')
 		except:
 			log_utils.error()
-			pass
 		return None
 
 
@@ -464,7 +455,6 @@ class Premiumize:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=isFolder)
 			except:
 				log_utils.error()
-				pass
 		control.content(syshandle, 'files')
 		control.directory(syshandle, cacheToDisc=True)
 
@@ -476,7 +466,6 @@ class Premiumize:
 				return response.get('transfers')
 		except:
 			log_utils.error()
-			pass
 		return None
 
 
@@ -541,7 +530,6 @@ class Premiumize:
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=isFolder)
 			except:
 				log_utils.error()
-				pass
 		control.content(syshandle, 'files')
 		control.directory(syshandle, cacheToDisc=True)
 
@@ -553,7 +541,6 @@ class Premiumize:
 			return itemDetails
 		except:
 			log_utils.error()
-			pass
 		return None
 
 
@@ -580,7 +567,6 @@ class Premiumize:
 					control.refresh()
 		except:
 			log_utils.error()
-			pass
 
 
 	def delete(self, type, folder_id=None, folder_name=None):
@@ -596,7 +582,6 @@ class Premiumize:
 					control.refresh()
 		except:
 			log_utils.error()
-			pass
 
 
 # # from resolveURL

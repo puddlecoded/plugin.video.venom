@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-
-"""
-	Venom
-"""
+'''
+	Venom Add-on
+'''
 
 import re
 import requests
@@ -233,7 +232,6 @@ class Movies:
 				metacache.insert(self.meta)
 			except:
 				log_utils.error()
-				pass
 
 		self.list = metacache.fetch(self.list, self.lang, API_key)
 		items = self.list[:len(self.list)]
@@ -378,7 +376,6 @@ class Movies:
 				metacache.insert(self.meta)
 			except:
 				log_utils.error()
-				pass
 
 		items = list[:len(list)]
 		threads = []
@@ -571,7 +568,6 @@ class TVshows:
 				metacache.insert(self.meta)
 			except:
 				log_utils.error()
-				pass
 
 		items = list[:len(list)]
 		threads = []
@@ -708,7 +704,6 @@ class TVshows:
 				metacache.insert(self.meta)
 			except:
 				log_utils.error()
-				pass
 
 		items = list[:len(list)]
 		threads = []
@@ -792,7 +787,6 @@ class Auth:
 					control.notification(message='TMDb Authorization Cancelled')
 		except:
 			log_utils.error()
-			pass
 
 
 	def revoke_session_id(self):
@@ -809,4 +803,3 @@ class Auth:
 				control.notification(message='TMDb session_id deletion FAILED', icon='ERROR')
 		except:
 			log_utils.error()
-			pass

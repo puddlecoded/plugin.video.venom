@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-
-"""
+'''
 	Venom Add-on
-"""
+'''
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils

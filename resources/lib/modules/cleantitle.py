@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-    Venom
-"""
+'''
+	Venom Add-on
+'''
+
 import re
 import unicodedata
 

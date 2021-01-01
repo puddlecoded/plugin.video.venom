@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-
-"""
+'''
 	Venom Add-on
-"""
+'''
 
 import sys
 from resources.lib.modules import control
@@ -28,10 +27,10 @@ class Navigator:
 		if control.getMenuEnabled('navi.anime'):
 			self.addDirectoryItem('Anime', 'anime_Navigator', 'boxsets.png', 'DefaultFolder.png')
 		if control.getMenuEnabled('mylists.widget'):
-			self.addDirectoryItem(32003, 'mymovieNavigator', 'mymovies.png','DefaultVideoPlaylists.png')
+			self.addDirectoryItem(32003, 'mymovieNavigator', 'mymovies.png', 'DefaultVideoPlaylists.png')
 			self.addDirectoryItem(32004, 'mytvNavigator', 'mytvshows.png', 'DefaultVideoPlaylists.png')
-		if control.setting('furk.api') != '':
-			self.addDirectoryItem('Furk.net', 'furkNavigator', 'movies.png',  'DefaultMovies.png')
+		if control.setting('furk.api') != '' and control.getMenuEnabled('navi.furk') :
+			self.addDirectoryItem('Furk.net', 'furkNavigator', 'movies.png', 'DefaultMovies.png')
 		if control.getMenuEnabled('navi.youtube'):
 			self.addDirectoryItem('You Tube Videos', 'youtube', 'youtube.png', 'youtube.png')
 		self.addDirectoryItem(32010, 'tools_searchNavigator', 'search.png', 'DefaultAddonsSearch.png')
@@ -49,7 +48,7 @@ class Navigator:
 
 
 	def furk(self):
-		self.addDirectoryItem('User Files', 'furkUserFiles', 'mytvnavigator.png', 'mytvnavigator.png')
+		self.addDirectoryItem('User Files', 'furkUserFiles', 'userlists.png', 'DefaultVideoPlaylists.png')
 		self.addDirectoryItem('Search', 'furkSearch', 'search.png', 'search.png')
 		self.endDirectory()
 

@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+'''
+	Venom Add-on
+'''
 
 
 def lang(i, lang):

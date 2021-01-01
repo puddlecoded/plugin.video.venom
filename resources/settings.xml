@@ -33,7 +33,8 @@
 		<setting type="lsep" label="32005" />
 		<setting id="mylists.widget" type="bool" label="32329" default="true" />
 		<setting id="navi.anime" type="bool" label="40068" default="false" />
-		<setting id="navi.youtube" type="bool" label="40061" default="false" />
+		<setting id="navi.furk" type="bool" label="32129" default="true" />
+		<setting id="navi.youtube" type="bool" label="40061" default="true" />
 		<setting id="navi.prem.services" type="bool" label="40060" default="true" />
 		<setting id="navi.news" type="bool" label="32013" default="true" />
 		<setting id="navi.changelog" type="bool" label="32014" default="true" />
@@ -160,7 +161,6 @@
 		<setting id="hosts.quality" type="enum" label="32339" values="4K|1080p|720p|480p(SD)" default="0" />
 		<setting id="source.enablesizelimit" type="bool" label="32079" default="false" />
 		<setting id="source.sizelimit" type="slider" subsetting="true" label="32080" option="int" range="0,1,300" default="10" visible="eq(-1,true)" />
-		<setting id="hosts.sort.provider" type="bool" label="32342" default="false" />
 		<setting type="action" label="[COLOR FFA0C12C] -- Help --[/COLOR]" action="RunPlugin(plugin://plugin.video.venom/?action=tools_ShowHelp&amp;name=DebridSort)" />
 		<setting id="remove.duplicates" type="bool" label="32035" default="true" />
 		<setting id="remove.duplicates.logging" type="bool" label=" -- Do not spam log with removed duplicates" default="true" enable="eq(-1,true)" />
@@ -176,15 +176,15 @@
 		<setting id="sources.prem.color" type="select" label="32588" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="6" />
 		<setting id="sources.sec.color" type="select" label="32636" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="4" />
 		<setting id="sources.sec.type" type="select" label="32637" values="std info line|link title" default="link title" />
+		<setting id="sources.group.sort" type="select" label="Torent/Hoster sorting method" lvalues="32021|32022" default="0" visible = "true" />
+		<setting id="sources.size.sort" type="bool" label="Sort by file size" default="true" />
 		<setting id="autoplay.sd" type="bool" label="32656" default="false" />
 	</category>
 
 	<!-- Torrent Settings - 6 -->
 	<category label="Torrent Settings">
 		<setting type="lsep" label="Sources Select" />
-		<setting id="torrent.min.seeders" type="slider" label="32638" default="1" range="1,100" option="int" visible="false" /> <!-- Hard coded to 1 by Fenomscrapers so not visible for now-->
-		<setting id="torrent.group.sort" type="select" label="Torent/Hoster sorting method" lvalues="32021|32022" default="1" visible = "true" />
-		<setting id="torrent.size.sort" type="bool" label="Sort torrents by size" default="true" />
+		<setting id="torrent.min.seeders" type="slider" label="32638" default="1" range="1,100" option="int" visible="false" /> <!-- Hard coded by Fenomscrapers so not visible for now-->
 		<setting id="ad.remove.uncached" type="bool" label="AD remove uncached torrents" default="true" />
 		<setting id="pm.remove.uncached" type="bool" label="PM remove uncached torrents" default="true" />
 		<setting id="rd.remove.uncached" type="bool" label="RD remove uncached torrents" default="true" />
@@ -271,6 +271,12 @@
 		<setting type="lsep" label="IMDb" />
 		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;query=2.18&amp;opensettings=true&amp;query2=8.55)" visible="eq(1,)" />
 		<setting id="imdb.user" type="text" label="32303" default="" enable="false" />
+
+		<setting type="lsep" label="Furk.net" />
+		<setting type="action" label="[I]Please visit My Accounts for setup[/I]" option="close" action="RunPlugin(plugin://plugin.video.venom/?action=tools_openMyAccount&amp;query=3.4&amp;opensettings=true&amp;query2=8.58)" visible="eq(1,)" />
+		<setting id="furk.username" type="text" label="32126" default="" enable="false" />
+		<setting id="furk.password" type="text" label="32127" option="hidden" default="" enable="false" />
+		<setting id="furk.api" type="text" label="32128" default="" enable="false" />
 	</category>
 
 	<!-- Library - 9 -->

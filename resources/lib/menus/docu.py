@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 '''
 	Venom Add-on
 '''
@@ -147,15 +146,10 @@ class documentary:
 					m_url = item.get('url',None)
 
 					if m_url:
-						if source == "auto" :
-							continue
-
+						if source == "auto" : continue
 						elif  int(source) <= 2 :
-							if 'video' in item.get('type',None):
-								return m_url
-
-						elif '.mnft' in m_url:
-							continue
+							if 'video' in item.get('type', None): return m_url
+						elif '.mnft' in m_url: continue
 						other_playable_url.append(m_url)
 
 			if len(other_playable_url) >0: # probably not needed, only for last resort

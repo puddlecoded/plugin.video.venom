@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 '''
 	Venom Add-on
 '''
@@ -321,7 +320,6 @@ class tvshows:
 							castandart.append({'name': person['person']['name'], 'role': person['character']['name'], 'thumbnail': (person['person']['image']['medium'] if person['person']['image']['medium'] is not None else '0')})
 					except:
 						castandart = []
-						pass
 					if len(castandart) == 150: break
 
 				image = item.get('image')
@@ -368,7 +366,6 @@ class tvshows:
 						tvdb = tvdb[0] or '0'
 					except:
 						log_utils.error()
-						pass
 
 ###--Check TVDb by seriesname
 				if tvdb == '0' or imdb == '0':
@@ -395,11 +392,9 @@ class tvshows:
 							imdb = imdb[0] or '0'
 					except:
 						log_utils.error()
-						pass
 #################################
 
 				if tvdb == '0': raise Exception()
-
 				try:
 					url = self.tvdb_info_link % (tvdb, self.lang)
 					item3 = requests.get(url).content
@@ -482,7 +477,6 @@ class tvshows:
 				metacache.insert(self.meta)
 			except:
 				log_utils.error()
-				pass
 
 		try:
 			threads = []

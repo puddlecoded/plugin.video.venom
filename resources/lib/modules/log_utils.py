@@ -1,8 +1,7 @@
-# -*- coding: UTF-8 -*-
-
-"""
+# -*- coding: utf-8 -*-
+'''
 	Venom Add-on
-"""
+'''
 
 import cProfile
 from datetime import datetime

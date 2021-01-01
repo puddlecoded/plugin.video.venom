@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-
-"""
+'''
 	Venom Add-on
-"""
+'''
 
 from datetime import datetime
 import json
@@ -113,9 +112,11 @@ def getTraktAsJson(url, post=None, authentication=None):
 		res_headers = {}
 		r = getTrakt(url=url, post=post, extended=True, authentication=authentication)
 		if isinstance(r, tuple) and len(r) == 2:
-			res_headers = r[1]
-			r = r[0]
-		if not r or 'Bad Gateway' in str(r): return
+			r , res_headers = r[0], r[1]
+		if not r or any(val in str(r) for val in ["Bad Gateway", "We're sorry, but something went wrong (500)"]):
+			log_utils.log('Trakt Service Unavailable', __name__, log_utils.LOGNOTICE)
+			return
+		# log_utils.log('r = %s' % r, __name__, log_utils.LOGDEBUG)
 		r = utils.json_loads_as_str(r)
 		res_headers = dict((k.lower(), v) for k, v in res_headers.iteritems())
 		if 'x-sort-by' in res_headers and 'x-sort-how' in res_headers:
@@ -682,6 +683,7 @@ def syncMovies():
 		if not getTraktCredentialsInfo(): return
 		indicators = getTraktAsJson('/users/me/watched/movies')
 		# log_utils.log('indicators = %s' % indicators, __name__, log_utils.LOGDEBUG)
+		if not indicators: return None
 		indicators = [i['movie']['ids'] for i in indicators]
 		indicators = [str(i['imdb']) for i in indicators if 'imdb' in i]
 		return indicators
@@ -728,6 +730,7 @@ def syncTVShows():
 	try:
 		if not getTraktCredentialsInfo(): return
 		indicators = getTraktAsJson('/users/me/watched/shows?extended=full')
+		if not indicators: return None
 		indicators = [(i['show']['ids']['tvdb'], i['show']['aired_episodes'], sum([[(s['number'], e['number']) for e in s['episodes']] for s in i['seasons']], [])) for i in indicators]
 		indicators = [(str(i[0]), int(i[1]), i[2]) for i in indicators]
 		return indicators
@@ -1140,7 +1143,7 @@ def sync_progress():
 									(str(db_last_paused), str(activity)), __name__, log_utils.LOGDEBUG)
 				link = '/sync/playback/'
 				items = getTraktAsJson(link)
-				traktsync.insert_bookmarks(items)
+				if items: traktsync.insert_bookmarks(items)
 			if control.monitor.waitForAbort(60*15):
 				break
 	except:

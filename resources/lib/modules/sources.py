@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-
-"""
+'''
 	Venom Add-on
-"""
+'''
 
 from datetime import datetime, timedelta
 import json
@@ -739,23 +738,16 @@ class Sources:
 				self.sources = [i for i in self.sources if not any(value in i['quality'] for value in ['CAM', 'SD'])]
 		if control.setting('remove.3D.sources') == 'true':
 			self.sources = [i for i in self.sources if '3D' not in i.get('info', '')]
-		if control.setting('hosts.sort.provider') == 'true':
-			self.sources = sorted(self.sources, key=lambda k: k['provider'])
 		if self.mediatype == 'episode':
 			self.sources = self.calc_pack_size()
-		if control.setting('torrent.size.sort') == 'true':
-			filter = []
-			filter += [i for i in self.sources if 'magnet:' in i['url']]
-			filter.sort(key=lambda k: k.get('size', 0), reverse=True)
-			filter += [i for i in self.sources if 'magnet:' not in i['url']]
-			self.sources = filter
 
-		local = [i for i in self.sources if 'local' in i and i['local'] is True]
+		local = [i for i in self.sources if 'local' in i and i['local'] is True] # for library and videoscraper (skips cache check)
 		self.sources = [i for i in self.sources if not i in local]
+		direct = [i for i in self.sources if i['direct'] == True] # acct scrapers (skips cache check)
+		self.sources = [i for i in self.sources if not i in direct]
 
-		filter = []
 		from copy import deepcopy
-		start = time.time()
+		# start = time.time()
 		deepcopy_sources = deepcopy(self.sources)
 		deepcopy_sources = [i for i in deepcopy_sources if 'magnet:' in i['url']]
 		threads = []
@@ -764,11 +756,12 @@ class Sources:
 
 		def checkStatus(function, debrid_name, valid_hoster, remove_uncached):
 			try:
-				cached = function(deepcopy_sources, d)
-				self.uncached_sources += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if re.match(r'^uncached.*torrent', i['source'])]
-				if remove_uncached:
-					self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if re.match(r'^cached.*torrent', i['source'])]
-				else: self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
+				if deepcopy_sources:
+					cached = function(deepcopy_sources, d)
+					self.uncached_sources += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if re.match(r'^uncached.*torrent', i['source'])]
+					if remove_uncached:
+						self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if re.match(r'^cached.*torrent', i['source'])]
+					else: self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
 				self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 			except:
 				log_utils.error()
@@ -776,61 +769,64 @@ class Sources:
 		for d in self.debrid_resolvers:
 			if d.name == 'Premiumize.me' and control.setting('premiumize.enable') == 'true':
 				try:
-					if deepcopy_sources:
-						valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
-						remove_uncached = control.setting('pm.remove.uncached') == 'true'
-						threads.append(workers.Thread(checkStatus, self.pm_cache_chk_list, d.name, valid_hoster, remove_uncached))
+					valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
+					remove_uncached = control.setting('pm.remove.uncached') == 'true'
+					threads.append(workers.Thread(checkStatus, self.pm_cache_chk_list, d.name, valid_hoster, remove_uncached))
 				except:
 					log_utils.error()
-
 			if d.name == 'Real-Debrid' and control.setting('realdebrid.enable') == 'true':
 				try:
-					if deepcopy_sources:
-						valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
-						remove_uncached = control.setting('rd.remove.uncached') == 'true'
-						threads.append(workers.Thread(checkStatus, self.rd_cache_chk_list, d.name, valid_hoster, remove_uncached))
+					valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
+					remove_uncached = control.setting('rd.remove.uncached') == 'true'
+					threads.append(workers.Thread(checkStatus, self.rd_cache_chk_list, d.name, valid_hoster, remove_uncached))
 				except:
 					log_utils.error()
-
 			if d.name == 'AllDebrid' and control.setting('alldebrid.enable') == 'true':
 				try:
-					if not deepcopy_sources == []:
-						valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
-						remove_uncached = control.setting('ad.remove.uncached') == 'true'
-						threads.append(workers.Thread(checkStatus, self.ad_cache_chk_list, d.name, valid_hoster, remove_uncached))
+					valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
+					remove_uncached = control.setting('ad.remove.uncached') == 'true'
+					threads.append(workers.Thread(checkStatus, self.ad_cache_chk_list, d.name, valid_hoster, remove_uncached))
 				except:
 					log_utils.error()
-
 		if threads:
 			[i.start() for i in threads]
 			[i.join() for i in threads]
-
-		self.filter += [i for i in self.sources if i['direct'] == True]
+		self.filter += direct
+		self.filter += local
 		self.sources = self.filter
+		# end = time.time()
+		# log_utils.log('Cache check total time = %s' % str(end - start), __name__, log_utils.LOGNOTICE)
 
-		end = time.time()
-		log_utils.log('Tikis Cache check total time = %s' % str(end - start), __name__, log_utils.LOGNOTICE)
+		if control.setting('sources.group.sort') == '1':
+			torr_filter = []
+			torr_filter += [i for i in self.sources if 'torrent' in i['source']]  #torrents first
+			if control.setting('sources.size.sort') == 'true':
+				torr_filter.sort(key=lambda k: k.get('size', 0), reverse=True)
+			aact_filter = []
+			aact_filter += [i for i in self.sources if i['direct'] == True]  #account scrapers and local/library next
+			if control.setting('sources.size.sort') == 'true':
+				aact_filter.sort(key=lambda k: k.get('size', 0), reverse=True)
+			prem_filter = []
+			prem_filter += [i for i in self.sources if 'torrent' not in i['source'] and i['debridonly'] is True]  #prem.hosters last
+			if control.setting('sources.size.sort') == 'true':
+				prem_filter.sort(key=lambda k: k.get('size', 0), reverse=True)
+			self.sources = torr_filter
+			self.sources += aact_filter
+			self.sources += prem_filter
 
-		if control.setting('torrent.group.sort') == '1':
+		elif control.setting('sources.size.sort') == 'true':
 			filter = []
-			filter += [i for i in self.sources if 'torrent' in i['source']]  #torrents first
-			if control.setting('torrent.size.sort') == 'true':
-				filter.sort(key=lambda k: k.get('size', 0), reverse=True)
-			filter += [i for i in self.sources if 'torrent' not in i['source'] and i['debridonly'] is True]  #prem. next
-			filter += [i for i in self.sources if 'torrent' not in i['source'] and i['debridonly'] is False]  #free hosters fucking last
+			filter += [i for i in self.sources]
+			filter.sort(key=lambda k: k.get('size', 0), reverse=True)
 			self.sources = filter
-		filter = []
-		filter += local
 
+		filter = []
 		if quality in ['0']:
-			filter += [i for i in self.sources if i['quality'] == '4K' and 'debrid' in i]
-			filter += [i for i in self.sources if i['quality'] == '4K' and not 'debrid' in i]
+			filter += [i for i in self.sources if i['quality'] == '4K']
 		if quality in ['0', '1']:
-			filter += [i for i in self.sources if i['quality'] == '1080p' and 'debrid' in i]
-			filter += [i for i in self.sources if i['quality'] == '1080p' and not 'debrid' in i]
+			filter += [i for i in self.sources if i['quality'] == '1080p']
 		if quality in ['0', '1', '2']:
-			filter += [i for i in self.sources if i['quality'] == '720p' and 'debrid' in i]
-			filter += [i for i in self.sources if i['quality'] == '720p' and not 'debrid' in i]
+			filter += [i for i in self.sources if i['quality'] == '720p']
 		filter += [i for i in self.sources if i['quality'] == 'SCR']
 		filter += [i for i in self.sources if i['quality'] == 'SD']
 		filter += [i for i in self.sources if i['quality'] == 'CAM']
@@ -908,7 +904,6 @@ class Sources:
 			self.sources[i]['label'] = label
 			# self.uncached_sources[i]['label'] = label
 
-		# self.sources = [i for i in self.sources if 'label' or 'multiline_label' in i['label']]
 		return self.sources
 		# return self.sources, self.uncached_sources
 
@@ -1192,31 +1187,20 @@ class Sources:
 
 		from fenomscrapers import pack_sources
 		self.packDict = pack_sources()
-
+		from resources.lib.modules import premium_hosters
 		self.hostprDict = []
 		try:
 			self.debrid_resolvers = debrid.debrid_resolvers()
 			for d in self.debrid_resolvers:
 				hosts = d.get_hosts()[d.name]
 				self.hostprDict += hosts
-			self.hostprDict  = list(set(self.hostprDict))
+			self.hostprDict = list(set(self.hostprDict))
 		except:
-			self.hostprDict = ['1fichier.com', '2shared.com', '4shared.com', 'alfafile.net', 'alterupload.com', 'bayfiles.com', 'clicknupload.me',
-										'clicknupload.co', 'clicknupload.com', 'clicknupload.link', 'clicknupload.org', 'clipwatching.com''cosmobox.org',
-										'dailymotion.com', 'dailyuploads.net', 'ddl.to', 'ddownload.com', 'dl4free.com', 'dropapk.to', 'earn4files.com',
-										'filefactory.com', 'filefreak.com', 'hexupload.net', 'mega.nz', 'multiup.org', 'nitroflare.com', 'oboom.com',
-										'rapidgator.net', 'rg.to', 'rockfile.co', 'rockfile.eu', 'speed-down.org', 'turbobit.net', 'uploaded.net', 'uploaded.to',
-										'uploadgig.com', 'ul.to', 'uploadrocket.net', 'usersdrive.com']
+			self.hostprDict = premium_hosters.hostprDict
 
-		self.hostcapDict = ['flashx.tv', 'flashx.to', 'flashx.sx', 'flashx.bz', 'flashx.cc', 'hugefiles.cc', 'hugefiles.net', 'jetload.net', 'jetload.tv',
-									'jetload.to', 'kingfiles.net', 'streamin.to', 'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io',
-									'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
-
-		self.hostblockDict = ['divxme.com', 'divxstage.eu', 'estream.to', 'facebook.com', 'oload.download', 'oload.fun', 'oload.icu', 'oload.info',
-									'oload.life', 'oload.space', 'oload.stream', 'oload.tv', 'oload.win', 'openload.co', 'openload.io', 'openload.pw', 'rapidvideo.com',
-									'rapidvideo.is', 'rapidvid.to', 'streamango.com', 'streamcherry.com', 'twitch.tv', 'youtube.com', 'zippyshare.com']
-
-		self.sourcecfDict = ['filmxy', 'ganool', 'maxrls', 'rlsbb', 'scenerls', 'btdb', 'extratorrent', 'limetorrents', 'moviemagnet', 'torrentgalaxy']
+		self.hostcapDict = premium_hosters.hostcapDict
+		self.hostblockDict = premium_hosters.hostblockDict
+		self.sourcecfDict = premium_hosters.sourcecfDict
 
 
 	# @timeIt
@@ -1242,7 +1226,6 @@ class Sources:
 						break
 				except:
 					log_utils.error()
-					pass
 			filter.append(i)
 		header = control.homeWindow.getProperty(self.labelProperty)
 		control.notification(title=header, message='Removed %s duplicate sources from list' % (len(self.sources) - len(filter)))
