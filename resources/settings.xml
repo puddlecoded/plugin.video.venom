@@ -165,7 +165,7 @@
 		<setting id="remove.duplicates" type="bool" label="32035" default="true" />
 		<setting id="remove.duplicates.logging" type="bool" label=" -- Do not spam log with removed duplicates" default="true" enable="eq(-1,true)" />
 		<setting id="remove.hevc" type="bool" label="32363" default="false" />
-		<setting id="remove.captcha" type="bool" label="32341" default="false" />
+<!-- 		<setting id="remove.captcha" type="bool" label="32341" default="false" /> -->
 		<setting id="remove.CamSd.sources" type="bool" label="32050" default="false" />
 		<setting id="remove.3D.sources" type="bool" label="32051" default="true" />
 

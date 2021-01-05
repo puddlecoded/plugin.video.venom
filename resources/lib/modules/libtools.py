@@ -317,7 +317,7 @@ class libmovies:
 
 			total_added = 0
 			for i in items:
-				if control.monitor.abortRequested(): return sys.exist()
+				if control.monitor.abortRequested(): return sys.exit()
 				try:
 					files_added = self.add('%s (%s)' % (i['title'], i['year']), i['title'], i['year'], i['imdb'], i['tmdb'], range=True)
 					if general_notification and files_added > 0: control.notification(title='%s (%s)' % (i['title'], i['year']), message=32554)
@@ -450,7 +450,7 @@ class libmovies:
 
 		total_added = 0
 		for i in items:
-			if control.monitor.abortRequested(): return sys.exist()
+			if control.monitor.abortRequested(): return sys.exit()
 			try:
 				files_added = self.add('%s (%s)' % (i['title'], i['year']), i['title'], i['year'], i['imdb'], i['tmdb'], range=True)
 				if general_notification and files_added > 0: control.notification(title='%s (%s)' % (i['title'], i['year']), message=32554)
@@ -567,7 +567,7 @@ class libtvshows:
 
 			total_added = 0
 			for i in items:
-				if control.monitor.abortRequested(): return sys.exist()
+				if control.monitor.abortRequested(): return sys.exit()
 				try:
 					files_added = self.add(i['title'], i['year'], i['imdb'], i['tmdb'], i['tvdb'], range=True)
 					if general_notification and files_added > 0: control.notification(title=i['title'], message=32554)
@@ -623,7 +623,7 @@ class libtvshows:
 			files_added = 0
 			for i in items:
 				if lib != []: continue
-				if control.monitor.abortRequested(): return sys.exist()
+				if control.monitor.abortRequested(): return sys.exit()
 				try:
 					if self.check_setting == 'true':
 						if i['episode'] == '1':
@@ -665,7 +665,7 @@ class libtvshows:
 
 		total_added = 0
 		for i in items:
-			if control.monitor.abortRequested(): return sys.exist()
+			if control.monitor.abortRequested(): return sys.exit()
 			try:
 				files_added = self.add(i['title'], i['year'], i['imdb'], i['tmdb'], i['tvdb'], range=True)
 				if general_notification and files_added > 0: control.notification(title=i['title'], message=32554)
@@ -731,7 +731,7 @@ class libtvshows:
 
 		total_added = 0
 		for i in items:
-			if control.monitor.abortRequested(): return sys.exist()
+			if control.monitor.abortRequested(): return sys.exit()
 			try:
 				files_added = self.add(i['title'], i['year'], i['imdb'], i['tmdb'], i['tvdb'], range=True)
 				if general_notification and files_added > 0: control.notification(title=i['title'], message=32554)
@@ -916,7 +916,7 @@ class libepisodes:
 				continue
 
 			for i in it:
-				if control.monitor.abortRequested(): return sys.exist()
+				if control.monitor.abortRequested(): return sys.exit()
 				try:
 					# Show Season Special(Season0).
 					if str(i.get('season')) == '0' and control.setting('tv.specials') == 'false': continue

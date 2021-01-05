@@ -1,3 +1,10 @@
+[B][COLOR red]Update - v4.3.4 - Jan. 04, 2021[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Removed setting option "Remove Captcha".  Since switching
+    to debrid only support this option is no longer needed.[/I]
+[COLOR yellow]--[/COLOR][I] Allot of cleanup has been done to the Sources module
+    for removed options. Scraping and source select is now faster.[/I]
+[COLOR yellow]--[/COLOR][I] Fixed Library Update Service exit typo.[/I]
+
 [B][COLOR red]Update - v4.3.3 - Jan. 01, 2021[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed issue where torrents turned off produced no sources
     with premium hosters only enabled.[/I]

@@ -604,6 +604,7 @@ def trigger_widget_refresh():
 	homeWindow.setProperty('widgetreload-tvshows', timestr)
 	homeWindow.setProperty('widgetreload-episodes', timestr)
 	homeWindow.setProperty('widgetreload-movies', timestr)
+# should prob make this run only on "isVenom_widget"
 	execute('UpdateLibrary(video,/fake/path/to/force/refresh/on/home)') # make sure this is ok coupled with above
 
 

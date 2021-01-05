@@ -371,15 +371,13 @@ class AllDebrid:
 			extras_filtering_list = episode_extras_filter()
 			transfer_id = self.create_transfer(magnet_url)
 			transfer_info = self.list_transfer(transfer_id)
+			valid_results = [i for i in transfer_info.get('links') if any(i.get('filename').lower().endswith(x) for x in extensions) and not i.get('link', '') == '']
+			if len(valid_results) == 0: return
 			if season:
-				valid_results = [i for i in transfer_info.get('links') if any(i.get('filename').lower().endswith(x) for x in extensions) and not i.get('link', '') == '']
-				if len(valid_results) == 0:
-					return
 				for item in valid_results:
 					if seas_ep_filter(season, episode, item['filename']):
 						correct_files.append(item)
-					if len(correct_files) == 0:
-						continue
+					if len(correct_files) == 0: continue
 					episode_title = re.sub('[^A-Za-z0-9-]+', '.', ep_title.replace('\'', '')).lower()
 					for i in correct_files:
 						compare_link = seas_ep_filter(season, episode, i['filename'], split=True)
@@ -388,18 +386,13 @@ class AllDebrid:
 							media_id = i['link']
 							break
 			else:
-				sources = [(link.get('size'), link.get('link'))
-						for link in transfer_info.get('links')
-						if any(link.get('filename').lower().endswith(x) for x in extensions)]
-				media_id = max(sources)[1]
-			if not store_to_cloud:
-				self.delete_transfer(transfer_id)
+				media_id = max(valid_results, key=lambda x: x.get('size')).get('link', None)
+			if not store_to_cloud: self.delete_transfer(transfer_id)
 			file_url = self.unrestrict_link(media_id)
 			return file_url
 		except:
 			log_utils.error()
-			if transfer_id:
-				self.delete_transfer(transfer_id)
+			if transfer_id: self.delete_transfer(transfer_id)
 			return None
 
 

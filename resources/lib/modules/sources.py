@@ -35,6 +35,8 @@ try:
 except:
 	from pysqlite2 import dbapi2 as database
 
+from fenomscrapers import sources as fs_sources
+
 
 class Sources:
 	def __init__(self):
@@ -66,7 +68,7 @@ class Sources:
 			return result
 		return wrap
 
-
+	# @timeIt
 	def play(self, title, year, imdb, tmdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=None):
 		gdriveEnabled = control.addon('script.module.fenomscrapers').getSetting('gdrive.cloudflare_url') != ''
 		if not self.debrid_resolvers and not gdriveEnabled:
@@ -136,6 +138,7 @@ class Sources:
 					control.sleep(200)
 					control.hide()
 					return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], quote_plus(title)))
+					# self.addItem(title)
 				elif select == '0' or select == '1':
 					url = self.sourcesDialog(items)
 				else:
@@ -147,9 +150,8 @@ class Sources:
 
 			try: meta = json.loads(unquote(meta.replace('%22', '\\"')))
 			except: pass
-
 			from resources.lib.modules import player
-			control.sleep(200) # added 5/14
+			control.sleep(200)
 			control.hide()
 			player.Player().play_source(title, year, season, episode, imdb, tmdb, tvdb, url, meta, select)
 		except:
@@ -159,7 +161,6 @@ class Sources:
 
 	# @timeIt
 	def addItem(self, title):
-		control.sleep(200)
 		control.hide()
 
 		def sourcesDirMeta(metadata):
@@ -232,8 +233,7 @@ class Sources:
 					thumb = '%s%s' % (quality, '.png')
 					thumb = control.joinPath(artPath, thumb) if artPath else ''
 				else:
-					thumb = meta.get('thumb')
-					thumb = thumb or poster or fanart or control.addonThumb()
+					thumb = meta.get('thumb') or poster or fanart or control.addonThumb()
 
 				item = control.item(label=label)
 				item.setArt({'icon': thumb, 'thumb': thumb, 'poster': poster, 'fanart': fanart})
@@ -307,8 +307,7 @@ class Sources:
 					w = workers.Thread(self.sourcesResolve, items[i])
 					w.start()
 
-					if items[i].get('source') in self.hostcapDict: offset = 60 * 2
-					elif 'torrent' in items[i].get('source'): offset = float('inf')
+					if 'torrent' in items[i].get('source'): offset = float('inf')
 					else: offset = 0
 
 					m = ''
@@ -363,9 +362,7 @@ class Sources:
 
 	# @timeIt
 	def getSources(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, quality='HD', timeout=30):
-		control.sleep(200)
 		control.hide()
-
 		progressDialog = control.progressDialog if control.setting('scraper.dialog') == '0' else control.progressDialogBG
 		header = control.homeWindow.getProperty(self.labelProperty) + ': Scraping...'
 		progressDialog.create(header, '')
@@ -392,6 +389,8 @@ class Sources:
 			for i in sourceDict:
 				threads.append(workers.Thread(self.getMovieSource, title, aliases, year, imdb, i[0], i[1]))
 		else:
+			from fenomscrapers import pack_sources
+			self.packDict = providerscache.get(pack_sources, 192)
 			tvshowtitle = self.getTitle(tvshowtitle)
 			aliases = self.getAliasTitles(imdb, content)
 			for i in sourceDict:
@@ -405,13 +404,14 @@ class Sources:
 
 		sdc = control.getColor(control.setting('scraper.dialog.color'))
 		string1 = control.lang(32404) # msgid "[COLOR cyan]Time elapsed:[/COLOR]  %s seconds"
-		string2 = control.lang(32405) # msgid "%s seconds"
+		# string2 = control.lang(32405) # msgid "%s seconds"
 		string3 = control.lang(32406) # msgid "[COLOR cyan]Remaining providers:[/COLOR] %s"
 		string4 = control.lang(32601) # msgid "[COLOR cyan]Total:[/COLOR]"
 
 		try: timeout = int(control.setting('scrapers.timeout'))
 		except: pass
 		start_time = time.time()
+		end_time = start_time + timeout
 
 		quality = control.setting('hosts.quality')
 		if quality == '': quality = '0'
@@ -424,12 +424,10 @@ class Sources:
 		total_format = '[COLOR %s][B]%s[/B][/COLOR]'
 		pdiag_format = '4K:  %s  |  1080p:  %s  |  720p:  %s  |  SD:  %s'
 
-		for i in list(range(0, 2 * timeout)):
+		while not progressDialog.iscanceled():
 			try:
 				if control.monitor.abortRequested(): return sys.exit()
-				try:
-					if progressDialog.iscanceled(): break
-				except: pass
+				if progressDialog.iscanceled(): break
 
 				if pre_emp == 'true':
 					if pre_emp_res == '0':
@@ -443,22 +441,21 @@ class Sources:
 					else:
 						if (source_sd) >= pre_emp_limit: break
 
-				if len(self.scraper_sources) > 0:
-					if quality == '0':
-						source_4k = len([e for e in self.scraper_sources if e['quality'] == '4K'])
-						source_1080 = len([e for e in self.scraper_sources if e['quality'] == '1080p'])
-						source_720 = len([e for e in self.scraper_sources if e['quality'] in ['720p', 'HD']])
-						source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
-					elif quality == '1':
-						source_1080 = len([e for e in self.scraper_sources if e['quality'] == '1080p'])
-						source_720 = len([e for e in self.scraper_sources if e['quality'] in ['720p', 'HD']])
-						source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
-					elif quality == '2':
-						source_720 = len([e for e in self.scraper_sources if e['quality'] in ['720p', 'HD']])
-						source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
-					else:
-						source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
-					total = source_4k + source_1080 + source_720 + source_sd
+				if quality == '0':
+					source_4k = len([e for e in self.scraper_sources if e['quality'] == '4K'])
+					source_1080 = len([e for e in self.scraper_sources if e['quality'] == '1080p'])
+					source_720 = len([e for e in self.scraper_sources if e['quality'] in ['720p', 'HD']])
+					source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
+				elif quality == '1':
+					source_1080 = len([e for e in self.scraper_sources if e['quality'] == '1080p'])
+					source_720 = len([e for e in self.scraper_sources if e['quality'] in ['720p', 'HD']])
+					source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
+				elif quality == '2':
+					source_720 = len([e for e in self.scraper_sources if e['quality'] in ['720p', 'HD']])
+					source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
+				else:
+					source_sd = len([e for e in self.scraper_sources if e['quality'] in ['SD', 'SCR', 'CAM']])
+				total = source_4k + source_1080 + source_720 + source_sd
 
 				source_4k_label = total_format % ('red', source_4k) if source_4k == 0 else total_format % (sdc, source_4k)
 				source_1080_label = total_format % ('red', source_1080) if source_1080 == 0 else total_format % (sdc, source_1080)
@@ -472,15 +469,18 @@ class Sources:
 					line2 = string4 % source_total_label + '     ' + string1 % round(time.time() - start_time, 1)
 					if len(info) > 6: line3 = string3 % str(len(info))
 					elif len(info) > 0: line3 = string3 % (', '.join(info))
-					percent = int(100 * float(i) / (2 * timeout) + 0.5)
-					if progressDialog != control.progressDialogBG:
-						progressDialog.update(max(1, percent), line1, line2, line3)
+					else: break
+					current_time = time.time()
+					current_progress = current_time - start_time
+					percent = int((current_progress / float(timeout)) * 100)
+					if progressDialog != control.progressDialogBG: progressDialog.update(max(1, percent), line1, line2, line3)
 					else: progressDialog.update(max(1, percent), line1 + string3 % str(len(info)))
-					if len(info) == 0: break
+					# if len(info) == 0: break
+					if end_time < current_time: break
 				except:
 					log_utils.error()
 					break
-				time.sleep(0.5)
+				control.sleep(100)
 			except:
 				log_utils.error()
 		try: progressDialog.close()
@@ -681,7 +681,7 @@ class Sources:
 			# seasonPacks scraper call
 			if self.dev_mode and self.dev_disable_season_packs: raise Exception()
 			if self.is_airing: raise Exception()
-			if source in self.packDict:
+			if self.packDict and source in self.packDict:
 				if db_seasonPacks_valid: raise Exception()
 				sources = []
 				sources = call.sources_packs(ep_url, self.hostprDict, bypass_filter=self.dev_disable_season_filter)
@@ -696,7 +696,7 @@ class Sources:
 		try:
 			# showPacks scraper call
 			if self.dev_mode and self.dev_disable_show_packs: raise Exception()
-			if source in self.packDict:
+			if self.packDict and source in self.packDict:
 				if db_showPacks_valid: raise Exception()
 				sources = []
 				sources = call.sources_packs(ep_url, self.hostprDict, search_series=True, total_seasons=self.total_seasons, bypass_filter=self.dev_disable_show_filter)
@@ -747,7 +747,6 @@ class Sources:
 		self.sources = [i for i in self.sources if not i in direct]
 
 		from copy import deepcopy
-		# start = time.time()
 		deepcopy_sources = deepcopy(self.sources)
 		deepcopy_sources = [i for i in deepcopy_sources if 'magnet:' in i['url']]
 		threads = []
@@ -794,8 +793,6 @@ class Sources:
 		self.filter += direct
 		self.filter += local
 		self.sources = self.filter
-		# end = time.time()
-		# log_utils.log('Cache check total time = %s' % str(end - start), __name__, log_utils.LOGNOTICE)
 
 		if control.setting('sources.group.sort') == '1':
 			torr_filter = []
@@ -831,11 +828,6 @@ class Sources:
 		filter += [i for i in self.sources if i['quality'] == 'SD']
 		filter += [i for i in self.sources if i['quality'] == 'CAM']
 		self.sources = filter
-
-		if control.setting('remove.captcha') == 'true':
-			self.sources = [i for i in self.sources if not (i['source'] in self.hostcapDict and not 'debrid' in i)]
-
-		self.sources = [i for i in self.sources if not i['source'] in self.hostblockDict]
 		self.sources = self.sources[:4000]
 
 		cached_color = control.getColor(control.setting('sources.cached.color'))
@@ -903,9 +895,37 @@ class Sources:
 
 			self.sources[i]['label'] = label
 			# self.uncached_sources[i]['label'] = label
-
 		return self.sources
 		# return self.sources, self.uncached_sources
+
+
+	# @timeIt
+	def filter_dupes(self):
+		filter = []
+		for i in self.sources:
+			a = i['url'].lower()
+			for sublist in filter:
+				try:
+					b = sublist['url'].lower()
+					if 'magnet:' in a:
+						if i['hash'].lower() in b:
+							filter.remove(sublist)
+							if control.setting('remove.duplicates.logging') != 'true':
+								log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), log_utils.LOGDEBUG)
+							break
+					elif a == b:
+						filter.remove(sublist)
+						if control.setting('remove.duplicates.logging') != 'true':
+							log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
+						break
+				except:
+					log_utils.error()
+			filter.append(i)
+		header = control.homeWindow.getProperty(self.labelProperty)
+		control.notification(title=header, message='Removed %s duplicate sources from list' % (len(self.sources) - len(filter)))
+		log_utils.log('Removed %s duplicate sources for (%s) from list' % (len(self.sources) - len(filter),
+			control.homeWindow.getProperty(self.labelProperty)), log_utils.LOGDEBUG)
+		return filter
 
 
 	def sourcesResolve(self, item):
@@ -989,8 +1009,7 @@ class Sources:
 					except:
 						progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label)
 
-					if items[i].get('source') in self.hostcapDict: offset = 60 * 2
-					elif 'torrent' in items[i].get('source'): offset = float('inf')
+					if 'torrent' in items[i].get('source'): offset = float('inf')
 					else: offset = 0
 
 					m = ''
@@ -1047,21 +1066,19 @@ class Sources:
 		except Exception as e:
 			try: progressDialog.close()
 			except: pass
+			del progressDialog
 			log_utils.log('Error %s' % str(e), __name__, log_utils.LOGNOTICE)
 
 
 	# @timeIt
 	def sourcesAutoPlay(self, items):
-		filter = [i for i in items if i['source'] in self.hostcapDict and i['debrid'] == '']
-		items = [i for i in items if not i in filter]
-		filter = [i for i in items if i['source'] in self.hostblockDict]# and i['debrid'] == '']
-		items = [i for i in items if not i in filter]
 		if control.setting('autoplay.sd') == 'true':
 			items = [i for i in items if not i['quality'] in ['4K', '1080p', '720p', 'HD']]
 		u = None
 		header = control.homeWindow.getProperty(self.labelProperty) + ': Resolving...'
 		try:
-			control.sleep(1000)
+			# control.sleep(1000)
+			control.sleep(500)
 			if control.setting('scraper.dialog') == '0': progressDialog = control.progressDialog
 			else: progressDialog = control.progressDialogBG
 			progressDialog.create(header, '')
@@ -1151,7 +1168,7 @@ class Sources:
 		except:
 			log_utils.error()
 
-
+	# @timeIt
 	def getAliasTitles(self, imdb, content):
 		lang = 'en'
 		try:
@@ -1170,7 +1187,7 @@ class Sources:
 
 
 	# @timeIt
-	def getConstants(self):
+	def getConstants(self): # gets initialized multiple times
 		self.itemProperty = 'plugin.video.venom.container.items'
 		self.metaProperty = 'plugin.video.venom.container.meta'
 		self.seasonProperty = 'plugin.video.venom.container.season'
@@ -1181,58 +1198,22 @@ class Sources:
 		self.tvdbProperty = 'plugin.video.venom.container.tvdb'
 		self.labelProperty = 'plugin.video.venom.container.label'
 
-		from fenomscrapers import sources
-		self.sourceDict = sources()
+		self.sourceDict = fs_sources()
 		# add cloud scrapers to sourceDict
 
-		from fenomscrapers import pack_sources
-		self.packDict = pack_sources()
 		from resources.lib.modules import premium_hosters
-		self.hostprDict = []
-		try:
-			self.debrid_resolvers = debrid.debrid_resolvers()
-			for d in self.debrid_resolvers:
-				hosts = d.get_hosts()[d.name]
-				self.hostprDict += hosts
-			self.hostprDict = list(set(self.hostprDict))
-		except:
-			self.hostprDict = premium_hosters.hostprDict
+		self.debrid_resolvers = debrid.debrid_resolvers()
+		def cache_prDict():
+			try:
+				hosts = []
+				for d in self.debrid_resolvers:
+					hosts += d.get_hosts()[d.name]
+				return list(set(hosts))
+			except:
+				return premium_hosters.hostprDict
 
-		self.hostcapDict = premium_hosters.hostcapDict
-		self.hostblockDict = premium_hosters.hostblockDict
+		self.hostprDict = providerscache.get(cache_prDict, 192)
 		self.sourcecfDict = premium_hosters.sourcecfDict
-
-
-	# @timeIt
-	def filter_dupes(self):
-		filter = []
-		for i in self.sources:
-			a = i['url'].lower()
-			for sublist in filter:
-				try:
-					b = sublist['url'].lower()
-					if 'magnet:' in a:
-						info_hash = i['hash'].lower()
-						if info_hash:
-							if info_hash in b:
-								filter.remove(sublist)
-								if control.setting('remove.duplicates.logging') != 'true':
-									log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), log_utils.LOGDEBUG)
-								break
-					elif a == b:
-						filter.remove(sublist)
-						if control.setting('remove.duplicates.logging') != 'true':
-							log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
-						break
-				except:
-					log_utils.error()
-			filter.append(i)
-		header = control.homeWindow.getProperty(self.labelProperty)
-		control.notification(title=header, message='Removed %s duplicate sources from list' % (len(self.sources) - len(filter)))
-		log_utils.log('Removed %s duplicate sources for (%s) from list' % (len(self.sources) - len(filter),
-			control.homeWindow.getProperty(self.labelProperty)), log_utils.LOGDEBUG)
-		self.sources = filter
-		return self.sources
 
 
 	# @timeIt

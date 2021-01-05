@@ -418,8 +418,7 @@ class RealDebrid:
 			extras_filtering_list = episode_extras_filter()
 			info_hash = info_hash.lower()
 			torrent_files = self._get(check_cache_url + '/' + info_hash)
-			if not info_hash in torrent_files:
-				return None
+			if not info_hash in torrent_files: return None
 			torrent_id = self.add_magnet(magnet_url)
 			torrent_info = self.torrent_info(torrent_id)
 			torrent_files = torrent_files[info_hash]['rd']

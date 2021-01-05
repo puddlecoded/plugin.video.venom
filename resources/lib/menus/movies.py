@@ -373,7 +373,6 @@ class Movies:
 			control.execute('Container.Update(%s)' % url)
 
 
-
 	def search_term(self, name):
 		url = self.search_link + quote_plus(name)
 		self.get(url)

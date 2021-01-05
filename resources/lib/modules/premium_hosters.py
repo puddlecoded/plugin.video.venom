@@ -35,12 +35,14 @@ hostprDict = ['4shared.com', 'vidcloud.r', 'fastfile.cc', 'rapidu.net', 'sky.fm'
 							'letsupload.cc', 'di.fm', 'letsupload.co', 'clipwatching.com', 'turbobit.cloud', 'fboom.me', 'brupload.net', 'soundcloud.com',
 							'prefiles.com', 'wdupload.com', 'easybytez.com', 'file-up.org']
 
-hostcapDict = ['flashx.tv', 'flashx.to', 'flashx.sx', 'flashx.bz', 'flashx.cc', 'hugefiles.cc', 'hugefiles.net', 'jetload.net', 'jetload.tv',
-							'jetload.to', 'kingfiles.net', 'streamin.to', 'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io',
-							'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
-
-hostblockDict = ['divxme.com', 'divxstage.eu', 'estream.to', 'facebook.com', 'oload.download', 'oload.fun', 'oload.icu', 'oload.info',
-							'oload.life', 'oload.space', 'oload.stream', 'oload.tv', 'oload.win', 'openload.co', 'openload.io', 'openload.pw', 'rapidvideo.com',
-							'rapidvideo.is', 'rapidvid.to', 'streamango.com', 'streamcherry.com', 'twitch.tv', 'youtube.com', 'zippyshare.com']
-
 sourcecfDict = ['maxrls', 'rapidmoviez', 'rlsbb', 'scenerls', 'extratorrent', 'limetorrents', 'torrentgalaxy']
+
+# hostcapDict = ['flashx.tv', 'flashx.to', 'flashx.sx', 'flashx.bz', 'flashx.cc', 'hugefiles.cc', 'hugefiles.net', 'jetload.net', 'jetload.tv',
+							# 'jetload.to', 'kingfiles.net', 'streamin.to', 'thevideo.me', 'torba.se', 'uptobox.com', 'uptostream.com', 'vidup.io',
+							# 'vidup.me', 'vidup.tv', 'vshare.eu', 'vshare.io', 'vev.io']
+
+# hostblockDict = ['divxme.com', 'divxstage.eu', 'estream.to', 'facebook.com', 'oload.download', 'oload.fun', 'oload.icu', 'oload.info',
+							# 'oload.life', 'oload.space', 'oload.stream', 'oload.tv', 'oload.win', 'openload.co', 'openload.io', 'openload.pw', 'rapidvideo.com',
+							# 'rapidvideo.is', 'rapidvid.to', 'streamango.com', 'streamcherry.com', 'twitch.tv', 'youtube.com', 'zippyshare.com']
+
+

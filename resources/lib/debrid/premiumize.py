@@ -197,18 +197,15 @@ class Premiumize:
 			extras_filtering_list = episode_extras_filter()
 			data = {'src': magnet_url}
 			response = self._post(transfer_directdl_url, data)
-			if not 'status' in response or response['status'] != 'success':
-				return None
+			if not 'status' in response or response['status'] != 'success': return None
 			valid_results = [i for i in response.get('content') if any(i.get('path').lower().endswith(x) for x in extensions) and not i.get('link', '') == '']
-			if len(valid_results) == 0:
-				return
+			if len(valid_results) == 0: return
 			if season:
 				episode_title = re.sub('[^A-Za-z0-9-]+', '.', ep_title.replace('\'', '')).lower()
 				for item in valid_results:
 					if seas_ep_filter(season, episode, item['path'].split('/')[-1]):
 						correct_files.append(item)
-					if len(correct_files) == 0:
-						continue
+					if len(correct_files) == 0: continue
 					for i in correct_files:
 						compare_link = seas_ep_filter(season, episode, i['path'], split=True)
 						compare_link = re.sub(episode_title, '', compare_link)
@@ -216,7 +213,7 @@ class Premiumize:
 							file_url = i['link']
 							break
 			else:
-				file_url = max(valid_results, key=lambda x: x.get('size')).get('link', None)
+				file_url = max(valid_results, key=lambda x: int(x.get('size'))).get('link', None)
 			if file_url:
 				if store_to_cloud: self.create_transfer(magnet_url)
 				return self.add_headers_to_url(file_url)
