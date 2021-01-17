@@ -3,9 +3,8 @@
 	Venom Add-on
 '''
 
-import json
+from json import loads as jsloads
 import re
-
 from resources.lib.modules import client
 from resources.lib.modules import workers
 
@@ -49,17 +48,16 @@ class youtube(object):
 	def play_list(self, url):
 		try:
 			result = client.request(url)
-			result = json.loads(result)
+			result = jsloads(result)
 			items = result['items']
 		except: pass
 
 		for i in range(1, 5):
 			try:
-				if 'nextPageToken' not in result:
-					raise Exception()
+				if 'nextPageToken' not in result: raise Exception()
 				next = url + '&pageToken=' + result['nextPageToken']
 				result = client.request(next)
-				result = json.loads(result)
+				result = jsloads(result)
 				items += result['items']
 			except: pass
 
@@ -70,8 +68,7 @@ class youtube(object):
 				url = item['id']
 				url = url.encode('utf-8')
 				image = item['snippet']['thumbnails']['high']['url']
-				if '/default.jpg' in image:
-					raise Exception()
+				if '/default.jpg' in image: raise Exception()
 				image = image.encode('utf-8')
 				self.list.append({'title': title, 'url': url, 'image': image})
 			except: pass
@@ -81,7 +78,7 @@ class youtube(object):
 	def video_list(self, cid, url, pagination):
 		try:
 			result = client.request(url)
-			result = json.loads(result)
+			result = jsloads(result)
 			items = result['items']
 		except: pass
 		for i in range(1, 5):
@@ -90,7 +87,7 @@ class youtube(object):
 				if 'nextPageToken' not in result: raise Exception()
 				page = url + '&pageToken=' + result['nextPageToken']
 				result = client.request(page)
-				result = json.loads(result)
+				result = jsloads(result)
 				items += result['items']
 			except: pass
 		try:
@@ -125,7 +122,7 @@ class youtube(object):
 
 			items = []
 			for i in self.data:
-				items += json.loads(i)['items']
+				items += jsloads(i)['items']
 		except: pass
 
 		for item in range(0, len(self.list)):
@@ -136,11 +133,11 @@ class youtube(object):
 				d = [i for i in d if i[0] == vid]
 				d = d[0][1]['duration']
 				duration = 0
-				try: duration += 60 * 60 * int(re.findall('(\d*)H', d)[0])
+				try: duration += 60 * 60 * int(re.findall(r'(\d*)H', d)[0])
 				except: pass
-				try: duration += 60 * int(re.findall('(\d*)M', d)[0])
+				try: duration += 60 * int(re.findall(r'(\d*)M', d)[0])
 				except: pass
-				try: duration += int(re.findall('(\d*)S', d)[0])
+				try: duration += int(re.findall(r'(\d*)S', d)[0])
 				except: pass
 				duration = str(duration)
 				self.list[item]['duration'] = duration

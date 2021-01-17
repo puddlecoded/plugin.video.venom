@@ -3,21 +3,18 @@
 	Venom Add-on
 '''
 
-import datetime
+from datetime import datetime, timedelta
 from json import loads
 import re
 # Import _strptime to workaround python 2 bug with threads
 import _strptime
 import sys
-try:
-	from sqlite3 import dbapi2 as database
-except:
-	from pysqlite2 import dbapi2 as database
-
-try:
+try: from sqlite3 import dbapi2 as database
+except: from pysqlite2 import dbapi2 as database
+try: #Py2
 	from urlparse import parse_qsl
 	from urllib import quote_plus
-except:
+except ImportError: #Py3
 	from urllib.parse import parse_qsl, quote_plus
 
 from resources.lib.modules import control
@@ -42,7 +39,7 @@ class lib_tools:
 				if 'ftp://' not in folder:
 					raise Exception()
 				from ftplib import FTP
-				ftparg = re.compile('ftp://(.+?):(.+?)@(.+?):?(\d+)?/(.+/?)').findall(folder)
+				ftparg = re.compile(r'ftp://(.+?):(.+?)@(.+?):?(\d+)?/(.+/?)').findall(folder)
 				ftp = FTP(ftparg[0][2], ftparg[0][0], ftparg[0][1])
 				try: ftp.cwd(ftparg[0][4])
 				except: ftp.mkd(ftparg[0][4])
@@ -96,8 +93,8 @@ class lib_tools:
 		try:
 			filename = filename.strip()
 			filename = re.sub(r'(?!%s)[^\w\-_\.]', '.', filename)
-			filename = re.sub('\.+', '.', filename)
-			filename = re.sub(re.compile('(CON|PRN|AUX|NUL|COM\d|LPT\d)\.', re.I), '\\1_', filename)
+			filename = re.sub(r'\.+', '.', filename)
+			filename = re.sub(re.compile(r'(CON|PRN|AUX|NUL|COM\d|LPT\d)\.', re.I), '\\1_', filename)
 			control.legalFilename(filename)
 			# filename = control.legalFilename(filename)
 			return filename
@@ -222,13 +219,13 @@ class lib_tools:
 		while not control.monitor.abortRequested():
 			try:
 				last_service = control.homeWindow.getProperty(self.property)
-				t1 = datetime.timedelta(hours=6)
+				t1 = timedelta(hours=6)
 				t2 = control.datetime_workaround(str(last_service), '%Y-%m-%d %H:%M:%S.%f', False)
-				t3 = datetime.datetime.now()
+				t3 = datetime.now()
 				check = abs(t3 - t2) >= t1
 				if not check: continue
 				if (control.player.isPlaying() or control.condVisibility('Library.IsScanningVideo')): continue
-				last_service = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+				last_service = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
 				control.homeWindow.setProperty(self.property, last_service)
 				try:
 					dbcon = database.connect(control.libcacheFile)
@@ -500,9 +497,10 @@ class libtvshows:
 		self.dupe_chk = control.setting('library.check') or 'true'
 		self.include_unknown = control.setting('library.include_unknown') or 'true'
 		self.showunaired = control.setting('showunaired') or 'true'
-		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
-		if control.setting('library.importdelay') != 'true': self.date = self.datetime.strftime('%Y%m%d')
-		else: self.date = (self.datetime - datetime.timedelta(hours = 24)).strftime('%Y%m%d')
+		# self.date_time = (datetime.utcnow() - timedelta(hours = 5))
+		self.date_time = datetime.utcnow()
+		if control.setting('library.importdelay') != 'true': self.date = self.date_time.strftime('%Y%m%d')
+		else: self.date = (self.date_time - timedelta(hours = 24)).strftime('%Y%m%d')
 		self.block = False
 
 
@@ -593,7 +591,7 @@ class libtvshows:
 				# from resources.lib.menus import episodes
 				# items = episodes.Episodes().get(tvshowtitle, year, imdb, tmdb, tvdb, idx=False)
 				from resources.lib.menus import seasons
-				items = seasons.Seasons().tvdb_list(tvshowtitle, year, imdb, tmdb, tvdb, control.apiLanguage()['tvdb'], '-1') # fetch new meta (uncached)
+				items = seasons.Seasons().tvdb_list(tvshowtitle, year, imdb, tmdb, tvdb, control.apiLanguage()['tvdb'], '-1') # fetch fresh meta (uncached)
 			except:
 				log_utils.error()
 				return
@@ -636,7 +634,7 @@ class libtvshows:
 					# Show Unaired or Unknown items.
 					premiered = i.get('premiered', '0')
 					if premiered == '0' and self.include_unknown == 'false': continue
-					elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.date))):
+					elif int(re.sub(r'[^0-9]', '', str(premiered))) > int(re.sub(r'[^0-9]', '', str(self.date))):
 						if self.showunaired != 'true': continue
 					self.strmFile(i)
 					files_added += 1
@@ -785,9 +783,10 @@ class libepisodes:
 		self.library_update = control.setting('library.update') or 'true'
 		self.include_unknown = control.setting('library.include_unknown') or 'true'
 		self.showunaired = control.setting('showunaired') or 'true'
-		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
-		if control.setting('library.importdelay') != 'true': self.date = self.datetime.strftime('%Y%m%d')
-		else: self.date = (self.datetime - datetime.timedelta(hours = 24)).strftime('%Y%m%d')
+		# self.date_time = (datetime.utcnow() - timedelta(hours = 5))
+		self.date_time = datetime.utcnow()
+		if control.setting('library.importdelay') != 'true': self.date = self.date_time.strftime('%Y%m%d')
+		else: self.date = (self.date_time - timedelta(hours = 24)).strftime('%Y%m%d')
 
 
 	def update(self):
@@ -827,7 +826,7 @@ class libepisodes:
 					if tvshowtitle is None or tvshowtitle == '': continue
 
 					year, imdb, tvdb = params['year'], params['imdb'], params['tvdb']
-					imdb = 'tt' + re.sub('[^0-9]', '', str(imdb))
+					imdb = 'tt' + re.sub(r'[^0-9]', '', str(imdb))
 					tmdb = params.get('tmdb', '0')
 
 					items.append({'tvshowtitle': tvshowtitle, 'year': year, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb})
@@ -868,9 +867,10 @@ class libepisodes:
 
 		files_added = 0
 		# __init__ doesn't get called from services so self.date never gets updated and new episodes are not added to the library
-		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
-		if control.setting('library.importdelay') != 'true': self.date = self.datetime.strftime('%Y%m%d')
-		else: self.date = (self.datetime - datetime.timedelta(hours = 24)).strftime('%Y%m%d')
+		# self.date_time = (datetime.utcnow() - timedelta(hours=5))
+		self.date_time = datetime.utcnow()
+		if control.setting('library.importdelay') != 'true': self.date = self.date_time.strftime('%Y%m%d')
+		else: self.date = (self.date_time - timedelta(hours=24)).strftime('%Y%m%d')
 
 		for item in items:
 			it = None
@@ -888,7 +888,7 @@ class libepisodes:
 			try:
 				if it: raise Exception()
 				# it = episodes.Episodes().get(item['tvshowtitle'], item['year'], item['imdb'], item['tmdb'], item['tvdb'], idx=False)
-				it = seasons.Seasons().tvdb_list(item['tvshowtitle'], item['year'], item['imdb'], item['tmdb'], item['tvdb'], control.apiLanguage()['tvdb'], '-1') # fetch new meta (uncached)
+				it = seasons.Seasons().tvdb_list(item['tvshowtitle'], item['year'], item['imdb'], item['tmdb'], item['tvdb'], control.apiLanguage()['tvdb'], '-1') # fetch fresh meta (uncached)
 				if not it: continue
 				status = it[0]['status'].lower()
 				it = [{'title': i['title'], 'year': i['year'], 'imdb': i['imdb'], 'tmdb': i['tmdb'], 'tvdb': i['tvdb'], 'season': i['season'], 'episode': i['episode'], 'tvshowtitle': i['tvshowtitle'], 'premiered': i['premiered']} for i in it]
@@ -923,7 +923,7 @@ class libepisodes:
 					# Show Unaired items.
 					premiered = i.get('premiered', '0')
 					if premiered == '0' and self.include_unknown == 'false': continue
-					elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.date))):
+					elif int(re.sub(r'[^0-9]', '', str(premiered))) > int(re.sub(r'[^0-9]', '', str(self.date))):
 						if self.showunaired != 'true': continue
 					libtvshows().strmFile(i)
 					files_added += 1

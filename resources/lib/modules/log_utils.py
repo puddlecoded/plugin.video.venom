@@ -3,21 +3,15 @@
 	Venom Add-on
 '''
 
-import cProfile
 from datetime import datetime
 import inspect
-import json
-import pstats
-try: from StringIO import StringIO
-except: from io import StringIO
-import time
 import xbmc
 from xbmc import LOGDEBUG, LOGERROR, LOGFATAL, LOGINFO, LOGNONE, LOGNOTICE, LOGSEVERE, LOGWARNING
 
 from resources.lib.modules import control
 
 DEBUGPREFIX = '[COLOR red][ Venom DEBUG ][/COLOR]'
-LOGPATH = xbmc.translatePath('special://logpath/')
+LOGPATH = control.transPath('special://logpath/')
 
 
 def log(msg, caller=None, level=LOGNOTICE):
@@ -79,6 +73,14 @@ def error(message=None, exception=True):
 
 
 class Profiler(object):
+	import cProfile
+	import pstats
+	import time
+	from json import dumps as jsdumps, loads as jsloads
+	try: from StringIO import StringIO
+	except ImportError: from io import StringIO
+
+
 	def __init__(self, file_path, sort_by='time', builtins=False):
 		self._profiler = cProfile.Profile(builtins=builtins)
 		self.file_path = file_path
@@ -128,10 +130,8 @@ def trace(method):
 
 	def method_trace_off(*args, **kwargs):
 		return method(*args, **kwargs)
-	if _is_debugging():
-		return method_trace_on
-	else:
-		return method_trace_off
+	if _is_debugging(): return method_trace_on
+	else: return method_trace_off
 
 
 def _is_debugging():
@@ -145,6 +145,6 @@ def _is_debugging():
 
 def execute_jsonrpc(command):
 	if not isinstance(command, basestring):
-		command = json.dumps(command)
+		command = jsdumps(command)
 	response = control.jsonrpc(command)
-	return json.loads(response)
+	return jsloads(response)

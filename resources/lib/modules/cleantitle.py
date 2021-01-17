@@ -11,10 +11,10 @@ def get(title):
 	if not title: return
 	try: title = title.encode('utf-8')
 	except: pass
-	title = re.sub('&#(\d+);', '', title)
-	title = re.sub('(&#[0-9]+)([^;^0-9]+)', '\\1;\\2', title)
+	title = re.sub(r'&#(\d+);', '', title)
+	title = re.sub(r'(&#[0-9]+)([^;^0-9]+)', '\\1;\\2', title)
 	title = title.replace('&quot;', '\"').replace('&amp;', '&')
-	title = re.sub('\n|([[].+?[]])|([(].+?[)])|\s(vs|v[.])\s|(:|;|-|–|"|,|\'|\_|\.|\?)|\~|\s', '', title).lower()
+	title = re.sub(r'\n|([[].+?[]])|([(].+?[)])|\s(vs|v[.])\s|(:|;|-|–|"|,|\'|\_|\.|\?)|\~|\s', '', title).lower()
 	return title
 
 
@@ -38,11 +38,11 @@ def geturl(title):
 def get_simple(title):
 	if not title: return
 	title = title.lower()
-	title = re.sub('(\d{4})', '', title)
-	title = re.sub('&#(\d+);', '', title)
-	title = re.sub('(&#[0-9]+)([^;^0-9]+)', '\\1;\\2', title)
+	title = re.sub(r'(\d{4})', '', title)
+	title = re.sub(r'&#(\d+);', '', title)
+	title = re.sub(r'(&#[0-9]+)([^;^0-9]+)', '\\1;\\2', title)
 	title = title.replace('&quot;', '\"').replace('&amp;', '&')
-	title = re.sub('\n|\(|\)|\[|\]|\{|\}|\s(vs|v[.])\s|(:|;|-|–|"|,|\'|\_|\.|\?)|\~|\s', '', title).lower()
+	title = re.sub(r'\n|\(|\)|\[|\]|\{|\}|\s(vs|v[.])\s|(:|;|-|–|"|,|\'|\_|\.|\?)|\~|\s', '', title).lower()
 	title = re.sub(r'<.*?>', '', title, count=0)
 	return title
 
@@ -50,10 +50,10 @@ def get_simple(title):
 def getsearch(title):
 	if not title: return
 	title = title.lower()
-	title = re.sub('&#(\d+);', '', title)
-	title = re.sub('(&#[0-9]+)([^;^0-9]+)', '\\1;\\2', title)
+	title = re.sub(r'&#(\d+);', '', title)
+	title = re.sub(r'(&#[0-9]+)([^;^0-9]+)', '\\1;\\2', title)
 	title = title.replace('&quot;', '\"').replace('&amp;', '&')
-	title = re.sub('\\\|/|-|–|:|;|\*|\?|"|\'|<|>|\|', '', title).lower()
+	title = re.sub(r'\\\|/|-|–|:|;|\*|\?|"|\'|<|>|\|', '', title).lower()
 	return title
 
 

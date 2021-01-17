@@ -3,20 +3,20 @@
 	Venom Add-on
 '''
 
-import datetime
-import json
+from datetime import datetime, timedelta
 import re
-import requests
-import StringIO
+import requests # retest urlopen
 import sys
-# import urllib2
 import zipfile
-
-try:
+try: #Py2
+	# from urllib2 import urlopen
 	from urllib import quote_plus
 	from urlparse import parse_qsl
-except:
+	from cStringIO import StringIO
+except ImportError: #Py3
+	# from urllib.request import urlopen
 	from urllib.parse import quote_plus, parse_qsl
+	from io import BytesIO as StringIO
 
 from resources.lib.modules import cleantitle
 from resources.lib.modules import cache
@@ -39,8 +39,9 @@ class Seasons:
 		self.season_special = False
 		self.disable_fanarttv = control.setting('disable.fanarttv')
 
-		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
-		self.today_date = (self.datetime).strftime('%Y-%m-%d')
+		# self.date_time = (datetime.utcnow() - timedelta(hours=5))
+		self.date_time = datetime.utcnow()
+		self.today_date = (self.date_time).strftime('%Y-%m-%d')
 
 		self.tvdb_key = control.setting('tvdb.api.key')
 
@@ -57,8 +58,7 @@ class Seasons:
 		self.traktlists_link = 'https://api-v2launch.trakt.tv/users/me/lists'
 
 		self.showunaired = control.setting('showunaired') or 'true'
-		self.unairedcolor = control.setting('unaired.identify')
-		self.unairedcolor = control.getColor(self.unairedcolor)
+		self.unairedcolor = control.getColor(control.setting('unaired.identify'))
 
 
 	def get(self, tvshowtitle, year, imdb, tmdb, tvdb, idx=True):
@@ -145,7 +145,7 @@ class Seasons:
 		return self.list
 
 
-	def tvdb_list(self, tvshowtitle, year, imdb, tmdb, tvdb, lang, limit = ''):
+	def tvdb_list(self, tvshowtitle, year, imdb, tmdb, tvdb, lang, limit=''):
 		if (tvdb == '0' or tmdb == '0') and imdb != '0':
 			try:
 				trakt_ids = trakt.IdLookup('imdb', imdb, 'show')
@@ -182,7 +182,7 @@ class Seasons:
 			try:
 				url = self.tvdb_by_imdb % imdb
 				# result = client.request(url, timeout='10')
-				result = requests.get(url).content
+				result = requests.get(url, timeout=10).content
 				result = re.sub(r'[^\x00-\x7F]+', '', result)
 				result = client.replaceHTMLCodes(result)
 				result = client.parseDOM(result, 'Series')
@@ -210,7 +210,7 @@ class Seasons:
 				years = [str(year), str(int(year)+1), str(int(year)-1)]
 				url = self.tvdb_by_query % (quote_plus(tvshowtitle))
 				# tvdb = client.request(url, timeout='10', error=True)
-				tvdb = requests.get(url).content
+				tvdb = requests.get(url, timeout=10).content
 				tvdb = re.sub(r'[^\x00-\x7F]+', '', tvdb)
 				tvdb = client.replaceHTMLCodes(tvdb)
 				tvdb = client.parseDOM(tvdb, 'Series')
@@ -227,24 +227,23 @@ class Seasons:
 		if tvdb == '0': return None
 		try:
 			url = self.tvdb_info_link % (tvdb, 'en')
-			data = requests.get(url).content # sometimes one api key pulls empty xml while another does not
-			# data = urllib2.urlopen(url, timeout=30).read()
-			zip = zipfile.ZipFile(StringIO.StringIO(data))
-
+			# data = urlopen(url, timeout=30).read()
+			data = requests.get(url, timeout=30).content # sometimes one api key pulls empty xml while another does not
+			zip = zipfile.ZipFile(StringIO(data))
 			result = zip.read('en.xml')
 			artwork = zip.read('banners.xml')
 			actors = zip.read('actors.xml')
 			zip.close()
 
 			dupe = client.parseDOM(result, 'SeriesName')[0]
-			dupe = re.compile('[***]Duplicate (\d*)[***]').findall(dupe)
+			dupe = re.compile(r'[***]Duplicate (\d*)[***]').findall(dupe)
 
 			if len(dupe) > 0:
 				tvdb = str(dupe[0]).encode('utf-8')
 				url = self.tvdb_info_link % (tvdb, 'en')
-				data = requests.get(url).content
-				zip = zipfile.ZipFile(StringIO.StringIO(data))
-
+				#data = urlopen(url, timeout=30).read()
+				data = requests.get(url, timeout=30).content
+				zip = zipfile.ZipFile(StringIO(data))
 				result = zip.read('en.xml')
 				artwork = zip.read('banners.xml')
 				actors = zip.read('actors.xml')
@@ -252,8 +251,9 @@ class Seasons:
 
 			if lang != 'en':
 				url = self.tvdb_info_link % (tvdb, lang)
-				data = requests.get(url).content
-				zip = zipfile.ZipFile(StringIO.StringIO(data))
+				#data = urlopen(url, timeout=30).read()
+				data = requests.get(url, timeout=30).content
+				zip = zipfile.ZipFile(StringIO(data))
 				result2 = zip.read('%s.xml' % lang)
 				zip.close()
 			else:
@@ -261,7 +261,7 @@ class Seasons:
 
 			artwork = artwork.split('<Banner>')
 			artwork = [i for i in artwork if '<Language>en</Language>' in i and '<BannerType>season</BannerType>' in i]
-			artwork = [i for i in artwork if not 'seasonswide' in re.findall('<BannerPath>(.+?)</BannerPath>', i)[0]]
+			artwork = [i for i in artwork if not 'seasonswide' in re.findall(r'<BannerPath>(.+?)</BannerPath>', i)[0]]
 
 			result = result.split('<Episode>')
 			result2 = result2.split('<Episode>')
@@ -278,16 +278,15 @@ class Seasons:
 
 			# season still airing check for pack scraping
 			premiered_eps = [i for i in episodes if not '<FirstAired></FirstAired>' in i]
-			unaired_eps = [i for i in premiered_eps if int(re.sub('[^0-9]', '', str(client.parseDOM(i, 'FirstAired')))) > int(re.sub('[^0-9]', '', str(self.today_date)))]
+			unaired_eps = [i for i in premiered_eps if int(re.sub(r'[^0-9]', '', str(client.parseDOM(i, 'FirstAired')))) > int(re.sub(r'[^0-9]', '', str(self.today_date)))]
 			if unaired_eps: still_airing = client.parseDOM(unaired_eps, 'SeasonNumber')[0]
 			else: still_airing = None
 
 			seasons = [i for i in episodes if '<EpisodeNumber>1</EpisodeNumber>' in i]
-			counts = self.seasonCountParse(seasons = seasons, episodes = episodes)
+			counts = self.seasonCountParse(seasons=seasons, episodes=episodes)
 			locals = [i for i in result2 if '<EpisodeNumber>' in i]
 
-			result = ''
-			result2 = ''
+			result = '' ; result2 = ''
 
 			if limit == '': episodes = []
 			elif limit == '-1': seasons = []
@@ -354,22 +353,19 @@ class Seasons:
 				rating = client.parseDOM(item, 'Rating')[0]
 				rating = client.replaceHTMLCodes(rating)
 				rating = rating.encode('utf-8')
-			except:
-				rating = '0'
+			except: rating = '0'
 
 			try:
 				votes = client.parseDOM(item, 'RatingCount')[0]
 				votes = client.replaceHTMLCodes(votes)
 				votes = votes.encode('utf-8')
-			except:
-				votes = '0'
+			except: votes = '0'
 
 			try:
 				mpaa = client.parseDOM(item, 'ContentRating')[0]
 				mpaa = client.replaceHTMLCodes(mpaa)
 				mpaa = mpaa.encode('utf-8')
-			except:
-				mpaa = '0'
+			except: mpaa = '0'
 
 			import xml.etree.ElementTree as ET
 			tree = ET.ElementTree(ET.fromstring(actors))
@@ -402,7 +398,6 @@ class Seasons:
 			if plot == '': plot = '0'
 			plot = client.replaceHTMLCodes(plot)
 			plot = plot.encode('utf-8')
-			unaired = ''
 		except:
 			log_utils.error()
 
@@ -414,9 +409,13 @@ class Seasons:
 				premiered = premiered.encode('utf-8')
 
 				# Show Unaired items.
+				unaired = ''
 				if status.lower() == 'ended': pass
-				elif premiered == '0': pass
-				elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.today_date))):
+				elif premiered == '0':
+					unaired = 'true'
+					if self.showunaired != 'true': continue
+					pass
+				elif int(re.sub(r'[^0-9]', '', str(premiered))) > int(re.sub(r'[^0-9]', '', str(self.today_date))):
 					unaired = 'true'
 					if self.showunaired != 'true': continue
 
@@ -450,19 +449,24 @@ class Seasons:
 
 		for item in episodes:
 			try:
+				title = client.parseDOM(item, 'EpisodeName')[0]
+				title = client.replaceHTMLCodes(title)
+				try: title = title.encode('utf-8')
+				except: pass
+
 				premiered = client.parseDOM(item, 'FirstAired')[0]
-				if premiered == '' or '-00' in premiered:
-					premiered = '0'
+				if premiered == '' or '-00' in premiered: premiered = '0'
 				premiered = client.replaceHTMLCodes(premiered)
 				premiered = premiered.encode('utf-8')
 
 				# Show Unaired items.
+				unaired = ''
 				if status.lower() == 'ended': pass
 				elif premiered == '0':
 					unaired = 'true'
 					if self.showunaired != 'true': continue
 					pass
-				elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.today_date))):
+				elif int(re.sub(r'[^0-9]', '', str(premiered))) > int(re.sub(r'[^0-9]', '', str(self.today_date))):
 					unaired = 'true'
 					if self.showunaired != 'true': continue
 
@@ -471,7 +475,7 @@ class Seasons:
 				season = season.encode('utf-8')
 
 				episode = client.parseDOM(item, 'EpisodeNumber')[0]
-				episode = re.sub('[^0-9]', '', '%01d' % int(episode))
+				episode = re.sub(r'[^0-9]', '', '%01d' % int(episode))
 				episode = episode.encode('utf-8')
 
 				if still_airing:
@@ -486,10 +490,6 @@ class Seasons:
 					if episodeIDS != {}:
 						episodeIDS = episodeIDS.get('ids', {})
 ##------------------
-
-				title = client.parseDOM(item, 'EpisodeName')[0]
-				title = client.replaceHTMLCodes(title)
-				title = title.encode('utf-8')
 
 				try: thumb = client.parseDOM(item, 'filename')[0]
 				except: thumb = ''
@@ -622,7 +622,7 @@ class Seasons:
 				imdb = trakt.SearchTVShow(quote_plus(tvshowtitle), year, full=False)[0]
 				imdb = imdb.get('show', '0')
 				imdb = imdb.get('ids', {}).get('imdb', '0')
-				imdb = 'tt' + re.sub('[^0-9]', '', str(imdb))
+				imdb = 'tt' + re.sub(r'[^0-9]', '', str(imdb))
 				if not imdb: imdb = '0'
 			except:
 				log_utils.error()
@@ -632,7 +632,8 @@ class Seasons:
 		if tvdb == '0' and imdb != '0':
 			try:
 				url = self.tvdb_by_imdb % imdb
-				result = requests.get(url).content
+				# result = client.request(url, timeout='10')
+				result = requests.get(url, timeout=10).content
 				result = re.sub(r'[^\x00-\x7F]+', '', result)
 				result = client.replaceHTMLCodes(result)
 				result = client.parseDOM(result, 'Series')
@@ -656,7 +657,8 @@ class Seasons:
 			try:
 				years = [str(year), str(int(year)+1), str(int(year)-1)]
 				url = self.tvdb_by_query % (quote_plus(tvshowtitle))
-				tvdb = requests.get(url).content
+				# tvdb = client.request(url, timeout='10', error=True)
+				tvdb = requests.get(url, timeout=10).content
 				tvdb = re.sub(r'[^\x00-\x7F]+', '', tvdb)
 				tvdb = client.replaceHTMLCodes(tvdb)
 				tvdb = client.parseDOM(tvdb, 'Series')
@@ -674,20 +676,21 @@ class Seasons:
 		if tvdb == '0': return None
 		try:
 			url = self.tvdb_info_link % (tvdb, 'en')
-			data = requests.get(url).content
-			zip = zipfile.ZipFile(StringIO.StringIO(data))
+			# data = urlopen(url, timeout=30).read()
+			data = requests.get(url, timeout=30).content
+			zip = zipfile.ZipFile(StringIO(data))
 			result = zip.read('%s.xml' % 'en')
 			zip.close()
 
 			dupe = client.parseDOM(result, 'SeriesName')[0]
-			dupe = re.compile('[***]Duplicate (\d*)[***]').findall(dupe)
+			dupe = re.compile(r'[***]Duplicate (\d*)[***]').findall(dupe)
 
 			if len(dupe) > 0:
 				tvdb = str(dupe[0]).encode('utf-8')
 				url = self.tvdb_info_link % (tvdb, 'en')
-				data = requests.get(url).content
-				zip = zipfile.ZipFile(StringIO.StringIO(data))
-
+				#data = urlopen(url, timeout=30).read()
+				data = requests.get(url, timeout=30).content
+				zip = zipfile.ZipFile(StringIO(data))
 				result = zip.read('%s.xml' % 'en')
 				zip.close()
 
@@ -766,7 +769,7 @@ class Seasons:
 					index = plot.rfind('See full summary')
 					if index >= 0: plot = plot[:index]
 					plot = plot.strip()
-					if re.match('[a-zA-Z\d]$', plot): plot += ' ...'
+					if re.match(r'[a-zA-Z\d]$', plot): plot += ' ...'
 					meta['plot'] = plot
 				except: pass
 
@@ -780,7 +783,7 @@ class Seasons:
 				try:
 					# Year is the shows year, not the seasons year. Extract the correct year from the premier date.
 					yearNew = i['premiered']
-					yearNew = re.findall('(\d{4})', yearNew)[0]
+					yearNew = re.findall(r'(\d{4})', yearNew)[0]
 					yearNew = yearNew.encode('utf-8')
 					meta.update({'year': yearNew})
 				except: pass

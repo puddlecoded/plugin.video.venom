@@ -4,9 +4,9 @@
 '''
 
 import base64
-import datetime
-import hashlib
-import json
+from datetime import datetime, timedelta
+from hashlib import md5
+from json import loads as jsloads
 import random
 import re
 import sys
@@ -267,7 +267,7 @@ class indexer:
 
 	def getx(self, url, worker=False):
 		try:
-			r, x = re.findall('(.+?)\|regex=(.+?)$', url)[0]
+			r, x = re.findall(r'(.+?)\|regex=(.+?)$', url)[0]
 			x = regex.fetch(x)
 			r += unquote_plus(x)
 			url = regex.resolve(r)
@@ -314,14 +314,20 @@ class indexer:
 
 	def tvtuner(self, url):
 		try:
-			preset = re.findall('<preset>(.+?)</preset>', url)[0]
-			today = ((datetime.datetime.utcnow() - datetime.timedelta(hours = 5))).strftime('%Y-%m-%d')
-			today = int(re.sub('[^0-9]', '', str(today)))
-			url, imdb, tvdb, tvshowtitle, year, thumbnail, fanart = re.findall('<url>(.+?)</url>', url)[0], re.findall('<imdb>(.+?)</imdb>', url)[0], re.findall('<tvdb>(.+?)</tvdb>', url)[0], re.findall('<tvshowtitle>(.+?)</tvshowtitle>', url)[0], re.findall('<year>(.+?)</year>', url)[0], re.findall('<thumbnail>(.+?)</thumbnail>', url)[0], re.findall('<fanart>(.+?)</fanart>', url)[0]
+			preset = re.findall(r'<preset>(.+?)</preset>', url)[0]
+			today = ((datetime.utcnow() - timedelta(hours=5))).strftime('%Y-%m-%d')
+			today = int(re.sub(r'[^0-9]', '', str(today)))
+			url, imdb, tvdb, tvshowtitle, year, thumbnail, fanart = re.findall(r'<url>(.+?)</url>', url)[0],
+					re.findall(r'<imdb>(.+?)</imdb>', url)[0], 
+					re.findall(r'<tvdb>(.+?)</tvdb>', url)[0], 
+					re.findall(r'<tvshowtitle>(.+?)</tvshowtitle>', url)[0], 
+					re.findall(r'<year>(.+?)</year>', url)[0], 
+					re.findall(r'<thumbnail>(.+?)</thumbnail>', url)[0],
+					re.findall(r'<fanart>(.+?)</fanart>', url)[0]
 			tvm = client.request('https://api.tvmaze.com/lookup/shows?thetvdb=%s' % tvdb)
 			if tvm  is None: tvm = client.request('https://api.tvmaze.com/lookup/shows?imdb=%s' % imdb)
-			tvm ='https://api.tvmaze.com/shows/%s/episodes' % str(json.loads(tvm).get('id'))
-			items = json.loads(client.request(tvm))
+			tvm ='https://api.tvmaze.com/shows/%s/episodes' % str(jsloads(tvm).get('id'))
+			items = jsloads(client.request(tvm))
 			items = [(str(i.get('season')), str(i.get('number')), i.get('name').strip(), i.get('airdate')) for i in items]
 
 			if preset == 'tvtuner':
@@ -332,7 +338,7 @@ class indexer:
 			result = ''
 			for i in items:
 				try:
-					if int(re.sub('[^0-9]', '', str(i[3]))) > today: raise Exception()
+					if int(re.sub(r'[^0-9]', '', str(i[3]))) > today: raise Exception()
 					result += '<item><title> %01dx%02d . %s</title><meta><content>episode</content><imdb>%s</imdb><tvdb>%s</tvdb><tvshowtitle>%s</tvshowtitle><year>%s</year><title>%s</title><premiered>%s</premiered><season>%01d</season><episode>%01d</episode></meta><link><sublink>search</sublink><sublink>searchsd</sublink></link><thumbnail>%s</thumbnail><fanart>%s</fanart></item>' % (int(i[0]), int(i[1]), i[2], imdb, tvdb, tvshowtitle, year, i[2], i[3], int(i[0]), int(i[1]), thumbnail, fanart)
 				except: pass
 
@@ -432,7 +438,7 @@ class indexer:
 			cache.get(search, 0, table='rel_srch')
 
 			links = client.request(link)
-			links = re.findall('<link>(.+?)</link>', links)
+			links = re.findall(r'<link>(.+?)</link>', links)
 			if section == 0: links = [i for i in links if str(i).startswith('http')]
 			else: links = [i for i in links if str(i).startswith('http') and matcher.lower() in str(i).lower()]
 
@@ -459,8 +465,8 @@ class indexer:
 		try:
 			if result is None: result = cache.get(client.request, 0, url)
 			if result.strip().startswith('#EXTM3U') and '#EXTINF' in result:
-				result = re.compile('#EXTINF:.+?\,(.+?)\n(.+?)\n', re.MULTILINE|re.DOTALL).findall(result)
-				result = ['<item><title>%s</title><link>%s</link></item>' % (i[0], i[1]) for i in result]
+				result = re.compile(r'#EXTINF:.+?\,(.+?)\n(.+?)\n', re.M | re.S).findall(result)
+				result = [r'<item><title>%s</title><link>%s</link></item>' % (i[0], i[1]) for i in result]
 				result = ''.join(result)
 
 			try: r = base64.b64decode(result)
@@ -470,58 +476,58 @@ class indexer:
 			result = str(result)
 			info = result.split('<item>')[0].split('<dir>')[0]
 
-			try: vip = re.findall('<poster>(.+?)</poster>', info)[0]
+			try: vip = re.findall(r'<poster>(.+?)</poster>', info)[0]
 			except: vip = '0'
-			try: image = re.findall('<thumbnail>(.+?)</thumbnail>', info)[0]
+			try: image = re.findall(r'<thumbnail>(.+?)</thumbnail>', info)[0]
 			except: image = '0'
-			try: fanart = re.findall('<fanart>(.+?)</fanart>', info)[0]
+			try: fanart = re.findall(r'<fanart>(.+?)</fanart>', info)[0]
 			except: fanart = '0'
 
 			api_data = client.request(base64.b64decode('aHR0cDovL3RleHR1cGxvYWRlci5jb20vZHI3NmcvcmF3'), timeout='5')
-			tmdb_api = re.compile('<api>(.+?)</api>').findall(api_data)[0]
+			tmdb_api = re.compile(r'<api>(.+?)</api>').findall(api_data)[0]
 
-			items = re.compile('((?:<item>.+?</item>|<dir>.+?</dir>|<plugin>.+?</plugin>|<info>.+?</info>|<name>[^<]+</name><link>[^<]+</link><thumbnail>[^<]+</thumbnail><mode>[^<]+</mode>|<name>[^<]+</name><link>[^<]+</link><thumbnail>[^<]+</thumbnail><date>[^<]+</date>))', re.MULTILINE|re.DOTALL).findall(result)
+			items = re.compile(r'((?:<item>.+?</item>|<dir>.+?</dir>|<plugin>.+?</plugin>|<info>.+?</info>|<name>[^<]+</name><link>[^<]+</link><thumbnail>[^<]+</thumbnail><mode>[^<]+</mode>|<name>[^<]+</name><link>[^<]+</link><thumbnail>[^<]+</thumbnail><date>[^<]+</date>))', re.M | re.S).findall(result)
 		except:
 			log_utils.error()
 			return
 
 		for item in items:
 			try:
-				regdata = re.compile('(<regex>.+?</regex>)', re.MULTILINE|re.DOTALL).findall(item)
+				regdata = re.compile(r'(<regex>.+?</regex>)', re.M | re.S).findall(item)
 				regdata = ''.join(regdata)
-				reglist = re.compile('(<listrepeat>.+?</listrepeat>)', re.MULTILINE|re.DOTALL).findall(regdata)
+				reglist = re.compile(r'(<listrepeat>.+?</listrepeat>)', re.M | re.S).findall(regdata)
 				regdata = quote_plus(regdata)
 
-				reghash = hashlib.md5()
+				reghash = md5()
 				for i in regdata: reghash.update(str(i))
 				reghash = str(reghash.hexdigest())
 
 				item = item.replace('\r','').replace('\n','').replace('\t','').replace('&nbsp;','').replace('<tmdb_data>true</tmdb_data>','<tmdb_data>all</tmdb_data>')
 
-				try: meta = re.findall('<meta>(.+?)</meta>', item)[0]
+				try: meta = re.findall(r'<meta>(.+?)</meta>', item)[0]
 				except: meta = '0'
 
-				try: imdb = re.findall('<imdb>(.+?)</imdb>', meta)[0]
+				try: imdb = re.findall(r'<imdb>(.+?)</imdb>', meta)[0]
 				except: imdb = '0'
 
-				try: tmdb_get = re.findall('<tmdb_data>(.+?)</tmdb_data>', meta)[0]
+				try: tmdb_get = re.findall(r'<tmdb_data>(.+?)</tmdb_data>', meta)[0]
 				except: tmdb_get = '0'
 
-				try: tvshowtitle = re.findall('<tvshowtitle>(.+?)</tvshowtitle>', item)[0]
+				try: tvshowtitle = re.findall(r'<tvshowtitle>(.+?)</tvshowtitle>', item)[0]
 				except: tvshowtitle = '0'
 
-				item = re.sub('<regex>.+?</regex>','', item)
-				item = re.sub('<sublink></sublink>|<sublink\s+name=(?:\'|\").*?(?:\'|\")></sublink>','', item)
-				item = re.sub('<link></link>','', item)
+				item = re.sub(r'<regex>.+?</regex>','', item)
+				item = re.sub(r'<sublink></sublink>|<sublink\s+name=(?:\'|\").*?(?:\'|\")></sublink>','', item)
+				item = re.sub(r'<link></link>','', item)
 
-				try: meta = re.findall('<meta>(.+?)</meta>', item)[0]
+				try: meta = re.findall(r'<meta>(.+?)</meta>', item)[0]
 				except: meta = '0'
 
 				if any(f for f in ['all','data','images'] if f == tmdb_get.lower()):         
 					try:
 						url_api = 'https://api.themoviedb.org/3/movie/' + imdb + '?api_key=' + tmdb_api
 						item_json = client.request(url_api, timeout='5')
-						item_json = json.loads(item_json)
+						item_json = jsloads(item_json)
 					except: pass
 
 					if any(f for f in ['all','data'] if f == tmdb_get.lower()):         
@@ -530,17 +536,17 @@ class indexer:
 							title = item_json['original_title']
 							name = title
 							else:
-								name = re.sub('<meta>.+?</meta>','', item)
-								try: name = re.findall('<title>(.+?)</title>', name)[0]
+								name = re.sub(r'<meta>.+?</meta>','', item)
+								try: name = re.findall(r'<title>(.+?)</title>', name)[0]
 								except: name = re.findall('<name>(.+?)</name>', name)[0]
 								try: title = name
 								except: title = '0'
 								if title == '0' and not tvshowtitle == '0': title = tvshowtitle
 
 						except:
-							name = re.sub('<meta>.+?</meta>','', item)
-							try: name = re.findall('<title>(.+?)</title>', name)[0]
-							except: name = re.findall('<name>(.+?)</name>', name)[0]
+							name = re.sub(r'<meta>.+?</meta>','', item)
+							try: name = re.findall(r'<title>(.+?)</title>', name)[0]
+							except: name = re.findall(r'<name>(.+?)</name>', name)[0]
 							try: title = name
 							except: title = '0'
 
@@ -551,24 +557,24 @@ class indexer:
 
 						try:
 							if item_json['release_date']:
-								year = item_json['release_date']; year = year.split('-')[0]; name = title + ' (' + year + ')'
+								year = item_json['release_date'] ; year = year.split('-')[0] ; name = title + ' (' + year + ')'
 							else: 
-								try: year = re.findall('<year>(.+?)</year>', meta)[0]
+								try: year = re.findall(r'<year>(.+?)</year>', meta)[0]
 								except: year = '0'
 						except:
 							try: year = re.findall('<year>(.+?)</year>', meta)[0]
 							except: year = '0'
 
 						if '<year></year>' in item:
-							item = item.replace('<year></year>','<year>'+title+'</year>')
+							item = item.replace(r'<year></year>','<year>'+title+'</year>')
 					else:
-						name = re.sub('<meta>.+?</meta>','', item)
-						try: name = re.findall('<title>(.+?)</title>', name)[0]
-						except: name = re.findall('<name>(.+?)</name>', name)[0]
+						name = re.sub(r'<meta>.+?</meta>','', item)
+						try: name = re.findall(r'<title>(.+?)</title>', name)[0]
+						except: name = re.findall(r'<name>(.+?)</name>', name)[0]
 						try: title = name
 						except: title = '0'
 						if '<title></title>' in item:
-							item = item.replace('<title></title>','<title>'+title+'</title>')
+							item = item.replace(r'<title></title>','<title>'+title+'</title>')
 						try: year = re.findall('<year>(.+?)</year>', meta)[0]
 						except: year = '0'
 						if '<year></year>' in item:
@@ -580,60 +586,60 @@ class indexer:
 							if item_json['backdrop_path']:
 								fanart2 = 'https://image.tmdb.org/t/p/original/' + item_json['backdrop_path']
 							else: 
-								try: fanart2 = re.findall('<fanart>(.+?)</fanart>', item)[0]
+								try: fanart2 = re.findall(r'<fanart>(.+?)</fanart>', item)[0]
 								except: fanart2 = fanart
 						except:
-							try: fanart2 = re.findall('<fanart>(.+?)</fanart>', item)[0]
+							try: fanart2 = re.findall(r'<fanart>(.+?)</fanart>', item)[0]
 							except: fanart2 = fanart
 
 						try:
 							if item_json['poster_path']:
 								image2 = 'https://image.tmdb.org/t/p/original/' + item_json['poster_path']
 							else: 
-								try: image2 = re.findall('<thumbnail>(.+?)</thumbnail>', item)[0]
+								try: image2 = re.findall(r'<thumbnail>(.+?)</thumbnail>', item)[0]
 								except: image2 = image
 						except:
-							try: image2 = re.findall('<thumbnail>(.+?)</thumbnail>', item)[0]
+							try: image2 = re.findall(r'<thumbnail>(.+?)</thumbnail>', item)[0]
 							except: image2 = image
 					else:
-						try: fanart2 = re.findall('<fanart>(.+?)</fanart>', item)[0]
+						try: fanart2 = re.findall(r'<fanart>(.+?)</fanart>', item)[0]
 						except: fanart2 = fanart
-						try: image2 = re.findall('<thumbnail>(.+?)</thumbnail>', item)[0]
+						try: image2 = re.findall(r'<thumbnail>(.+?)</thumbnail>', item)[0]
 						except: image2 = image
 				else:
 
-					name = re.sub('<meta>.+?</meta>','', item)
-					try: name = re.findall('<title>(.+?)</title>', name)[0]
-					except: name = re.findall('<name>(.+?)</name>', name)[0]
+					name = re.sub(r'<meta>.+?</meta>','', item)
+					try: name = re.findall(r'<title>(.+?)</title>', name)[0]
+					except: name = re.findall(r'<name>(.+?)</name>', name)[0]
 
-					try: title = re.findall('<title>(.+?)</title>', meta)[0]
+					try: title = re.findall(r'<title>(.+?)</title>', meta)[0]
 					except: title = '0'
 
 					if title == '0' and not tvshowtitle == '0': title = tvshowtitle
 
-					try: year = re.findall('<year>(.+?)</year>', meta)[0]
+					try: year = re.findall(r'<year>(.+?)</year>', meta)[0]
 					except: year = '0'
 
-					try: image2 = re.findall('<thumbnail>(.+?)</thumbnail>', item)[0]
+					try: image2 = re.findall(r'<thumbnail>(.+?)</thumbnail>', item)[0]
 					except: image2 = image
 
-					try: fanart2 = re.findall('<fanart>(.+?)</fanart>', item)[0]
+					try: fanart2 = re.findall(r'<fanart>(.+?)</fanart>', item)[0]
 					except: fanart2 = fanart
 
-				try: date = re.findall('<date>(.+?)</date>', item)[0]
+				try: date = re.findall(r'<date>(.+?)</date>', item)[0]
 				except: date = ''
 				if re.search(r'\d+', date):
 					name += ' [COLOR red] Updated %s[/COLOR]' % date
 
-				try: meta = re.findall('<meta>(.+?)</meta>', item)[0]
+				try: meta = re.findall(r'<meta>(.+?)</meta>', item)[0]
 				except: meta = '0'
-				try: url = re.findall('<link>(.+?)</link>', item)[0]
+				try: url = re.findall(r'<link>(.+?)</link>', item)[0]
 				except: url = '0'
 				url = url.replace('>search<', '><preset>search</preset>%s<' % meta)
 				url = '<preset>search</preset>%s' % meta if url == 'search' else url
 				url = url.replace('>searchsd<', '><preset>searchsd</preset>%s<' % meta)
 				url = '<preset>searchsd</preset>%s' % meta if url == 'searchsd' else url
-				url = re.sub('<sublink></sublink>|<sublink\s+name=(?:\'|\").*?(?:\'|\")></sublink>','', url)
+				url = re.sub(r'<sublink></sublink>|<sublink\s+name=(?:\'|\").*?(?:\'|\")></sublink>','', url)
 
 				if item.startswith('<item>'): action = 'play'
 				elif item.startswith('<plugin>'): action = 'plugin'
@@ -650,10 +656,10 @@ class indexer:
 				else:
 					folder = False
 
-				try: content = re.findall('<content>(.+?)</content>', meta)[0]
+				try: content = re.findall(r'<content>(.+?)</content>', meta)[0]
 				except: content = '0'
 				if content == '0': 
-					try: content = re.findall('<content>(.+?)</content>', item)[0]
+					try: content = re.findall(r'<content>(.+?)</content>', item)[0]
 					except: content = '0'
 				if not content == '0': content += 's'
 
@@ -665,16 +671,16 @@ class indexer:
 					url = '<preset>tvtuner</preset><url>%s</url><thumbnail>%s</thumbnail><fanart>%s</fanart>%s' % (url, image2, fanart2, meta)
 					action = 'tvtuner'
 
-				try: tvdb = re.findall('<tvdb>(.+?)</tvdb>', meta)[0]
+				try: tvdb = re.findall(r'<tvdb>(.+?)</tvdb>', meta)[0]
 				except: tvdb = '0'
 
-				try: premiered = re.findall('<premiered>(.+?)</premiered>', meta)[0]
+				try: premiered = re.findall(r'<premiered>(.+?)</premiered>', meta)[0]
 				except: premiered = '0'
 
-				try: season = re.findall('<season>(.+?)</season>', meta)[0]
+				try: season = re.findall(r'<season>(.+?)</season>', meta)[0]
 				except: season = '0'
 
-				try: episode = re.findall('<episode>(.+?)</episode>', meta)[0]
+				try: episode = re.findall(r'<episode>(.+?)</episode>', meta)[0]
 				except: episode = '0'
 
 				self.list.append({'name': name, 'vip': vip, 'url': url, 'action': action, 'folder': folder, 'poster': image2, 'banner': '0', 'fanart': fanart2, 'content': content, 'imdb': imdb, 'tvdb': tvdb, 'tmdb': '0', 'title': title, 'originaltitle': title, 'tvshowtitle': tvshowtitle, 'year': year, 'premiered': premiered, 'season': season, 'episode': episode})
@@ -732,7 +738,7 @@ class indexer:
 			url = self.imdb_info_link % imdb
 
 			item = client.request(url, timeout='10')
-			item = json.loads(item)
+			item = jsloads(item)
 
 			if 'Error' in item and 'incorrect imdb' in item['Error'].lower():
 				return self.meta.append({'imdb': imdb, 'tmdb': '0', 'tvdb': '0', 'lang': self.lang, 'item': {'code': '0'}})
@@ -752,7 +758,7 @@ class indexer:
 
 			premiered = item['Released']
 			if premiered is None or premiered == '' or premiered == 'N/A': premiered = '0'
-			premiered = re.findall('(\d*) (.+?) (\d*)', premiered)
+			premiered = re.findall(r'(\d*) (.+?) (\d*)', premiered)
 			try: premiered = '%s-%s-%s' % (premiered[0][2], {'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}[premiered[0][1]], premiered[0][0])
 			except: premiered = '0'
 			premiered = premiered.encode('utf-8')
@@ -766,7 +772,7 @@ class indexer:
 
 			duration = item['Runtime']
 			if duration is None or duration == '' or duration == 'N/A': duration = '0'
-			duration = re.sub('[^0-9]', '', str(duration))
+			duration = re.sub(r'[^0-9]', '', str(duration))
 			try: duration = str(int(duration) * 60)
 			except: pass
 			duration = duration.encode('utf-8')
@@ -839,14 +845,14 @@ class indexer:
 			if item[1] == '404':
 				return self.meta.append({'imdb': '0', 'tmdb': '0', 'tvdb': tvdb, 'lang': self.lang, 'item': {'code': '0'}})
 
-			item = json.loads(item[0])
+			item = jsloads(item[0])
 
 			tvshowtitle = item['name']
 			tvshowtitle = tvshowtitle.encode('utf-8')
 			if not tvshowtitle == '0': self.list[i].update({'tvshowtitle': tvshowtitle})
 
 			year = item['premiered']
-			year = re.findall('(\d{4})', year)[0]
+			year = re.findall(r'(\d{4})', year)[0]
 			year = year.encode('utf-8')
 			if not year == '0': self.list[i].update({'year': year})
 
@@ -883,7 +889,7 @@ class indexer:
 
 			plot = item['summary']
 			if plot == '' or plot is None: plot = '0'
-			plot = re.sub('\n|<.+?>|</.+?>|.+?#\d*:', '', plot)
+			plot = re.sub(r'\n|<.+?>|</.+?>|.+?#\d*:', '', plot)
 			plot = plot.encode('utf-8')
 			if not plot == '0': self.list[i].update({'plot': plot})
 
@@ -1049,7 +1055,7 @@ class resolver:
 
 	def get(self, url):
 		try:
-			items = re.compile('<sublink(?:\s+name=|)(?:\'|\"|)(.*?)(?:\'|\"|)>(.+?)</sublink>').findall(url)
+			items = re.compile(r'<sublink(?:\s+name=|)(?:\'|\"|)(.*?)(?:\'|\"|)>(.+?)</sublink>').findall(url)
 			if len(items) == 0: return url
 			if len(items) == 1: return items[0][1]
 			items = [('Link %s' % (int(items.index(i))+1) if i[0] == '' else i[0], i[1]) for i in items]
@@ -1071,13 +1077,13 @@ class resolver:
 				try: proxy = params['proxy'][0]
 				except: proxy = None
 
-				try: proxy_use_chunks = json.loads(params['proxy_for_chunks'][0])
+				try: proxy_use_chunks = jsloads(params['proxy_for_chunks'][0])
 				except: proxy_use_chunks = True
 
 				try: maxbitrate = int(params['maxbitrate'][0])
 				except: maxbitrate = 0
 
-				try: simpleDownloader = json.loads(params['simpledownloader'][0])
+				try: simpleDownloader = jsloads(params['simpledownloader'][0])
 				except: simpleDownloader = False
 
 				try: auth_string = params['auth'][0]
@@ -1113,7 +1119,7 @@ class resolver:
 			log_utils.error()
 
 		try:
-			r, x = re.findall('(.+?)\|regex=(.+?)$', url)[0]
+			r, x = re.findall(r'(.+?)\|regex=(.+?)$', url)[0]
 			x = regex.fetch(x)
 			r += unquote_plus(x)
 			if not '</regex>' in r: raise Exception()
@@ -1123,7 +1129,7 @@ class resolver:
 
 		try:
 			if not url.startswith('rtmp'): raise Exception()
-			if len(re.compile('\s*timeout=(\d*)').findall(url)) == 0: url += ' timeout=10'
+			if len(re.compile(r'\s*timeout=(\d*)').findall(url)) == 0: url += ' timeout=10'
 			return url
 		except: pass
 
@@ -1135,11 +1141,13 @@ class resolver:
 		except: pass
 
 		try:
-			preset = re.findall('<preset>(.+?)</preset>', url)[0]
+			preset = re.findall(r'<preset>(.+?)</preset>', url)[0]
 			if not 'search' in preset: raise Exception()
-			title, year, imdb = re.findall('<title>(.+?)</title>', url)[0], re.findall('<year>(.+?)</year>', url)[0], re.findall('<imdb>(.+?)</imdb>', url)[0]
+			title, year, imdb = re.findall(r'<title>(.+?)</title>', url)[0], re.findall('<year>(.+?)</year>', url)[0], re.findall(r'<imdb>(.+?)</imdb>', url)[0]
 
-			try: tvdb, tvshowtitle, premiered, season, episode = re.findall('<tvdb>(.+?)</tvdb>', url)[0], re.findall('<tvshowtitle>(.+?)</tvshowtitle>', url)[0], re.findall('<premiered>(.+?)</premiered>', url)[0], re.findall('<season>(.+?)</season>', url)[0], re.findall('<episode>(.+?)</episode>', url)[0]
+			try: tvdb, tvshowtitle, premiered, season, episode = re.findall(r'<tvdb>(.+?)</tvdb>', url)[0], re.findall(r'<tvshowtitle>(.+?)</tvshowtitle>', url)[0],
+																							re.findall(r'<premiered>(.+?)</premiered>', url)[0], re.findall(r'<season>(.+?)</season>', url)[0],
+																							re.findall(r'<episode>(.+?)</episode>', url)[0]
 			except: tvdb = tvshowtitle = premiered = season = episode = None
 
 			direct = False
@@ -1275,10 +1283,8 @@ class bookmarks:
 	def get(self, name, year='0'):
 		try:
 			offset = '0'
-
 			#if not control.setting('bookmarks') == 'true': raise Exception()
-
-			idFile = hashlib.md5()
+			idFile = md5()
 			for i in name: idFile.update(str(i))
 			for i in year: idFile.update(str(i))
 			idFile = str(idFile.hexdigest())
@@ -1309,7 +1315,7 @@ class bookmarks:
 			timeInSeconds = str(currentTime)
 			ok = int(currentTime) > 180 and (currentTime / totalTime) <= .92
 
-			idFile = hashlib.md5()
+			idFile = md5()
 			for i in name: idFile.update(str(i))
 			for i in year: idFile.update(str(i))
 			idFile = str(idFile.hexdigest())

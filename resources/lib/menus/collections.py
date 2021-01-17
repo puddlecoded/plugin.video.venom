@@ -3,14 +3,14 @@
 	Venom Add-on
 '''
 
-import datetime
-import json
+from datetime import datetime, timedelta
+from json import dumps as jsdumps
 import re
 import sys
 try:
 	from urllib import quote_plus
 	from urlparse import parse_qsl, urlparse
-except:
+except ImportError:
 	from urllib.parse import quote_plus, parse_qsl, urlparse
 
 from resources.lib.modules import cache
@@ -30,8 +30,9 @@ class Collections:
 	def __init__(self):
 		self.list = []
 		self.disable_fanarttv = control.setting('disable.fanarttv')
-		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
-		self.today_date = (self.datetime).strftime('%Y-%m-%d')
+		# self.date_time = (datetime.utcnow() - timedelta(hours=5))
+		self.date_time = datetime.utcnow()
+		self.today_date = (self.date_time).strftime('%Y-%m-%d')
 		self.lang = control.apiLanguage()['trakt']
 		self.traktCredentials = trakt.getTraktCredentialsInfo()
 
@@ -44,8 +45,7 @@ class Collections:
 		# self.user = str(self.imdb_user) + str(self.tmdb_key)
 		self.user = str(self.tmdb_key)
 
-		self.unairedcolor = control.setting('movie.unaired.identify')
-		self.unairedcolor = control.getColor(self.unairedcolor)
+		self.unairedcolor = control.getColor(control.setting('movie.unaired.identify'))
 
 		self.tmdb_link = 'https://api.themoviedb.org'
 		self.tmdb_poster = 'https://image.tmdb.org/t/p/w300'
@@ -740,7 +740,7 @@ class Collections:
 			if attribute > 0:
 				if attribute == 1:
 					try:
-						self.list = sorted(self.list, key = lambda k: re.sub('(^the |^a |^an )', '', k['title'].lower()), reverse = reverse)
+						self.list = sorted(self.list, key = lambda k: re.sub(r'(^the |^a |^an )', '', k['title'].lower()), reverse = reverse)
 					except:
 						self.list = sorted(self.list, key = lambda k: k['title'].lower(), reverse = reverse)
 				elif attribute == 2:
@@ -787,8 +787,8 @@ class Collections:
 	def imdb_list(self, url):
 		list = []
 		try:
-			for i in re.findall('date\[(\d+)\]', url):
-				url = url.replace('date[%s]' % i, (self.datetime - datetime.timedelta(days = int(i))).strftime('%Y-%m-%d'))
+			for i in re.findall(r'date\[(\d+)\]', url):
+				url = url.replace('date[%s]' % i, (self.date_time - timedelta(days=int(i))).strftime('%Y-%m-%d'))
 
 			def imdb_watchlist_id(url):
 				return client.parseDOM(client.request(url).decode('iso-8859-1').encode('utf-8'), 'meta', ret='content', attrs = {'property': 'pageId'})[0]
@@ -835,10 +835,10 @@ class Collections:
 				except: pass
 
 				year = client.parseDOM(item, 'span', attrs = {'class': 'lister-item-year.+?'})
-				year = re.findall('(\d{4})', year[0])[0]
+				year = re.findall(r'(\d{4})', year[0])[0]
 				year = year.encode('utf-8')
 
-				if int(year) > int((self.datetime).strftime('%Y')): raise Exception()
+				if int(year) > int((self.date_time).strftime('%Y')): raise Exception()
 
 				try: show = '–'.decode('utf-8') in str(year).decode('utf-8') or '-'.decode('utf-8') in str(year).decode('utf-8')
 				except: show = False
@@ -853,7 +853,7 @@ class Collections:
 				mpaa = mpaa.encode('utf-8')
 
 				imdb = client.parseDOM(item, 'a', ret='href')[0]
-				imdb = re.findall('(tt\d*)', imdb)[0]
+				imdb = re.findall(r'(tt\d*)', imdb)[0]
 				imdb = imdb.encode('utf-8')
 
 				# parseDOM cannot handle elements without a closing tag.
@@ -866,7 +866,7 @@ class Collections:
 				except: poster = '0'
 
 				if '/nopicture/' in poster: poster = '0'
-				poster = re.sub('(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', poster)
+				poster = re.sub(r'(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', poster)
 				poster = client.replaceHTMLCodes(poster)
 				poster = poster.encode('utf-8')
 
@@ -877,7 +877,7 @@ class Collections:
 				genre = client.replaceHTMLCodes(genre)
 				genre = genre.encode('utf-8')
 
-				try: duration = re.findall('(\d+?) min(?:s|)', item)[-1]
+				try: duration = re.findall(r'(\d+?) min(?:s|)', item)[-1]
 				except: duration = '0'
 				duration = duration.encode('utf-8')
 
@@ -902,13 +902,13 @@ class Collections:
 				except:
 					try: votes = client.parseDOM(item, 'div', ret='title', attrs = {'class': '.*?rating-list'})[0]
 					except:
-						try: votes = re.findall('\((.+?) vote(?:s|)\)', votes)[0]
+						try: votes = re.findall(r'\((.+?) vote(?:s|)\)', votes)[0]
 						except: pass
 				if votes == '': votes = '0'
 				votes = client.replaceHTMLCodes(votes)
 				votes = votes.encode('utf-8')
 
-				try: director = re.findall('Director(?:s|):(.+?)(?:\||</div>)', item)[0]
+				try: director = re.findall(r'Director(?:s|):(.+?)(?:\||</div>)', item)[0]
 				except: director = '0'
 				director = client.parseDOM(director, 'a')
 				director = ' / '.join(director)
@@ -923,7 +923,7 @@ class Collections:
 					try: plot = client.parseDOM(item, 'div', attrs = {'class': 'item_description'})[0]
 					except: plot = client.parseDOM(item, 'p', attrs = {'class': '""'})[0]
 				plot = plot.rsplit('<span>', 1)[0].strip()
-				plot = re.sub('<.+?>|</.+?>', '', plot)
+				plot = re.sub(r'<.+?>|</.+?>', '', plot)
 				if plot == '': plot = '0'
 				plot = client.replaceHTMLCodes(plot)
 				plot = plot.encode('utf-8')
@@ -1029,7 +1029,7 @@ class Collections:
 				# try:
 					# tagline = item.get('tagline', '0')
 					# if tagline == '' or tagline == '0' or tagline is None:
-						# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
+						# tagline = re.compile(r'[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
 				# except:
 					# tagline = '0'
 			# else:
@@ -1156,7 +1156,7 @@ class Collections:
 				# except: title = i['title']
 				label = '%s (%s)' % (title, year)
 
-				if int(re.sub('[^0-9]', '', str(i['premiered']))) > int(re.sub('[^0-9]', '', str(self.today_date))):
+				if int(re.sub(r'[^0-9]', '', str(i['premiered']))) > int(re.sub(r'[^0-9]', '', str(self.today_date))):
 					label = '[COLOR %s][I]%s[/I][/COLOR]' % (self.unairedcolor, label)
 
 				sysname = quote_plus(label)
@@ -1173,7 +1173,7 @@ class Collections:
 					index = plot.rfind('See full summary')
 					if index >= 0: plot = plot[:index]
 					plot = plot.strip()
-					if re.match('[a-zA-Z\d]$', plot): plot += ' ...'
+					if re.match(r'[a-zA-Z\d]$', plot): plot += ' ...'
 					meta['plot'] = plot
 				except: pass
 
@@ -1236,8 +1236,8 @@ class Collections:
 						meta.update({'playcount': 0, 'overlay': 6})
 				except: pass
 
-				sysmeta = quote_plus(json.dumps(meta))
-				sysart = quote_plus(json.dumps(art))
+				sysmeta = quote_plus(jsdumps(meta))
+				sysart = quote_plus(jsdumps(art))
 
 				url = '%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&meta=%s' % (sysaddon, systitle, year, imdb, tmdb, sysmeta)
 				sysurl = quote_plus(url)

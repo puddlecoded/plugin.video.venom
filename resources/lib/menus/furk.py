@@ -3,14 +3,10 @@
 	Venom Add-on
 '''
 
-import sys
-import json
+from sys import argv
 import requests
-
-try:
-	from urllib import quote_plus
-except:
-	from urllib.parse import quote_plus
+try: from urllib import quote_plus
+except ImportError: from urllib.parse import quote_plus
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -36,24 +32,33 @@ class Furk:
 		self.protect_file_link = "/api/file/protect?"
 		self.user_feeds_link = "/api/feed/get?"
 		self.add_download_link = "/api/dl/add?"
+
+		self.tfile_link = "/api/file/get?api_key=%s&t_files=1&id=%s"
+
 		self.api_key = control.setting('furk.api')
 		self.list = []
+		self.session = requests.Session()
 
 
 	def user_files(self):
 		if self.api_key == '': return ''
 		try:
-			s = requests.Session()
 			url = self.base_link + self.get_user_files_link % self.api_key
-			# log_utils.log('url = %s' % url, __name__, log_utils.LOGNOTICE)
-			p = s.get(url)
-			p = json.loads(p.text)
+			p = self.session.get(url).json()
 			files = p['files']
 		except:
 			log_utils.error()
 			return ''
 
 		for i in files:
+			# id = i['id']
+			# log_utils.log('id = %s' % id, __name__, log_utils.LOGNOTICE)
+
+			# test = self.base_link + self.tfile_link % (self.api_key, id)
+			# log_utils.log('test = %s' % test, __name__, log_utils.LOGNOTICE)
+			# test2 = s.get(test).json()
+			# log_utils.log('test2 = %s' % test2, __name__, log_utils.LOGNOTICE)
+
 			try:
 				name = control.strip_non_ascii_and_unprintable(i['name'])
 				url_dl = ''
@@ -126,7 +131,7 @@ class Furk:
 			if control.getKodiVersion() >= 18:
 				self.furk_meta_search(url)
 			else:
-				url = '%s?action=furkMetaSearch&url=%s' % (sys.argv[0], quote_plus(url))
+				url = '%s?action=furkMetaSearch&url=%s' % (argv[0], quote_plus(url))
 				control.execute('Container.Update(%s)' % url)
 
 
@@ -134,11 +139,9 @@ class Furk:
 		if self.api_key == '': return ''
 		control.busy()
 		try:
-			s = requests.Session()
 			url = (self.base_link + self.search_link % (self.api_key, url)).replace(' ', '+')
 			# url = (self.base_link + self.search_link % (self.api_key, url, 'extended', 'full', '')).replace(' ', '+')
-			p = s.get(url)
-			p = json.loads(p.text)
+			p = self.session.get(url).json()
 			files = p['files']
 		except:
 			log_utils.error()
@@ -170,21 +173,19 @@ class Furk:
 
 
 	def addDirectoryItem(self, name, query, thumb, icon, isAction=True):
-		sysaddon = sys.argv[0]
-		syshandle = int(sys.argv[1])
 		try:
 			if type(name) is str or type(name) is unicode: 	name = str(name)
 			if type(name) is int: name = control.lang(name)
 		except:
 			log_utils.error()
-		url = '%s?action=%s' % (sysaddon, query) if isAction else query
+		url = '%s?action=%s' % (argv[0], query) if isAction else query
 		item = control.item(label=name)
 		item.setArt({'icon': thumb, 'poster': thumb, 'thumb': thumb})
-		control.addItem(handle=syshandle, url=url, listitem=item)
+		control.addItem(handle=argv[1], url=url, listitem=item)
 
 
 	def endDirectory(self):
-		syshandle = int(sys.argv[1])
+		syshandle = int(argv[1])
 		control.content(syshandle, 'addons')
 		control.directory(syshandle, cacheToDisc=True)
 		control.sleep(200)

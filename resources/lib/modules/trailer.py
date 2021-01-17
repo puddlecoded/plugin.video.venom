@@ -3,13 +3,13 @@
 	Venom Add-on
 '''
 
-import json
+from json import loads as jsloads
 import random
 import re
-import sys
-try:
+from sys import argv
+try: #Py2
 	from urllib import quote_plus
-except:
+except ImportError: #Py3
 	from urllib.parse import quote_plus
 
 from resources.lib.modules import client
@@ -22,10 +22,8 @@ class Trailer:
 		self.base_link = 'https://www.youtube.com'
 		self.ytkey_link = control.addon('plugin.video.youtube').getSetting('youtube.api.key')
 		self.rckey_link = random.choice(['AIzaSyA0LiS7G-KlrlfmREcCAXjyGqa_h_zfrSE', 'AIzaSyBOXZVC-xzrdXSAmau5UM3rG7rc8eFIuFw'])
-		if self.ytkey_link != '':
-			self.key_link = '&key=%s' % self.ytkey_link
-		else:
-			self.key_link = '&key=%s' % self.rckey_link
+		if self.ytkey_link != '': self.key_link = '&key=%s' % self.ytkey_link
+		else: self.key_link = '&key=%s' % self.rckey_link
 		self.search_link = 'https://www.googleapis.com/youtube/v3/search?part=id&type=video&maxResults=5&q=%s' + self.key_link
 		# self.search_link = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=%s' + self.key_link
 		self.youtube_watch = 'https://www.youtube.com/watch?v=%s'
@@ -42,7 +40,7 @@ class Trailer:
 			item.setInfo(type="video", infoLabels={'title': title})
 			item.setProperty('IsPlayable', 'true')
 			control.refresh()
-			control.resolve(handle=int(sys.argv[1]), succeeded=True, listitem=item)
+			control.resolve(handle=int(argv[1]), succeeded=True, listitem=item)
 			if windowedtrailer == 1:
 				control.sleep(1000)
 				while control.player.isPlayingVideo():
@@ -56,17 +54,14 @@ class Trailer:
 		try:
 			if url.startswith(self.base_link):
 				url = self.resolve(url)
-				if not url:
-					raise Exception()
+				if not url: raise Exception()
 				return url
 			elif not url.startswith('http'):
 				url = self.youtube_watch % url
 				url = self.resolve(url)
-				if not url:
-					raise Exception()
+				if not url: raise Exception()
 				return url
-			else:
-				raise Exception()
+			else: raise Exception()
 		except:
 			query = name + ' trailer'
 			query = self.search_link % quote_plus(query)
@@ -80,11 +75,11 @@ class Trailer:
 				url += "&relevanceLanguage=%s" % apiLang
 			result = client.request(url, error=True)
 			if 'error' in result:
-				items = json.loads(result).get('error', []).get('errors', [])
+				items = jsloads(result).get('error', []).get('errors', [])
 				log_utils.log('message = %s' % str(items[0].get('message')), __name__, log_utils.LOGDEBUG)
 				items = self.trakt_trailer(type, name, year, imdb)
 			else:
-				items = json.loads(result).get('items', [])
+				items = jsloads(result).get('items', [])
 				items = [i.get('id', {}).get('videoId') for i in items]
 			for vid_id in items:
 				url = self.resolve(vid_id)
@@ -95,16 +90,17 @@ class Trailer:
 
 
 	def trakt_trailer(self, type, name, year, imdb):
-		from resources.lib.modules import trakt
-		#check if this needs .replace(' ', '-') between title spaces
-		id = (name.lower() + '-' + year) if imdb == '0' else imdb
-		if type == 'movie': item = trakt.getMovieSummary(id)
-		else: item = trakt.getTVShowSummary(id)
 		try:
+			trailer_id = ''
+			from resources.lib.modules import trakt
+			#check if this needs .replace(' ', '-') between title spaces
+			id = (name.lower() + '-' + year) if imdb == '0' else imdb
+			if type == 'movie': item = trakt.getMovieSummary(id)
+			else: item = trakt.getTVShowSummary(id)
 			trailer_id = item.get('trailer').split('v=')
 			trailer_id = [trailer_id[1]]
 		except:
-			trailer_id = ''
+			log_utils.error()
 		return trailer_id
 
 
@@ -116,7 +112,7 @@ class Trailer:
 			message = ''.join(message)
 			alert = client.parseDOM(result, 'div', attrs={'id': 'watch7-notification-area'})
 			if len(alert) > 0: raise Exception()
-			if re.search('[a-zA-Z]', message): raise Exception()
+			if re.search(r'[a-zA-Z]', message): raise Exception()
 			url = 'plugin://plugin.video.youtube/play/?video_id=%s' % id
 			return url
 		except:

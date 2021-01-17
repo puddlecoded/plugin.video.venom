@@ -8,8 +8,7 @@ from resources.lib.modules import control
 from resources.lib.modules import log_utils
 from resources.lib.modules import trakt
 try: from urllib import quote_plus
-except: from urllib.parse import quote_plus
-
+except ImportError: from urllib.parse import quote_plus
 
 artPath = control.artPath()
 traktCredentials = trakt.getTraktCredentialsInfo()

@@ -4,9 +4,9 @@
 '''
 
 import re
-try:
+try: #Py2
 	from urllib import unquote, unquote_plus
-except:
+except: #Py3
 	from urllib.parse import unquote, unquote_plus
 
 from resources.lib.modules import log_utils
@@ -38,25 +38,25 @@ ADDS = ['1xbet', 'betwin']
 
 def seas_ep_filter(season, episode, release_title, split=False):
 	try:
-		release_title = re.sub('[^A-Za-z0-9-]+', '.', unquote(release_title).replace('\'', '')).lower()
-		string1 = '(s<<S>>e<<E>>)|' \
-				'(s<<S>>\.e<<E>>)|' \
-				'(s<<S>>ep<<E>>)|' \
-				'(s<<S>>\.ep<<E>>)'
-		string2 = '(season\.<<S>>\.episode\.<<E>>)|' \
-				'(season<<S>>\.episode<<E>>)|' \
-				'(season<<S>>episode<<E>>)|' \
-				'(s<<S>>e\(<<E>>\))|' \
-				'(s<<S>>\.e\(<<E>>\))|' \
-				'(<<S>>x<<E>>\.)|' \
-				'(<<S>>\.<<E>>\.)'
-		string3 = '(<<S>><<E>>\.)'
-		string4 = '(s<<S>>e<<E1>>e<<E2>>)|' \
-				'(s<<S>>e<<E1>>-e<<E2>>)|' \
-				'(s<<S>>e<<E1>>\.e<<E2>>)|' \
-				'(s<<S>>e<<E1>>-<<E2>>-)|' \
-				'(s<<S>>e<<E1>>\.<<E2>>\.)|' \
-				'(s<<S>>e<<E1>><<E2>>)'
+		release_title = re.sub(r'[^A-Za-z0-9-]+', '.', unquote(release_title).replace('\'', '')).lower()
+		string1 = r'(s<<S>>e<<E>>)|' \
+				r'(s<<S>>\.e<<E>>)|' \
+				r'(s<<S>>ep<<E>>)|' \
+				r'(s<<S>>\.ep<<E>>)'
+		string2 = r'(season\.<<S>>\.episode\.<<E>>)|' \
+				r'(season<<S>>\.episode<<E>>)|' \
+				r'(season<<S>>episode<<E>>)|' \
+				r'(s<<S>>e\(<<E>>\))|' \
+				r'(s<<S>>\.e\(<<E>>\))|' \
+				r'(<<S>>x<<E>>\.)|' \
+				r'(<<S>>\.<<E>>\.)'
+		string3 = r'(<<S>><<E>>\.)'
+		string4 = r'(s<<S>>e<<E1>>e<<E2>>)|' \
+				r'(s<<S>>e<<E1>>-e<<E2>>)|' \
+				r'(s<<S>>e<<E1>>\.e<<E2>>)|' \
+				r'(s<<S>>e<<E1>>-<<E2>>-)|' \
+				r'(s<<S>>e<<E1>>\.<<E2>>\.)|' \
+				r'(s<<S>>e<<E1>><<E2>>)'
 		string_list = []
 		string_list.append(string1.replace('<<S>>', str(season).zfill(2)).replace('<<E>>', str(episode).zfill(2)))
 		string_list.append(string1.replace('<<S>>', str(season)).replace('<<E>>', str(episode).zfill(2)))
@@ -81,7 +81,7 @@ def seas_ep_filter(season, episode, release_title, split=False):
 # Needs work, still sucks
 # def seas_ep_filter(season, episode, release_title, split=False):
 	# try:
-		# release_title = re.sub('[^A-Za-z0-9-]+', '.', unquote(release_title).replace('\'', '')).lower()
+		# release_title = re.sub(r'[^A-Za-z0-9-]+', '.', unquote(release_title).replace('\'', '')).lower()
 		# episode_up = str(int(episode)+1) ; episode_dn = str(int(episode)-1)
 		# string1 = r'(?:s|season|)(?:\.|-|\(|)0{0,1}%s(?:\.|-|\)|x|)(?:e|ep|episode|)(?:\.|-|\(|)0{0,1}%s(?:\.|-|\)|)(?:e|ep|episode|)0{0,1}%s(?:\.|-|\)|$)' % (season, episode, episode_up)
 		# if int(episode) > 1:
@@ -195,10 +195,9 @@ def getFileType(name_info=None, url=None):
 def url_strip(url):
 	try:
 		url = unquote_plus(url)
-		if 'magnet' in url:
-			url = url.split('&dn=')[1]
+		if 'magnet:' in url: url = url.split('&dn=')[1]
 		url = url.lower().replace("'", "").lstrip('.').rstrip('.')
-		fmt = re.sub('[^a-z0-9]+', '.', url)
+		fmt = re.sub(r'[^a-z0-9]+', '.', url)
 		fmt = '.%s.' % fmt
 		fmt = re.sub(r'(.+)((?:19|20)[0-9]{2}|season.\d+|s[0-3]{1}[0-9]{1}|e\d+|complete)(.complete\.|.episode\.\d+\.|.episodes\.\d+\.\d+\.|.series|.extras|.ep\.\d+\.|.\d{1,2}\.|-|\.|\s)', '', fmt) # new for pack files
 		if '.http' in fmt: fmt = None

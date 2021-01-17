@@ -3,14 +3,10 @@
 	Venom Add-on
 '''
 
-# import datetime
 import re
 import requests
-
-try:
-	from urllib import quote_plus
-except:
-	from urllib.parse import quote_plus
+try: from urllib import quote_plus
+except ImportError: from urllib.parse import quote_plus
 
 from resources.lib.modules import cache
 from resources.lib.modules import cleantitle
@@ -218,7 +214,6 @@ class tvshows:
 		self.type = type
 		self.lang = control.apiLanguage()['tvdb']
 		self.notifications = notifications
-		# self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
 		self.disable_fanarttv = control.setting('disable.fanarttv')
 
 		self.tvmaze_link = 'https://www.tvmaze.com'
@@ -257,7 +252,7 @@ class tvshows:
 
 			items = [client.parseDOM(i, 'a', ret='href') for i in items]
 			items = [i[0] for i in items if len(i) > 0]
-			items = [re.findall('/(\d+)/', i) for i in items]
+			items = [re.findall(r'/(\d+)/', i) for i in items]
 			items = [i[0] for i in items if len(i) > 0]
 			items = items[:list_count]
 			sortList = items
@@ -307,7 +302,7 @@ class tvshows:
 				rating = str(item.get('rating').get('average', '0'))
 
 				plot = item.get('summary', '0')
-				if plot: plot = re.sub('<.+?>|</.+?>|\n', '', plot)
+				if plot: plot = re.sub(r'<.+?>|</.+?>|\n', '', plot)
 
 				status = item.get('status', '0')
 
@@ -427,7 +422,7 @@ class tvshows:
 					if year == '0':
 						year = client.parseDOM(item3, 'FirstAired')[0] or '0'
 						if year != '0':
-							year = re.compile('(\d{4})').findall(year)[0] or '0'
+							year = re.compile(r'(\d{4})').findall(year)[0] or '0'
 
 					if not plot:
 						plot = client.parseDOM(item3, 'Overview')[0] or '0'

@@ -4,6 +4,8 @@
 '''
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -17,14 +19,31 @@ headers.update({'client-key': client_key})
 base_url = "http://webservice.fanart.tv/v3/%s/%s"
 lang = control.apiLanguage()['trakt']
 error_codes = ['500 Internal Server Error', '502 Bad Gateway', '504 Gateway Timeout']
+session = requests.Session()
+retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
+session.mount('http://', HTTPAdapter(max_retries=retries))
 
 
+def timeIt(func):
+	import time
+	fnc_name = func.__name__
+	def wrap(*args, **kwargs):
+		started_at = time.time()
+		result = func(*args, **kwargs)
+		log_utils.log('%s.%s = %s' % (__name__, fnc_name, time.time() - started_at), log_utils.LOGDEBUG)
+		return result
+	return wrap
+
+
+# @timeIt
 def get_request(url):
 	try:
 		try:
-			result = requests.get(url, headers=headers, timeout=5)
+			# result = requests.get(url, headers=headers, timeout=5)
+			result = session.get(url, headers=headers, timeout=5)
 		except requests.exceptions.SSLError:
-			result = requests.get(url, headers=headers, verify=False)
+			# result = requests.get(url, headers=headers, verify=False)
+			result = session.get(url, headers=headers, verify=False)
 	except requests.exceptions.ConnectionError:
 		control.notification(message='FANART.TV server Problems')
 		log_utils.error()
@@ -65,13 +84,10 @@ def parse_art(img):
 def get_movie_art(imdb, tmdb):
 	url = base_url % ('movies', tmdb)
 	art = get_request(url)
-
 	if art is None:
 		url = base_url % ('movies', imdb)
 		art = get_request(url)
-
-	if art is None:
-		return None
+	if art is None: return None
 
 	try:
 		if 'movieposter' not in art: raise Exception()
@@ -148,14 +164,10 @@ def get_movie_art(imdb, tmdb):
 
 
 def get_tvshow_art(tvdb):
-	if tvdb == '0':
-		return None
-
+	if tvdb == '0': return None
 	url = base_url % ('tv', tvdb)
 	art = get_request(url)
-
-	if art is None:
-		return None
+	if art is None: return None
 
 	try:
 		if 'tvposter' not in art: raise Exception()

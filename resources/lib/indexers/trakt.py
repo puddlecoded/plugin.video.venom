@@ -3,7 +3,7 @@
 	Venom Add-on
 '''
 
-import datetime
+# import datetime
 import json
 import re
 import sys
@@ -87,7 +87,7 @@ def trakt_list(self, url, user):
 				year = str(premiered)
 				year = re.search(r"(\d{4})", year).group(1)
 
-			# if int(year) > int((self.datetime).strftime('%Y')): raise Exception()
+			# if int(year) > int((self.date_time).strftime('%Y')): raise Exception()
 
 			try:
 				progress = item['progress']
@@ -154,5 +154,5 @@ def trakt_user_list(self, url, user):
 			self.list.append({'name': name, 'url': url, 'context': url})
 		except:
 			pass
-	self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['name'].lower()))
+	self.list = sorted(self.list, key=lambda k: re.sub(r'(^the |^a |^an )', '', k['name'].lower()))
 	return self.list

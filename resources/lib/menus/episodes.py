@@ -3,20 +3,22 @@
 	Venom Add-on
 '''
 
-import copy
-import datetime
-import json
+from copy import deepcopy
+from datetime import datetime, timedelta
+from json import dumps as jsdumps, loads as jsloads
 import re
-import requests
-import StringIO
+import requests # retest urlopen
 import sys
 import zipfile
-
-try:
+try: #Py2
+	# from urllib2 import urlopen
 	from urllib import quote_plus, urlencode
 	from urlparse import parse_qsl, urlparse, urlsplit
-except:
+	from cStringIO import StringIO
+except ImportError: #Py3
+	# from urllib.request import urlopen
 	from urllib.parse import quote_plus, urlencode, parse_qsl, urlparse, urlsplit
+	from io import BytesIO as StringIO
 
 from resources.lib.modules import cache
 from resources.lib.modules import cleangenre
@@ -41,8 +43,9 @@ class Episodes:
 		self.notifications = notifications
 		self.disable_fanarttv = control.setting('disable.fanarttv')
 
-		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours=5))
-		self.today_date = (self.datetime).strftime('%Y-%m-%d')
+		# self.date_time = (datetime.utcnow() - timedelta(hours=5))
+		self.date_time = datetime.utcnow()
+		self.today_date = (self.date_time).strftime('%Y-%m-%d')
 
 		self.tvdb_key = control.setting('tvdb.api.key')
 		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/all/%s.zip' % (self.tvdb_key.decode('base64'), '%s', '%s')
@@ -67,8 +70,7 @@ class Episodes:
 		self.calendar_link = 'https://api.tvmaze.com/schedule?date=%s'
 
 		self.showunaired = control.setting('showunaired') or 'true'
-		self.unairedcolor = control.setting('unaired.identify')
-		self.unairedcolor = control.getColor(self.unairedcolor)
+		self.unairedcolor = control.getColor(control.setting('unaired.identify'))
 
 
 	def get(self, tvshowtitle, year, imdb, tmdb, tvdb, season=None, episode=None, idx=True):
@@ -173,7 +175,7 @@ class Episodes:
 			reverse = int(control.setting('sort.%s.order' % type)) == 1
 			if attribute > 0:
 				if attribute == 1:
-					try: self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['tvshowtitle'].lower()), reverse=reverse)
+					try: self.list = sorted(self.list, key=lambda k: re.sub(r'(^the |^a |^an )', '', k['tvshowtitle'].lower()), reverse=reverse)
 					except: self.list = sorted(self.list, key=lambda k: k['title'].lower(), reverse=reverse)
 				elif attribute == 2:
 					self.list = sorted(self.list, key=lambda k: float(k['rating']), reverse=reverse)
@@ -237,7 +239,7 @@ class Episodes:
 		except: days = []
 		for i in range(0, 30):
 			try:
-				name = (self.datetime - datetime.timedelta(days=i))
+				name = (self.date_time - timedelta(days=i))
 				name = (control.lang(32062) % (name.strftime('%A'), name.strftime('%d %B'))).encode('utf-8')
 				for m in months:
 					name = name.replace(m[1], m[0])
@@ -245,7 +247,7 @@ class Episodes:
 					name = name.replace(d[1], d[0])
 				try: name = name.encode('utf-8')
 				except: pass
-				url = self.calendar_link % (self.datetime - datetime.timedelta(days=i)).strftime('%Y-%m-%d')
+				url = self.calendar_link % (self.date_time - timedelta(days=i)).strftime('%Y-%m-%d')
 				self.list.append({'name': name, 'url': url, 'image': 'calendar.png', 'icon': 'DefaultYear.png', 'action': 'calendar'})
 			except: pass
 		if idx:
@@ -307,8 +309,10 @@ class Episodes:
 	def trakt_user_list(self, url, user):
 		try:
 			result = trakt.getTrakt(url)
-			items = json.loads(result)
-		except: pass
+			items = jsloads(result)
+		except:
+			log_utils.error()
+
 		for item in items:
 			try:
 				try: name = item['list']['name']
@@ -325,7 +329,7 @@ class Episodes:
 			except:
 				log_utils.error()
 
-		self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['name'].lower()))
+		self.list = sorted(self.list, key=lambda k: re.sub(r'(^the |^a |^an )', '', k['name'].lower()))
 		return self.list
 
 
@@ -334,7 +338,7 @@ class Episodes:
 		try:
 			url += '?extended=full'
 			result = trakt.getTrakt(url)
-			result = json.loads(result)
+			result = jsloads(result)
 			items = []
 		except:
 			return
@@ -404,7 +408,7 @@ class Episodes:
 
 		try:
 			result = trakt.getTrakt(self.hiddenprogress_link)
-			result = json.loads(result)
+			result = jsloads(result)
 			result = [str(i['show']['ids']['tvdb']) for i in result]
 			items = [i for i in items if i['tvdb'] not in result]
 		except: pass
@@ -416,9 +420,9 @@ class Episodes:
 			trailer = i.get('trailer')
 			try:
 				url = self.tvdb_info_link % (tvdb, lang)
-				data = requests.get(url).content
-				zip = zipfile.ZipFile(StringIO.StringIO(data))
-
+				# data = urlopen(url, timeout=30).read()
+				data = requests.get(url, timeout=30).content
+				zip = zipfile.ZipFile(StringIO(data))
 				result = zip.read('%s.xml' % lang)
 				artwork = zip.read('banners.xml')
 				actors = zip.read('actors.xml')
@@ -430,17 +434,17 @@ class Episodes:
 
 				# TVDB en.xml sort order is by ID now so we resort by season then episode for proper indexing of nextup item to watch.
 				try:
-					sorted_item = [y for y in item if re.compile('<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(i['snum'])]
-					sorted_item += [y for y in item if re.compile('<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(int(i['snum']) + 1)]
-					sorted_item = sorted(sorted_item, key= lambda t:(int(re.compile('<SeasonNumber>(\d+)</SeasonNumber>').findall(t)[-1]), int(re.compile('<EpisodeNumber>(\d+)</EpisodeNumber>').findall(t)[-1])))
-					num = [x for x,y in enumerate(sorted_item) if re.compile('<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(i['snum']) and re.compile('<EpisodeNumber>(.+?)</EpisodeNumber>').findall(y)[0] == str(i['enum'])][-1]
+					sorted_item = [y for y in item if re.compile(r'<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(i['snum'])]
+					sorted_item += [y for y in item if re.compile(r'<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(int(i['snum']) + 1)]
+					sorted_item = sorted(sorted_item, key= lambda t:(int(re.compile(r'<SeasonNumber>(\d+)</SeasonNumber>').findall(t)[-1]), int(re.compile(r'<EpisodeNumber>(\d+)</EpisodeNumber>').findall(t)[-1])))
+					num = [x for x,y in enumerate(sorted_item) if re.compile(r'<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(i['snum']) and re.compile(r'<EpisodeNumber>(.+?)</EpisodeNumber>').findall(y)[0] == str(i['enum'])][-1]
 					item = [y for x,y in enumerate(sorted_item) if x > num][0]
 				except:
 					return
 
 				artwork = artwork.split('<Banner>')
 				artwork = [x for x in artwork if '<Language>en</Language>' in x and '<BannerType>season</BannerType>' in x]
-				artwork = [x for x in artwork if not 'seasonswide' in re.findall('<BannerPath>(.+?)</BannerPath>', x)[0]]
+				artwork = [x for x in artwork if not 'seasonswide' in re.findall(r'<BannerPath>(.+?)</BannerPath>', x)[0]]
 
 				premiered = client.parseDOM(item, 'FirstAired')[0]
 				if premiered == '' or '-00' in premiered: premiered = '0'
@@ -459,7 +463,7 @@ class Episodes:
 				unaired = ''
 				if status.lower() == 'ended': pass
 				elif premiered == '0': raise Exception()
-				elif int(re.sub('[^0-9]', '', str(premiered))) > int(re.sub('[^0-9]', '', str(self.today_date))):
+				elif int(re.sub(r'[^0-9]', '', str(premiered))) > int(re.sub(r'[^0-9]', '', str(self.today_date))):
 					unaired = 'true'
 					if self.showunaired != 'true': raise Exception()
 
@@ -474,7 +478,7 @@ class Episodes:
 					raise Exception()
 
 				episode = client.parseDOM(item, 'EpisodeNumber')[0]
-				episode = re.sub('[^0-9]', '', '%01d' % int(episode))
+				episode = re.sub(r'[^0-9]', '', '%01d' % int(episode))
 
 				seasoncount = '0'
 				# seasoncount = seasons.Seasons.seasonCountParse(season=season, items=result)
@@ -579,8 +583,8 @@ class Episodes:
 
 	def trakt_list(self, url, user, count=False):
 		try:
-			for i in re.findall('date\[(\d+)\]', url):
-				url = url.replace('date[%s]' % i, (self.datetime - datetime.timedelta(days=int(i))).strftime('%Y-%m-%d'))
+			for i in re.findall(r'date\[(\d+)\]', url):
+				url = url.replace('date[%s]' % i, (self.date_time - timedelta(days=int(i))).strftime('%Y-%m-%d'))
 			q = dict(parse_qsl(urlsplit(url).query))
 			q.update({'extended': 'full'})
 			q = (urlencode(q)).replace('%2C', ',')
@@ -609,12 +613,12 @@ class Episodes:
 				if title is None or title == '': continue
 
 				season = item['episode']['season']
-				season = re.sub('[^0-9]', '', '%01d' % int(season))
+				season = re.sub(r'[^0-9]', '', '%01d' % int(season))
 
 				if control.setting('tv.specials') == 'false' and season == '0': continue
 
 				episode = item['episode']['number']
-				episode = re.sub('[^0-9]', '', '%01d' % int(episode))
+				episode = re.sub(r'[^0-9]', '', '%01d' % int(episode))
 				if episode == '0': continue
 
 				try: tvshowtitle = (item['show']['title']).encode('utf-8')
@@ -726,17 +730,17 @@ class Episodes:
 			trailer = i.get('trailer')
 			try:
 				url = self.tvdb_info_link % (tvdb, lang)
-				data = requests.get(url).content
-				zip = zipfile.ZipFile(StringIO.StringIO(data))
-
+				# data = urlopen(url, timeout=30).read()
+				data = requests.get(url, timeout=30).content
+				zip = zipfile.ZipFile(StringIO(data))
 				result = zip.read('%s.xml' % lang)
 				artwork = zip.read('banners.xml')
 				actors = zip.read('actors.xml')
 				zip.close()
 
 				result = result.split('<Episode>')
-				item = [(re.findall('<SeasonNumber>%01d</SeasonNumber>' % int(i['season']), x),
-						re.findall('<EpisodeNumber>%01d</EpisodeNumber>' % int(i['episode']), x), x) for x in result]
+				item = [(re.findall(r'<SeasonNumber>%01d</SeasonNumber>' % int(i['season']), x),
+						re.findall(r'<EpisodeNumber>%01d</EpisodeNumber>' % int(i['episode']), x), x) for x in result]
 				item = [x[2] for x in item if len(x[0]) > 0 and len(x[1]) > 0]
 				if not item:
 					log_utils.log('bad zip for tvshowtitle = %s: season = %s: episode = %s: tvdb_id = %s: url = %s' % \
@@ -747,7 +751,7 @@ class Episodes:
 
 				artwork = artwork.split('<Banner>')
 				artwork = [x for x in artwork if '<Language>en</Language>' in x and '<BannerType>season</BannerType>' in x]
-				artwork = [x for x in artwork if not 'seasonswide' in re.findall('<BannerPath>(.+?)</BannerPath>', x)[0]]
+				artwork = [x for x in artwork if not 'seasonswide' in re.findall(r'<BannerPath>(.+?)</BannerPath>', x)[0]]
 
 				premiered = i['premiered'] or client.parseDOM(item, 'FirstAired')[0]
 
@@ -766,7 +770,7 @@ class Episodes:
 					raise Exception()
 
 				episode = client.parseDOM(item, 'EpisodeNumber')[0]
-				episode = re.sub('[^0-9]', '', '%01d' % int(episode))
+				episode = re.sub(r'[^0-9]', '', '%01d' % int(episode))
 
 				seasoncount = '0'
 				# seasoncount = seasons.Seasons.seasonCountParse(season=season, items=result)
@@ -893,7 +897,7 @@ class Episodes:
 	def tvmaze_list(self, url, limit, count=False):
 		try:
 			result = client.request(url, error=True)
-			items = json.loads(result)
+			items = jsloads(result)
 		except:
 			return
 
@@ -909,13 +913,13 @@ class Episodes:
 
 				season = item['season']
 				if not season: continue
-				season = re.sub('[^0-9]', '', '%01d' % int(season))
+				season = re.sub(r'[^0-9]', '', '%01d' % int(season))
 
 				if control.setting('tv.specials') == 'false' and season == '0': continue
 
 				episode = item['number']
 				if episode is None: continue
-				episode = re.sub('[^0-9]', '', '%01d' % int(episode))
+				episode = re.sub(r'[^0-9]', '', '%01d' % int(episode))
 
 				premiered = item.get('airdate', '0')
 
@@ -995,7 +999,7 @@ class Episodes:
 
 				try:
 					plot = item.get('show', {}).get('summary', '0')
-					plot = re.sub('<.+?>|</.+?>|\n', '', plot)
+					plot = re.sub(r'<.+?>|</.+?>|\n', '', plot)
 				except:
 					plot = '0'
 
@@ -1032,8 +1036,9 @@ class Episodes:
 			imdb, tmdb, tvdb = i['imdb'], i['tmdb'], i['tvdb']
 			try:
 				url = self.tvdb_info_link % (tvdb, self.lang)
-				data = requests.get(url).content
-				zip = zipfile.ZipFile(StringIO.StringIO(data))
+				# data = urlopen(url, timeout=30).read()
+				data = requests.get(url, timeout=30).content
+				zip = zipfile.ZipFile(StringIO(data))
 				result = zip.read('%s.xml' % self.lang)
 				artwork = zip.read('banners.xml')
 				actors = zip.read('actors.xml')
@@ -1041,7 +1046,7 @@ class Episodes:
 
 				result = result.split('<Episode>')
 				try:
-					item = [(re.findall('<SeasonNumber>%01d</SeasonNumber>' % int(i['season']), x), re.findall('<EpisodeNumber>%01d</EpisodeNumber>' % int(i['episode']), x), x) for x in result]
+					item = [(re.findall(r'<SeasonNumber>%01d</SeasonNumber>' % int(i['season']), x), re.findall(r'<EpisodeNumber>%01d</EpisodeNumber>' % int(i['episode']), x), x) for x in result]
 					item = [x[2] for x in item if len(x[0]) > 0 and len(x[1]) > 0][0]
 				except:
 					item = None
@@ -1050,7 +1055,7 @@ class Episodes:
 				try:
 					artwork = artwork.split('<Banner>')
 					artwork = [x for x in artwork if '<Language>en</Language>' in x and '<BannerType>season</BannerType>' in x]
-					artwork = [x for x in artwork if not 'seasonswide' in re.findall('<BannerPath>(.+?)</BannerPath>', x)[0]]
+					artwork = [x for x in artwork if not 'seasonswide' in re.findall(r'<BannerPath>(.+?)</BannerPath>', x)[0]]
 				except:
 					artwork = '0'
 
@@ -1197,7 +1202,7 @@ class Episodes:
 			if 'extended' not in items[0] or not items[0]['extended']:
 				from resources.lib.menus import tvshows
 				show = tvshows.TVshows(type=self.type)
-				show.list = copy.deepcopy(self.list)
+				show.list = deepcopy(self.list)
 				show.worker()
 				for i in range(len(self.list)):
 					self.list[i] = dict(show.list[i].items() + self.list[i].items())
@@ -1314,7 +1319,7 @@ class Episodes:
 					index = plot.rfind('See full summary')
 					if index >= 0: plot = plot[:index]
 					plot = plot.strip()
-					if re.match('[a-zA-Z\d]$', plot): plot += ' ...'
+					if re.match(r'[a-zA-Z\d]$', plot): plot += ' ...'
 					meta['plot'] = plot
 				except: pass
 
@@ -1440,8 +1445,8 @@ class Episodes:
 												sysaddon, systvshowtitle, imdb, tvdb, season, episode)))
 				except: pass
 
-				sysmeta = quote_plus(json.dumps(meta))
-				sysart = quote_plus(json.dumps(art))
+				sysmeta = quote_plus(jsdumps(meta))
+				sysart = quote_plus(jsdumps(art))
 				syslabelProgress = quote_plus(labelProgress)
 
 				url = '%s?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s' % (

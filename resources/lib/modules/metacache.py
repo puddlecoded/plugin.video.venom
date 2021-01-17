@@ -4,10 +4,8 @@
 '''
 
 import time
-try:
-	from sqlite3 import dbapi2 as db
-except ImportError:
-	from pysqlite2 import dbapi2 as db
+try: from sqlite3 import dbapi2 as db
+except ImportError: from pysqlite2 import dbapi2 as db
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils

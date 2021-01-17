@@ -4,7 +4,7 @@
 '''
 
 
-import json
+# import json
 import re
 import requests
 import sys
@@ -126,7 +126,7 @@ class documentary:
 	def getDailyMotionStream(self, id):
 		headers = {'User-Agent':'Android'}
 		cookie = {'Cookie':"lang=en_US; ff=off"}
-		r = requests.get("http://www.dailymotion.com/player/metadata/video/"+id,headers=headers,cookies=cookie)
+		r = requests.get("http://www.dailymotion.com/player/metadata/video/%s" % id, headers=headers, cookies=cookie)
 		content = r.json()
 		if content.get('error') is not None:
 			Error = (content['error']['title'])
@@ -156,12 +156,12 @@ class documentary:
 				for m_url in other_playable_url:
 
 					if '.m3u8?auth' in m_url:
-						rr = requests.get(m_url,cookies=r.cookies.get_dict() ,headers=headers)
+						rr = requests.get(m_url, cookies=r.cookies.get_dict() ,headers=headers)
 						if rr.headers.get('set-cookie'):
 							print('adding cookie to url')
-							strurl = re.findall('(http.+)',rr.text)[0].split('#cell')[0]+'|Cookie='+rr.headers['set-cookie']
+							strurl = re.findall(r'(http.+)', rr.text)[0].split('#cell')[0]+'|Cookie='+rr.headers['set-cookie']
 						else:
-							strurl = re.findall('(http.+)',rr.text)[0].split('#cell')[0]
+							strurl = re.findall(r'(http.+)', rr.text)[0].split('#cell')[0]
 						return strurl
 
 

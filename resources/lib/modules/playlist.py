@@ -3,7 +3,8 @@
 	Venom Add-on
 '''
 
-import json, xbmc
+from json import loads as jsloads
+import xbmc
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -69,12 +70,12 @@ def playlistClear():
 def playListItems():
 	rpc = '{"jsonrpc": "2.0", "method": "Playlist.GetItems", "params": {"playlistid" : %s}, "id": 1 }' % Id
 	result = control.jsonrpc(rpc)
-	limits =json.loads(result)['result']['limits']
+	limits =jsloads(result)['result']['limits']
 	total = limits['total']
 	if int(total) <= 0:
 		return []
 	result = unicode(result, 'utf-8', errors = 'ignore')
-	result = json.loads(result)['result']['items']
+	result = jsloads(result)['result']['items']
 	try: return [i['label'].encode('utf-8') for i in result]
 	except: return []
 
@@ -90,9 +91,9 @@ def playlistAdd(name, url, meta, art):
 	if labelPosition >= 0:
 		return control.notification(title=35522, message=32120)
 	if isinstance(meta, basestring):
-		meta = json.loads(meta)
+		meta = jsloads(meta)
 	if isinstance(art, basestring):
-		art = json.loads(art)
+		art = jsloads(art)
 	item = control.item(label=name)
 	item.setArt(art)
 	item.setProperty('IsPlayable', 'true')

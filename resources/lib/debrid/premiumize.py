@@ -6,10 +6,9 @@
 import re
 import requests
 import sys
-
-try:
+try: #Py2
 	from urllib import quote_plus, urlencode, unquote
-except:
+except ImportError: #Py3
 	from urllib.parse import quote_plus, urlencode, unquote
 
 from resources.lib.modules import cache
@@ -201,7 +200,7 @@ class Premiumize:
 			valid_results = [i for i in response.get('content') if any(i.get('path').lower().endswith(x) for x in extensions) and not i.get('link', '') == '']
 			if len(valid_results) == 0: return
 			if season:
-				episode_title = re.sub('[^A-Za-z0-9-]+', '.', ep_title.replace('\'', '')).lower()
+				episode_title = re.sub(r'[^A-Za-z0-9-]+', '.', ep_title.replace('\'', '')).lower()
 				for item in valid_results:
 					if seas_ep_filter(season, episode, item['path'].split('/')[-1]):
 						correct_files.append(item)

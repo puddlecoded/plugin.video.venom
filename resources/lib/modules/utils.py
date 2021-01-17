@@ -3,15 +3,15 @@
 	Venom Add-on
 '''
 
-import json
+from json import loads as jsloads
 import re
 
 def json_load_as_str(file_handle):
-	return byteify(json.load(file_handle, object_hook=byteify), ignore_dicts=True)
+	return byteify(jsload(file_handle, object_hook=byteify), ignore_dicts=True)
 
 
 def json_loads_as_str(json_text):
-	return byteify(json.loads(json_text, object_hook=byteify), ignore_dicts=True)
+	return byteify(jsloads(json_text, object_hook=byteify), ignore_dicts=True)
 
 
 def byteify(data, ignore_dicts=False):
@@ -30,11 +30,9 @@ def title_key(title):
 		articles_en = ['the', 'a', 'an']
 		articles_de = ['der', 'die', 'das']
 		articles = articles_en + articles_de
-		match = re.match('^((\w+)\s+)', title.lower())
-		if match and match.group(2) in articles:
-			offset = len(match.group(1))
-		else:
-			offset = 0
+		match = re.match(r'^((\w+)\s+)', title.lower())
+		if match and match.group(2) in articles: offset = len(match.group(1))
+		else: offset = 0
 		return title[offset:]
 	except:
 		return title

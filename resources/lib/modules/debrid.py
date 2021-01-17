@@ -5,7 +5,6 @@
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
-
 from resources.lib.debrid import alldebrid
 from resources.lib.debrid import premiumize
 from resources.lib.debrid import realdebrid

@@ -3,14 +3,11 @@
 	Venom Add-on
 '''
 
-import json
+from json import loads as jsloads
 import xbmc
 import xbmcaddon
-
-try:
-	from sqlite3 import dbapi2 as database
-except:
-	from pysqlite2 import dbapi2 as database
+try: from sqlite3 import dbapi2 as database
+except: from pysqlite2 import dbapi2 as database
 
 from resources.lib.modules import control
 
@@ -49,7 +46,7 @@ def getProgress(content):
 def addFavourite(meta, content):
 	try:
 		item = dict()
-		meta = json.loads(meta)
+		meta = jsloads(meta)
 		try: id = meta['imdb']
 		except: id = meta['tvdb']
 
@@ -84,7 +81,7 @@ def addFavourite(meta, content):
 def addEpisodes(meta, content):
 	try:
 		item = dict()
-		meta = json.loads(meta)
+		meta = jsloads(meta)
 		content = "episode"
 		try:
 			id = meta['imdb']
@@ -127,7 +124,7 @@ def addEpisodes(meta, content):
 
 def deleteFavourite(meta, content):
 	try:
-		meta = json.loads(meta)
+		meta = jsloads(meta)
 		if 'title' in meta: title = meta['title']
 		if 'tvshowtitle' in meta: title = meta['tvshowtitle']
 		dbcon = database.connect(favouritesFile)
@@ -146,7 +143,7 @@ def deleteFavourite(meta, content):
 
 def deleteProgress(meta, content):
 	try:
-		meta = json.loads(meta)
+		meta = jsloads(meta)
 		dbcon = database.connect(progressFile)
 		dbcur = dbcon.cursor()
 		dbcur.execute("DELETE FROM %s WHERE id = '%s'" % (content, meta['imdb']))

@@ -5,15 +5,12 @@
 
 import os
 import re
-
-try:
+try: #Py2
 	from urlparse import parse_qsl, urlparse
-except:
-	from urllib.parse import parse_qsl, urlparse
-try:
-	from urllib.request import urlopen, Request
-except:
 	from urllib2 import urlopen, Request
+except ImportError: #Py3
+	from urllib.parse import parse_qsl, urlparse
+	from urllib.request import urlopen, Request
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -59,7 +56,7 @@ def download(name, image, url, meta_name=None):
 				try: movie_info = re.search(r'(.+?)(?:\.{0,1}-{0,1}\.{0,1}|\s*)(?:|\(|\[|\.)((?:19|20)(?:[0-9]{2}))', name.replace('\'', '')).groups()
 				except: movie_info = ()
 				if len(movie_info) != 0:
-					movietitle = titlecase(re.sub('[^A-Za-z0-9\s]+', ' ', movie_info[0]))
+					movietitle = titlecase(re.sub(r'[^A-Za-z0-9\s]+', ' ', movie_info[0]))
 					dest = os.path.join(dest, movietitle + ' (' + movie_info[1] + ')')
 					if file_format == '0':
 						transname = movietitle + ' (' + movie_info[1] + ')'
@@ -75,7 +72,7 @@ def download(name, image, url, meta_name=None):
 			control.makeFile(dest)
 			transtvshowtitle = content[0].translate(None, '\/:*?"<>|').strip('.').replace('.', ' ')
 			if not meta_name:
-				transtvshowtitle = titlecase(re.sub('[^A-Za-z0-9\s-]+', ' ', transtvshowtitle))
+				transtvshowtitle = titlecase(re.sub(r'[^A-Za-z0-9\s-]+', ' ', transtvshowtitle))
 			dest = os.path.join(dest, transtvshowtitle)
 			control.makeFile(dest)
 			dest = os.path.join(dest, 'Season %01d' % int(content[1]))
@@ -108,7 +105,6 @@ def done(title, dest, downloaded):
 	try:
 		playing = control.player.isPlaying()
 		text = control.homeWindow.getProperty('GEN-DOWNLOADED')
-
 		if len(text) > 0:
 			text += '[CR]'
 		if downloaded:
@@ -116,7 +112,6 @@ def done(title, dest, downloaded):
 		else:
 			text += '%s : %s' % (dest.rsplit(os.sep)[-1], '[COLOR red]Download failed[/COLOR]')
 		control.homeWindow.setProperty('GEN-DOWNLOADED', text)
-
 		if (not downloaded) or (not playing): 
 			control.okDialog(title, text)
 			control.homeWindow.clearProperty('GEN-DOWNLOADED')
@@ -133,10 +128,8 @@ def doDownload(url, dest, title, image, headers):
 		return
 	try: content = int(resp.headers['Content-Length'])
 	except: content = 0
-
 	try: resumable = 'bytes' in resp.headers['Accept-Ranges'].lower()
 	except: resumable = False
-
 	if content < 1:
 		control.hide()
 		control.okDialog(title, file + 'Unknown filesize: Unable to download')

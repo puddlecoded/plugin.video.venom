@@ -6,7 +6,6 @@
 
 from sys import argv
 import xbmcaddon
-
 try:
 	from urlparse import parse_qsl
 	from urllib import quote_plus
@@ -45,10 +44,8 @@ if action is None:
 	from resources.lib.menus import navigator
 	from resources.lib.modules import cache
 	run = control.setting('first.info')
-	if run == '':
-		run = 'true' #clean install scenerio
-	if cache._find_cache_version():
-		run = 'true'
+	if run == '': run = 'true' #clean install scenerio
+	if cache._find_cache_version(): run = 'true'
 	if run == 'true':
 		control.execute('RunPlugin(plugin://plugin.video.venom/?action=tools_cleanSettings)')
 		from resources.lib.modules import changelog
@@ -183,6 +180,10 @@ if action and action.startswith('furk'):
 		from resources.lib.menus import navigator
 		navigator.Navigator().furk()
 
+	elif action == "furkUserFiles":
+		from resources.lib.menus import furk
+		furk.Furk().user_files()
+
 	elif action == "furkMetaSearch":
 		from resources.lib.menus import furk
 		furk.Furk().furk_meta_search(url)
@@ -190,10 +191,6 @@ if action and action.startswith('furk'):
 	elif action == "furkSearch":
 		from resources.lib.menus import furk
 		furk.Furk().search()
-
-	elif action == "furkUserFiles":
-		from resources.lib.menus import furk
-		furk.Furk().user_files()
 
 	elif action == "furkSearchNew":
 		from resources.lib.menus import furk
@@ -310,7 +307,8 @@ if action and action.startswith('seasons'):
 #---EPISODES
 ####################################################
 if action == 'playEpisodesList':
-	import json
+	# import json
+	from json import dumps as jsdumps
 	from resources.lib.menus import episodes
 	items = episodes.Episodes().get(tvshowtitle, year, imdb, tmdb, tvdb, season, episode, idx=False)
 	control.playlist.clear()
@@ -326,7 +324,7 @@ if action == 'playEpisodesList':
 		tvshowtitle = i['tvshowtitle']
 		systvshowtitle = quote_plus(tvshowtitle)
 		premiered = i['premiered']
-		sysmeta = quote_plus(json.dumps(i))
+		sysmeta = quote_plus(jsdumps(i))
 		url = 'plugin://plugin.video.venom/?action=play&title=%s&year=%s&imdb=%s&tmdb=%s&tvdb=%s&season=%s&episode=%s&tvshowtitle=%s&premiered=%s&meta=%s&select="2"' % (
 								systitle, year, imdb, tmdb, tvdb, season, episode, systvshowtitle, premiered, sysmeta)
 		item = control.item(label=title)
@@ -512,10 +510,10 @@ if action and action.startswith('download'):
 		if caller == 'sources':
 			control.busy()
 			try:
-				import json
+				from json import loads as jsloads
 				from resources.lib.modules import sources
 				from resources.lib.modules import downloader
-				downloader.download(name, image, sources.Sources().sourcesResolve(json.loads(source)[0]), title)
+				downloader.download(name, image, sources.Sources().sourcesResolve(jsloads(source)[0]), title)
 			except:
 				import traceback
 				traceback.print_exc()
@@ -681,7 +679,7 @@ if action == 'play':
 	sources.Sources().play(title, year, imdb, tmdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape)
 
 elif action == 'playAll':
-	control.player2().play(control.playlist)
+	control.player2().play(control.playlist) # context menu works same as "Play from Here"
 
 elif action == 'playURL':
 	caller = params.get('caller')
@@ -754,8 +752,8 @@ elif action == 'random':
 		r = argv[0]+"?action=random&rtype=season"
 
 	from random import randint
-	import json
-
+	# import json
+	from json import dumps as jsdumps
 	try:
 		rand = randint(1,len(rlist))-1
 		for p in ['title', 'year', 'imdb', 'tvdb', 'season', 'episode', 'tvshowtitle', 'premiered', 'select']:
@@ -765,7 +763,7 @@ elif action == 'random':
 			else:
 				try: r += '&'+p+'='+quote_plus(rlist[rand][p])
 				except: pass
-		try: r += '&meta='+quote_plus(json.dumps(rlist[rand]))
+		try: r += '&meta='+quote_plus(jsdumps(rlist[rand]))
 		except: r += '&meta='+quote_plus("{}")
 		if rtype == "movie":
 			try: control.notification(title=32536, message=rlist[rand]['title'])

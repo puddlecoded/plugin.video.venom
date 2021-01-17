@@ -3,18 +3,21 @@
 	Venom Add-on
 '''
 
-import datetime
-import json
+from datetime import datetime, timedelta
+from json import loads as jsloads
 import re
-import requests
-import StringIO
+import requests # retest urlopen
 import sys
 import zipfile
-try:
+try: #Py2
+	# from urllib2 import urlopen
 	from urllib import quote_plus, urlencode
 	from urlparse import parse_qsl, urlparse, urlsplit
-except:
+	from cStringIO import StringIO
+except ImportError: #Py3
+	# from urllib.request import urlopen
 	from urllib.parse import quote_plus, urlencode, parse_qsl, urlparse, urlsplit
+	from io import BytesIO as StringIO
 
 from resources.lib.menus import navigator
 from resources.lib.modules import cleantitle
@@ -41,11 +44,11 @@ class TVshows:
 		self.lang = control.apiLanguage()['tvdb']
 		self.notifications = notifications
 		self.disable_fanarttv = control.setting('disable.fanarttv')
-		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
-		self.today_date = (self.datetime).strftime('%Y-%m-%d')
+		# self.date_time = (datetime.utcnow() - timedelta(hours=5))
+		self.date_time = datetime.utcnow()
+		self.today_date = (self.date_time).strftime('%Y-%m-%d')
 
 		self.tvdb_key = control.setting('tvdb.api.key')
-
 		self.imdb_user = control.setting('imdb.user').replace('ur', '')
 		self.user = str(self.imdb_user) + str(self.tvdb_key)
 
@@ -236,8 +239,8 @@ class TVshows:
 			if attribute == 0: reverse = False
 			if attribute > 0:
 				if attribute == 1:
-					try: self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['tvshowtitle'].lower()), reverse=reverse)
-					except: self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['title'].lower()), reverse=reverse)
+					try: self.list = sorted(self.list, key=lambda k: re.sub(r'(^the |^a |^an )', '', k['tvshowtitle'].lower()), reverse=reverse)
+					except: self.list = sorted(self.list, key=lambda k: re.sub(r'(^the |^a |^an )', '', k['title'].lower()), reverse=reverse)
 				elif attribute == 2:
 					self.list = sorted(self.list, key=lambda k: float(k['rating']), reverse=reverse)
 				elif attribute == 3:
@@ -291,7 +294,7 @@ class TVshows:
 				episodes = [x for x in episodes if not '<EpisodeNumber>0</EpisodeNumber>' in x]
 			unknown_premiered_eps = [x for x in episodes if '<FirstAired></FirstAired>' in x]
 			premiered_eps = [x for x in episodes if not '<FirstAired></FirstAired>' in x]
-			unaired_eps = [x for x in premiered_eps if int(re.sub('[^0-9]', '', str(client.parseDOM(x, 'FirstAired')))) > int(re.sub('[^0-9]', '', str(self.today_date)))]
+			unaired_eps = [x for x in premiered_eps if int(re.sub(r'[^0-9]', '', str(client.parseDOM(x, 'FirstAired')))) > int(re.sub(r'[^0-9]', '', str(self.today_date)))]
 			total_episodes = len(episodes) - len(unaired_eps) - len(unknown_premiered_eps)
 		except:
 			log_utils.error()
@@ -613,7 +616,7 @@ class TVshows:
 				year = str(item.get('year', '0'))
 				if year == 'None' or year == '0': continue
 
-				# if int(year) > int((self.datetime).strftime('%Y')): raise Exception()
+				# if int(year) > int((self.date_time).strftime('%Y')): raise Exception()
 
 				imdb = item.get('ids', {}).get('imdb', '0')
 				if imdb == '' or imdb is None or imdb == 'None':
@@ -663,7 +666,7 @@ class TVshows:
 		list = []
 		try:
 			result = trakt.getTrakt(url)
-			items = json.loads(result)
+			items = jsloads(result)
 		except:
 			log_utils.error()
 
@@ -680,7 +683,7 @@ class TVshows:
 				list.append({'name': name, 'url': url, 'context': url})
 			except:
 				log_utils.error()
-		list = sorted(list, key=lambda k: re.sub('(^the |^a |^an )', '', k['name'].lower()))
+		list = sorted(list, key=lambda k: re.sub(r'(^the |^a |^an )', '', k['name'].lower()))
 		return list
 
 
@@ -689,8 +692,8 @@ class TVshows:
 		items = []
 		dupes = []
 		try:
-			for i in re.findall('date\[(\d+)\]', url):
-				url = url.replace('date[%s]' % i, (self.datetime - datetime.timedelta(days = int(i))).strftime('%Y-%m-%d'))
+			for i in re.findall(r'date\[(\d+)\]', url):
+				url = url.replace('date[%s]' % i, (self.date_time - timedelta(days=int(i))).strftime('%Y-%m-%d'))
 
 			def imdb_watchlist_id(url):
 				return client.parseDOM(client.request(url).decode('iso-8859-1').encode('utf-8'), 'meta', ret='content', attrs = {'property': 'pageId'})[0]
@@ -732,13 +735,13 @@ class TVshows:
 
 				year = client.parseDOM(item, 'span', attrs = {'class': 'lister-item-year.+?'})
 				year += client.parseDOM(item, 'span', attrs = {'class': 'year_type'})
-				year = re.findall('(\d{4})', year[0])[0]
+				year = re.findall(r'(\d{4})', year[0])[0]
 				year = year.encode('utf-8')
 
-				if int(year) > int((self.datetime).strftime('%Y')): raise Exception()
+				if int(year) > int((self.date_time).strftime('%Y')): raise Exception()
 
 				imdb = client.parseDOM(item, 'a', ret='href')[0]
-				imdb = re.findall('(tt\d*)', imdb)[0]
+				imdb = re.findall(r'(tt\d*)', imdb)[0]
 				imdb = imdb.encode('utf-8')
 
 				if imdb in dupes:
@@ -755,7 +758,7 @@ class TVshows:
 				except: poster = '0'
 
 				if '/nopicture/' in poster: poster = '0'
-				poster = re.sub('(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', poster)
+				poster = re.sub(r'(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', poster)
 				poster = client.replaceHTMLCodes(poster)
 				poster = poster.encode('utf-8')
 
@@ -766,7 +769,7 @@ class TVshows:
 				genre = client.replaceHTMLCodes(genre)
 				genre = genre.encode('utf-8')
 
-				try: duration = re.findall('(\d+?) min(?:s|)', item)[-1]
+				try: duration = re.findall(r'(\d+?) min(?:s|)', item)[-1]
 				except: duration = '0'
 				duration = duration.encode('utf-8')
 
@@ -786,7 +789,7 @@ class TVshows:
 				except:
 					try: votes = client.parseDOM(item, 'div', ret='title', attrs = {'class': '.*?rating-list'})[0]
 					except:
-						try: votes = re.findall('\((.+?) vote(?:s|)\)', votes)[0]
+						try: votes = re.findall(r'\((.+?) vote(?:s|)\)', votes)[0]
 						except: pass
 				if votes == '': votes = '0'
 				votes = client.replaceHTMLCodes(votes)
@@ -808,7 +811,7 @@ class TVshows:
 					except: plot = client.parseDOM(item, 'p', attrs = {'class': '""'})[0]
 
 				plot = plot.rsplit('<span>', 1)[0].strip()
-				plot = re.sub('<.+?>|</.+?>', '', plot)
+				plot = re.sub(r'<.+?>|</.+?>', '', plot)
 				if plot == '': plot = '0'
 				plot = client.replaceHTMLCodes(plot)
 				plot = plot.encode('utf-8')
@@ -836,13 +839,13 @@ class TVshows:
 				name = name.encode('utf-8')
 
 				url = client.parseDOM(item, 'a', ret='href')[0]
-				url = re.findall('(nm\d*)', url, re.I)[0]
+				url = re.findall(r'(nm\d*)', url, re.I)[0]
 				url = self.person_link % url
 				url = client.replaceHTMLCodes(url)
 				url = url.encode('utf-8')
 
 				image = client.parseDOM(item, 'img', ret='src')[0]
-				image = re.sub('(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', image)
+				image = re.sub(r'(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', image)
 				image = client.replaceHTMLCodes(image)
 				image = image.encode('utf-8')
 
@@ -880,7 +883,7 @@ class TVshows:
 			except:
 				log_utils.error()
 
-		list = sorted(list, key=lambda k: re.sub('(^the |^a |^an )', '', k['name'].lower()))
+		list = sorted(list, key=lambda k: re.sub(r'(^the |^a |^an )', '', k['name'].lower()))
 		return list
 
 
@@ -956,7 +959,8 @@ class TVshows:
 			if tvdb == '0' or imdb == '0':
 				try:
 					url = self.tvdb_by_query % (quote_plus(self.list[i]['title']))
-					result = requests.get(url).content
+					# result = client.request(url, timeout='10')
+					result = requests.get(url, timeout=10).content
 					result = re.sub(r'[^\x00-\x7F]+', '', result)
 					result = client.replaceHTMLCodes(result)
 					result = client.parseDOM(result, 'Series')
@@ -980,10 +984,10 @@ class TVshows:
 #################################
 
 			if tvdb == '0' or tvdb is None: return
-
 			url = self.tvdb_info_link % (tvdb, 'en')
-			data = requests.get(url).content # sometimes one api key pulls empty xml while another does not
-			zip = zipfile.ZipFile(StringIO.StringIO(data))
+			# data = urlopen(url, timeout=30).read()
+			data = requests.get(url, timeout=30).content # sometimes one api key pulls empty xml while another does not
+			zip = zipfile.ZipFile(StringIO(data))
 			item = zip.read('en.xml')
 			actors = zip.read('actors.xml')
 			zip.close()
@@ -999,7 +1003,7 @@ class TVshows:
 
 			if 'year' not in self.list[i] or self.list[i]['year'] == '0':
 				year = client.parseDOM(item, 'FirstAired')[0]
-				year = re.compile('(\d{4})').findall(year)[0]
+				year = re.compile(r'(\d{4})').findall(year)[0]
 			else: year = self.list[i]['year']
 
 			if 'premiered' not in self.list[i] or self.list[i]['premiered'] == '0':
@@ -1091,7 +1095,6 @@ class TVshows:
 				if tvdb is not None and tvdb != '0':
 					from resources.lib.indexers import fanarttv
 					extended_art = cache.get(fanarttv.get_tvshow_art, 168, tvdb)
-					# extended_art = fanarttv.get_tvshow_art(tvdb)
 					if extended_art:
 						item.update(extended_art)
 						meta.update(item)
@@ -1101,7 +1104,6 @@ class TVshows:
 				fanart == '0' and item.get('fanart2') == '0'))):
 				from resources.lib.indexers.tmdb import TVshows
 				tmdb_art = cache.get(TVshows().get_art, 168, tmdb)
-				# tmdb_art = TVshows().get_art(tmdb)
 				if tmdb_art:
 					item.update(tmdb_art)
 					if item.get('landscape', '0') == '0':
@@ -1170,7 +1172,7 @@ class TVshows:
 					index = plot.rfind('See full summary')
 					if index >= 0: plot = plot[:index]
 					plot = plot.strip()
-					if re.match('[a-zA-Z\d]$', plot): plot += ' ...'
+					if re.match(r'[a-zA-Z\d]$', plot): plot += ' ...'
 					meta['plot'] = plot
 				except: pass
 

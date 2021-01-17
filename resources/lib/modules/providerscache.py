@@ -4,13 +4,11 @@
 '''
 
 import ast
-import hashlib
+from hashlib import md5
 import re
 import time
-try:
-	from sqlite3 import dbapi2 as db
-except ImportError:
-	from pysqlite2 import dbapi2 as db
+try: from sqlite3 import dbapi2 as db
+except ImportError: from pysqlite2 import dbapi2 as db
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -131,11 +129,11 @@ def _hash_function(function_instance, *args):
 
 
 def _get_function_name(function_instance):
-	return re.sub('.+\smethod\s|.+function\s|\sat\s.+|\sof\s.+', '', repr(function_instance))
+	return re.sub(r'.+\smethod\s|.+function\s|\sat\s.+|\sof\s.+', '', repr(function_instance))
 
 
 def _generate_md5(*args):
-	md5_hash = hashlib.md5()
+	md5_hash = md5()
 	try: [md5_hash.update(str(arg)) for arg in args]
 	except: [md5_hash.update(str(arg).encode('utf-8')) for arg in args]
 	return str(md5_hash.hexdigest())

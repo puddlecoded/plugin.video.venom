@@ -3,22 +3,17 @@
 	Venom Add-on
 '''
 
-try:
-	import AddonSignals
-except:
-	pass
-
+try: import AddonSignals
+except: pass
 from copy import deepcopy
-import hashlib
-import json
+from hashlib import md5
+from json import dumps as jsdumps, loads as jsloads
 import sys
-try:
-	from sqlite3 import dbapi2 as database
-except:
-	from pysqlite2 import dbapi2 as database
-try:
+try: from sqlite3 import dbapi2 as database
+except ImportError: from pysqlite2 import dbapi2 as database
+try: # Py2
 	from urllib import quote_plus, unquote_plus
-except:
+except ImportError: # Py3
 	from urllib.parse import quote_plus, unquote_plus
 import xbmc
 
@@ -122,7 +117,7 @@ class Player(xbmc.Player):
 				control.busy()
 				control.player.play(url, item)
 
-			control.homeWindow.setProperty('script.trakt.ids', json.dumps(self.ids))
+			control.homeWindow.setProperty('script.trakt.ids', jsdumps(self.ids))
 			self.keepAlive()
 			control.homeWindow.clearProperty('script.trakt.ids')
 		except:
@@ -156,7 +151,7 @@ class Player(xbmc.Player):
 			if self.media_type != 'movie': raise Exception()
 			meta = control.jsonrpc('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": {"filter":{"or": [{"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}]}, "properties" : ["title", "originaltitle", "year", "genre", "studio", "country", "runtime", "rating", "votes", "mpaa", "director", "writer", "plot", "plotoutline", "tagline", "thumbnail", "file"]}, "id": 1}' % (self.year, str(int(self.year) + 1), str(int(self.year) - 1)))
 			meta = unicode(meta, 'utf-8', errors = 'ignore')
-			meta = json.loads(meta)['result']['movies']
+			meta = jsloads(meta)['result']['movies']
 
 			t = cleantitle.get(self.title)
 			meta = [i for i in meta if self.year == str(i['year']) and (t == cleantitle.get(i['title']) or t == cleantitle.get(i['originaltitle']))][0]
@@ -184,7 +179,7 @@ class Player(xbmc.Player):
 			if self.media_type != 'episode': raise Exception()
 			meta = control.jsonrpc('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": {"filter":{"or": [{"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}]}, "properties" : ["title", "year", "thumbnail", "file"]}, "id": 1}' % (self.year, str(int(self.year)+1), str(int(self.year)-1)))
 			meta = unicode(meta, 'utf-8', errors = 'ignore')
-			meta = json.loads(meta)['result']['tvshows']
+			meta = jsloads(meta)['result']['tvshows']
 
 			t = cleantitle.get(self.title)
 			meta = [i for i in meta if self.year == str(i['year']) and t == cleantitle.get(i['title'])][0]
@@ -193,7 +188,7 @@ class Player(xbmc.Player):
 
 			meta = control.jsonrpc('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params":{ "tvshowid": %d, "filter":{"and": [{"field": "season", "operator": "is", "value": "%s"}, {"field": "episode", "operator": "is", "value": "%s"}]}, "properties": ["title", "season", "episode", "showtitle", "firstaired", "runtime", "rating", "director", "writer", "plot", "thumbnail", "file"]}, "id": 1}' % (tvshowid, self.season, self.episode))
 			meta = unicode(meta, 'utf-8', errors = 'ignore')
-			meta = json.loads(meta)['result']['episodes'][0]
+			meta = jsloads(meta)['result']['episodes'][0]
 			if 'mediatype' not in meta:
 				meta.update({'mediatype': 'episode'})
 			if 'duration' not in meta:
@@ -458,7 +453,7 @@ class Player(xbmc.Player):
 		except:
 			from urllib.parse import parse_qsl
 		params = dict(parse_qsl(next_url.replace('?', '')))
-		next_info = json.loads(params.get('meta'))
+		next_info = jsloads(params.get('meta'))
 
 		next_episode = {}
 		next_episode["episodeid"] = next_info.get('episodeIDS', {}).get('trakt')
@@ -495,7 +490,9 @@ class Player(xbmc.Player):
 
 class Subtitles:
 	def get(self, name, imdb, season, episode):
-		import gzip, StringIO, codecs
+		import gzip, codecs
+		try: from cStringIO import StringIO
+		except ImportError: from io import BytesIO as StringIO
 		import xmlrpclib, re, base64
 		try:
 			langDict = {'Afrikaans': 'afr', 'Albanian': 'alb', 'Arabic': 'ara', 'Armenian': 'arm', 'Basque': 'baq', 'Bengali': 'ben', 'Bosnian': 'bos', 'Breton': 'bre', 'Bulgarian': 'bul', 'Burmese': 'bur', 'Catalan': 'cat', 'Chinese': 'chi', 'Croatian': 'hrv', 'Czech': 'cze', 'Danish': 'dan', 'Dutch': 'dut', 'English': 'eng', 'Esperanto': 'epo', 'Estonian': 'est', 'Finnish': 'fin', 'French': 'fre', 'Galician': 'glg', 'Georgian': 'geo', 'German': 'ger', 'Greek': 'ell', 'Hebrew': 'heb', 'Hindi': 'hin', 'Hungarian': 'hun', 'Icelandic': 'ice', 'Indonesian': 'ind', 'Italian': 'ita', 'Japanese': 'jpn', 'Kazakh': 'kaz', 'Khmer': 'khm', 'Korean': 'kor', 'Latvian': 'lav', 'Lithuanian': 'lit', 'Luxembourgish': 'ltz', 'Macedonian': 'mac', 'Malay': 'may', 'Malayalam': 'mal', 'Manipuri': 'mni', 'Mongolian': 'mon', 'Montenegrin': 'mne', 'Norwegian': 'nor', 'Occitan': 'oci', 'Persian': 'per', 'Polish': 'pol', 'Portuguese': 'por,pob', 'Portuguese(Brazil)': 'pob,por', 'Romanian': 'rum', 'Russian': 'rus', 'Serbian': 'scc', 'Sinhalese': 'sin', 'Slovak': 'slo', 'Slovenian': 'slv', 'Spanish': 'spa', 'Swahili': 'swa', 'Swedish': 'swe', 'Syriac': 'syr', 'Tagalog': 'tgl', 'Tamil': 'tam', 'Telugu': 'tel', 'Thai': 'tha', 'Turkish': 'tur', 'Ukrainian': 'ukr', 'Urdu': 'urd'}
@@ -520,7 +517,7 @@ class Subtitles:
 			token = server.LogIn('', '', 'en', 'XBMC_Subtitles_v1')
 			token = token['token']
 			sublanguageid = ','.join(langs)
-			imdbid = re.sub('[^0-9]', '', imdb)
+			imdbid = re.sub(r'[^0-9]', '', imdb)
 
 			if not (season is None or episode is None):
 				result = server.SearchSubtitles(token, [{'sublanguageid': sublanguageid, 'imdbid': imdbid, 'season': season, 'episode': episode}])['data']
@@ -529,7 +526,7 @@ class Subtitles:
 				result = server.SearchSubtitles(token, [{'sublanguageid': sublanguageid, 'imdbid': imdbid}])['data']
 				try: vidPath = xbmc.Player().getPlayingFile()
 				except: vidPath = ''
-				fmt = re.split('\.|\(|\)|\[|\]|\s|\-', vidPath)
+				fmt = re.split(r'\.|\(|\)|\[|\]|\s|\-', vidPath)
 				fmt = [i.lower() for i in fmt]
 				fmt = [i for i in fmt if i in quality]
 
@@ -546,7 +543,7 @@ class Subtitles:
 			content = [filter[0]['IDSubtitleFile'],]
 			content = server.DownloadSubtitles(token, content)
 			content = base64.b64decode(content['data'][0]['data'])
-			content = gzip.GzipFile(fileobj=StringIO.StringIO(content)).read()
+			content = gzip.GzipFile(fileobj=StringIO(content)).read()
 
 			subtitle = xbmc.translatePath('special://temp/')
 			subtitle = control.joinPath(subtitle, 'TemporarySubs.%s.srt' % lang)
@@ -618,7 +615,7 @@ class Bookmarks:
 		if control.setting('bookmarks') != 'true' or media_length == 0 or current_time == 0: return
 		timeInSeconds = str(current_time)
 		seekable = (int(current_time) > 180 and (current_time / media_length) <= .85)
-		idFile = hashlib.md5()
+		idFile = md5()
 		for i in name: idFile.update(str(i))
 		for i in year: idFile.update(str(i))
 		idFile = str(idFile.hexdigest())

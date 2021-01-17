@@ -3,10 +3,10 @@
 	Venom Add-on
 '''
 
-import datetime
-import json
+# import datetime
+from datetime import datetime, timedelta
+from json import loads as jsloads
 import re
-
 try:
 	from urlparse import urlparse
 except:
@@ -26,7 +26,8 @@ class movies:
 		self.list = []
 		self.meta = []
 		disable_fanarttv = control.setting('disable.fanarttv')
-		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
+		# self.date_time = (datetime.utcnow() - timedelta(hours=5))
+		self.date_time = datetime.utcnow()
 		self.lang = control.apiLanguage()['trakt']
 
 		self.imdb_user = control.setting('imdb.user').replace('ur', '')
@@ -45,8 +46,8 @@ class movies:
 
 	def imdb_list(self, url):
 		try:
-			for i in re.findall('date\[(\d+)\]', url):
-				url = url.replace('date[%s]' % i, (self.datetime - datetime.timedelta(days = int(i))).strftime('%Y-%m-%d'))
+			for i in re.findall(r'date\[(\d+)\]', url):
+				url = url.replace('date[%s]' % i, (self.date_time - timedelta(days=int(i))).strftime('%Y-%m-%d'))
 
 			def imdb_watchlist_id(url):
 				return client.parseDOM(client.request(url), 'meta', ret='content', attrs = {'property': 'pageId'})[0]
@@ -92,14 +93,14 @@ class movies:
 				originaltitle = title
 
 				year = client.parseDOM(item, 'span', attrs = {'class': 'lister-item-year.+?'})
-				year = re.findall('(\d{4})', year[0])[0]
+				year = re.findall(r'(\d{4})', year[0])[0]
 				year = year.encode('utf-8')
 
 				try: show = '–'.decode('utf-8') in str(year).decode('utf-8') or '-'.decode('utf-8') in str(year).decode('utf-8')
 				except: show = False
 				if show: raise Exception() # Some lists contain TV shows.
 
-				if int(year) > int((self.datetime).strftime('%Y')): raise Exception()
+				if int(year) > int((self.date_time).strftime('%Y')): raise Exception()
 
 				try: mpaa = client.parseDOM(item, 'span', attrs = {'class': 'certificate'})[0]
 				except: mpaa = '0'
@@ -109,7 +110,7 @@ class movies:
 				mpaa = mpaa.encode('utf-8')
 
 				imdb = client.parseDOM(item, 'a', ret='href')[0]
-				imdb = re.findall('(tt\d*)', imdb)[0]
+				imdb = re.findall(r'(tt\d*)', imdb)[0]
 				imdb = imdb.encode('utf-8')
 
 				# parseDOM cannot handle elements without a closing tag.
@@ -123,7 +124,7 @@ class movies:
 					poster = '0'
 
 				if '/nopicture/' in poster: poster = '0'
-				poster = re.sub('(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', poster)
+				poster = re.sub(r'(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', poster)
 				poster = client.replaceHTMLCodes(poster)
 				poster = poster.encode('utf-8')
 
@@ -134,7 +135,7 @@ class movies:
 				genre = client.replaceHTMLCodes(genre)
 				genre = genre.encode('utf-8')
 
-				try: duration = re.findall('(\d+?) min(?:s|)', item)[-1]
+				try: duration = re.findall(r'(\d+?) min(?:s|)', item)[-1]
 				except: duration = '0'
 				duration = duration.encode('utf-8')
 
@@ -159,13 +160,13 @@ class movies:
 				except:
 					try: votes = client.parseDOM(item, 'div', ret='title', attrs = {'class': '.*?rating-list'})[0]
 					except:
-						try: votes = re.findall('\((.+?) vote(?:s|)\)', votes)[0]
+						try: votes = re.findall(r'\((.+?) vote(?:s|)\)', votes)[0]
 						except: pass
 				if votes == '': votes = '0'
 				votes = client.replaceHTMLCodes(votes)
 				votes = votes.encode('utf-8')
 
-				try: director = re.findall('Director(?:s|):(.+?)(?:\||</div>)', item)[0]
+				try: director = re.findall(r'Director(?:s|):(.+?)(?:\||</div>)', item)[0]
 				except: director = '0'
 				director = client.parseDOM(director, 'a')
 				director = ' / '.join(director)
@@ -173,7 +174,7 @@ class movies:
 				director = client.replaceHTMLCodes(director)
 				director = director.encode('utf-8')
 
-				try: cast = re.findall('Stars(?:s|):(.+?)(?:\||</div>)', item)[0]
+				try: cast = re.findall(r'Stars(?:s|):(.+?)(?:\||</div>)', item)[0]
 				except: cast = '0'
 				cast = client.replaceHTMLCodes(cast)
 				cast = cast.encode('utf-8')
@@ -186,14 +187,14 @@ class movies:
 					try: plot = client.parseDOM(item, 'div', attrs = {'class': 'item_description'})[0]
 					except: pass
 				plot = plot.rsplit('<span>', 1)[0].strip()
-				plot = re.sub('<.+?>|</.+?>', '', plot)
+				plot = re.sub(r'<.+?>|</.+?>', '', plot)
 				if plot == '': plot = '0'
 				if plot == '0':
 					try:
 						plot = client.parseDOM(item, 'div', attrs = {'class': 'lister-item-content'})[0]
-						plot = re.sub('<p\s*class="">', '<p class="plot_">', plot)
+						plot = re.sub(r'<p\s*class="">', '<p class="plot_">', plot)
 						plot = client.parseDOM(plot, 'p', attrs = {'class': 'plot_'})[0]
-						plot = re.sub('<.+?>|</.+?>', '', plot)
+						plot = re.sub(r'<.+?>|</.+?>', '', plot)
 						if plot == '': plot = '0'
 					except: pass
 				plot = client.replaceHTMLCodes(plot)
@@ -242,14 +243,14 @@ class movies:
 				name = name.encode('utf-8')
 
 				url = client.parseDOM(item, 'a', ret='href')[0]
-				url = re.findall('(nm\d*)', url, re.I)[0]
+				url = re.findall(r'(nm\d*)', url, re.I)[0]
 				url = self.person_link % url
 				url = client.replaceHTMLCodes(url)
 				url = url.encode('utf-8')
 
 				image = client.parseDOM(item, 'img', ret='src')[0]
 				# if not ('._SX' in image or '._SY' in image): raise Exception()
-				image = re.sub('(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', image)
+				image = re.sub(r'(?:_SX|_SY|_UX|_UY|_CR|_AL)(?:\d+|_).+?\.', '_SX500.', image)
 				image = client.replaceHTMLCodes(image)
 				image = image.encode('utf-8')
 
@@ -284,7 +285,7 @@ class movies:
 				self.list.append({'name': name, 'url': url, 'context': url})
 			except:
 				pass
-		self.list = sorted(self.list, key=lambda k: re.sub('(^the |^a |^an )', '', k['name'].lower()))
+		self.list = sorted(self.list, key=lambda k: re.sub(r'(^the |^a |^an )', '', k['name'].lower()))
 		return self.list
 
 
@@ -300,12 +301,12 @@ class movies:
 			item = trakt.getMovieSummary(id=imdb)
 
 			imdb = item.get('ids', {}).get('imdb', '0')
-			imdb = 'tt' + re.sub('[^0-9]', '', str(imdb))
+			imdb = 'tt' + re.sub(r'[^0-9]', '', str(imdb))
 
 			tmdb = str(item.get('ids', {}).get('tmdb', 0))
 
 			premiered = item.get('released', '0')
-			try: premiered = re.compile('(\d{4}-\d{2}-\d{2})').findall(premiered)[0]
+			try: premiered = re.compile(r'(\d{4}-\d{2}-\d{2})').findall(premiered)[0]
 			except: premiered = '0'
 
 			people = trakt.getPeople(imdb, 'movies')
@@ -335,7 +336,7 @@ class movies:
 			try:
 				if self.tmdb_key == '': raise Exception()
 				art2 = client.request(self.tmdb_art_link % imdb, timeout='20', error=True)
-				art2 = json.loads(art2)
+				art2 = jsloads(art2)
 			except:
 				pass
 
@@ -363,7 +364,8 @@ class tvshows:
 		self.meta = []
 
 		self.lang = control.apiLanguage()['tvdb']
-		self.datetime = (datetime.datetime.utcnow() - datetime.timedelta(hours = 5))
+		# self.date_time = (datetime.utcnow() - timedelta(hours=5))
+		self.date_time = datetime.utcnow()
 
 		self.fanart_tv_user = control.setting('fanart.tv.user')
 		if not self.fanart_tv_user:

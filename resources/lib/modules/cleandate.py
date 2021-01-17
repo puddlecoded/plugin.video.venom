@@ -3,7 +3,7 @@
 	Venom Add-on
 '''
 
-import datetime
+from datetime import datetime, timedelta
 import time
 # Import _strptime to workaround python 2 bug with threads
 import _strptime
@@ -27,10 +27,10 @@ def iso_2_utc(iso_ts):
 		tz = None
 
 	if ts.find('.') > -1: ts = ts[:ts.find('.')]
-	try: d = datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')
-	except TypeError: d = datetime.datetime(*(time.strptime(ts, '%Y-%m-%dT%H:%M:%S')[0:6]))
+	try: d = datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')
+	except TypeError: d = datetime(*(time.strptime(ts, '%Y-%m-%dT%H:%M:%S')[0:6]))
 
-	dif = datetime.timedelta()
+	dif = timedelta()
 	if tz:
 		hours, minutes = tz.split(':')
 		hours = int(hours)
@@ -38,10 +38,10 @@ def iso_2_utc(iso_ts):
 		if sign == '-':
 			hours = -hours
 			minutes = -minutes
-		dif = datetime.timedelta(minutes=minutes, hours=hours)
+		dif = timedelta(minutes=minutes, hours=hours)
 
 	utc_dt = d - dif
-	epoch = datetime.datetime.utcfromtimestamp(0)
+	epoch = datetime.utcfromtimestamp(0)
 	delta = utc_dt - epoch
 
 	try: seconds = delta.total_seconds()  # works only on 2.7

@@ -4,19 +4,12 @@
 '''
 
 from datetime import datetime
-import glob
+from json import dumps as jsdumps, loads as jsloads
 import os.path
 import re
 import string
 from sys import argv
 import time
-import json
-
-try:
-	from urllib import urlencode
-except:
-	from urllib.parse import urlencode
-
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -32,46 +25,42 @@ AddonID = xbmcaddon.Addon().getAddonInfo('id')
 addonInfo = xbmcaddon.Addon().getAddonInfo
 addonName = addonInfo('name')
 addonVersion = addonInfo('version')
-
 getLangString = xbmcaddon.Addon().getLocalizedString
 # setting = xbmcaddon.Addon().getSetting
 # setSetting = xbmcaddon.Addon().setSetting
-item = xbmcgui.ListItem
-listControl = xbmcgui.ControlList
-labelControl = xbmcgui.ControlLabel
-homeWindow = xbmcgui.Window(10000)
 
-windowDialog = xbmcgui.WindowDialog()
+button = xbmcgui.ControlButton
 dialog = xbmcgui.Dialog()
+getCurrentDialogId = xbmcgui.getCurrentWindowDialogId()
+homeWindow = xbmcgui.Window(10000)
+image = xbmcgui.ControlImage
+item = xbmcgui.ListItem
+labelControl = xbmcgui.ControlLabel
+listControl = xbmcgui.ControlList
 progressDialog = xbmcgui.DialogProgress()
 progressDialogBG = xbmcgui.DialogProgressBG()
-getCurrentDialogId = xbmcgui.getCurrentWindowDialogId()
-button = xbmcgui.ControlButton
-image = xbmcgui.ControlImage
+windowDialog = xbmcgui.WindowDialog()
 
 addItem = xbmcplugin.addDirectoryItem
-directory = xbmcplugin.endOfDirectory
 content = xbmcplugin.setContent
+directory = xbmcplugin.endOfDirectory
 property = xbmcplugin.setProperty
 resolve = xbmcplugin.setResolvedUrl
 
 condVisibility = xbmc.getCondVisibility
 execute = xbmc.executebuiltin
 infoLabel = xbmc.getInfoLabel
-legalFilename = xbmc.makeLegalFilename if getKodiVersion() < 19 else xbmcvfs.makeLegalFilename
+jsonrpc = xbmc.executeJSONRPC
 keyboard = xbmc.Keyboard
-monitor = xbmc.Monitor()
-skin = xbmc.getSkinDir()
-
+legalFilename = xbmc.makeLegalFilename if getKodiVersion() < 19 else xbmcvfs.makeLegalFilename
+log = xbmc.log
+monitor_class = xbmc.Monitor
+monitor = monitor_class()
 player = xbmc.Player()
 player2 = xbmc.Player
 playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-
-jsonrpc = xbmc.executeJSONRPC
-skinPath = xbmc.translatePath('special://skin/')
-
-joinPath = os.path.join
-isfilePath = os.path.isfile
+skin = xbmc.getSkinDir()
+transPath = xbmc.translatePath
 
 deleteDir = xbmcvfs.rmdir
 deleteFile = xbmcvfs.delete
@@ -80,24 +69,24 @@ listDir = xbmcvfs.listdir
 makeFile = xbmcvfs.mkdir
 makeDirs = xbmcvfs.mkdirs
 openFile = xbmcvfs.File
-transPath = xbmc.translatePath
 
-SETTINGS_PATH = xbmc.translatePath(os.path.join(addonInfo('path'), 'resources', 'settings.xml'))
+joinPath = os.path.join
+isfilePath = os.path.isfile
 
-try:
-	dataPath = xbmc.translatePath(addonInfo('profile')).decode('utf-8')
-except:
-	dataPath = xbmc.translatePath(addonInfo('profile'))
+skinPath = transPath('special://skin/')
+SETTINGS_PATH = transPath(joinPath(addonInfo('path'), 'resources', 'settings.xml'))
+try: dataPath = transPath(addonInfo('profile')).decode('utf-8')
+except: dataPath = transPath(addonInfo('profile'))
 
-settingsFile = os.path.join(dataPath, 'settings.xml')
-viewsFile = os.path.join(dataPath, 'views.db')
-bookmarksFile = os.path.join(dataPath, 'bookmarks.db')
-providercacheFile = os.path.join(dataPath, 'providers.db')
-metacacheFile = os.path.join(dataPath, 'metadata.db')
-searchFile = os.path.join(dataPath, 'search.db')
-libcacheFile = os.path.join(dataPath, 'library.db')
-cacheFile = os.path.join(dataPath, 'cache.db')
-traktSyncFile = os.path.join(dataPath, 'traktSync.db')
+settingsFile = joinPath(dataPath, 'settings.xml')
+viewsFile = joinPath(dataPath, 'views.db')
+bookmarksFile = joinPath(dataPath, 'bookmarks.db')
+providercacheFile = joinPath(dataPath, 'providers.db')
+metacacheFile = joinPath(dataPath, 'metadata.db')
+searchFile = joinPath(dataPath, 'search.db')
+libcacheFile = joinPath(dataPath, 'library.db')
+cacheFile = joinPath(dataPath, 'cache.db')
+traktSyncFile = joinPath(dataPath, 'traktSync.db')
 trailer = 'plugin://plugin.video.youtube/play/?video_id=%s'
 
 
@@ -164,7 +153,7 @@ def syncMyAccounts(silent=False):
 
 
 def setting(id, fallback=None):
-	try: settings_dict = json.loads(homeWindow.getProperty('venom_settings'))
+	try: settings_dict = jsloads(homeWindow.getProperty('venom_settings'))
 	except: settings_dict = make_settings_dict()
 	if settings_dict is None: settings_dict = settings_fallback(id)
 	value = settings_dict.get(id, '')
@@ -184,21 +173,18 @@ def setSetting(id, value):
 
 def make_settings_dict():
 	try:
-		kodi_version = getKodiVersion()
-		profile_dir = xbmc.translatePath('special://profile/addon_data/plugin.video.venom/')
-		settings_xml = os.path.join(profile_dir, 'settings.xml')
-		root = ET.parse(settings_xml).getroot()
-		# root = ET.parse(settingsFile).getroot()
+		root = ET.parse(settingsFile).getroot()
 		settings_dict = {}
 		for item in root:
 			dict_item = {}
 			setting_id = item.get('id')
-			if kodi_version >= 18: setting_value = item.text
+			if getKodiVersion() >= 18: setting_value = item.text
 			else: setting_value = item.get('value')
 			if setting_value is None: setting_value = ''
 			dict_item = {setting_id: setting_value}
 			settings_dict.update(dict_item)
-		homeWindow.setProperty('venom_settings', json.dumps(settings_dict))
+		homeWindow.setProperty('venom_settings', jsdumps(settings_dict))
+		# xbmc.log('settings_dict = %s' % settings_dict, 2)
 		return settings_dict
 	except:
 		return None
@@ -275,20 +261,6 @@ def addonVersion(addon):
 	return xbmcaddon.Addon(addon).getAddonInfo('version')
 
 
-def get_plugin_url(queries):
-	try:
-		query = urlencode(queries)
-	except UnicodeEncodeError:
-		for k in queries:
-			if isinstance(queries[k], unicode):
-				queries[k] = queries[k].encode('utf-8')
-		query = urlencode(queries)
-	addon_id = argv[0]
-	if not addon_id:
-		addon_id = addonId()
-	return addon_id + '?' + query
-
-
 def addonId():
 	return addonInfo('id')
 
@@ -302,13 +274,13 @@ def addonPath(addon):
 	except: addonID = None
 	if addonID is None: return ''
 	else:
-		try: return xbmc.translatePath(addonID.getAddonInfo('path').decode('utf-8'))
-		except: return xbmc.translatePath(addonID.getAddonInfo('path'))
+		try: return transPath(addonID.getAddonInfo('path').decode('utf-8'))
+		except: return transPath(addonID.getAddonInfo('path'))
 
 
 def artPath():
 	theme = appearance()
-	return os.path.join(xbmcaddon.Addon('plugin.video.venom').getAddonInfo('path'), 'resources', 'artwork', theme)
+	return joinPath(xbmcaddon.Addon('plugin.video.venom').getAddonInfo('path'), 'resources', 'artwork', theme)
 
 
 def appearance():
@@ -320,7 +292,7 @@ def addonIcon():
 	theme = appearance()
 	art = artPath()
 	if not (art is None and theme in ['-', '']):
-		return os.path.join(art, 'icon.png')
+		return joinPath(art, 'icon.png')
 	return addonInfo('icon')
 
 
@@ -328,7 +300,7 @@ def addonThumb():
 	theme = appearance()
 	art = artPath()
 	if not (art is None and theme in ['-', '']):
-		return os.path.join(art, 'poster.png')
+		return joinPath(art, 'poster.png')
 	elif theme == '-':
 		return 'DefaultFolder.png'
 	return addonInfo('icon')
@@ -338,7 +310,7 @@ def addonPoster():
 	theme = appearance()
 	art = artPath()
 	if not (art is None and theme in ['-', '']):
-		return os.path.join(art, 'poster.png')
+		return joinPath(art, 'poster.png')
 	return 'DefaultVideo.png'
 
 
@@ -346,7 +318,7 @@ def addonBanner():
 	theme = appearance()
 	art = artPath()
 	if not (art is None and theme in ['-', '']):
-		return os.path.join(art, 'banner.png')
+		return joinPath(art, 'banner.png')
 	return 'DefaultVideo.png'
 
 
@@ -354,7 +326,7 @@ def addonFanart():
 	theme = appearance()
 	art = artPath()
 	if not (art is None and theme in ['-', '']):
-		return os.path.join(art, 'fanart.jpg')
+		return joinPath(art, 'fanart.jpg')
 	return addonInfo('fanart')
 
 
@@ -362,14 +334,14 @@ def addonNext():
 	theme = appearance()
 	art = artPath()
 	if not (art is None and theme in ['-', '']):
-		return os.path.join(art, 'next.png')
+		return joinPath(art, 'next.png')
 	return 'DefaultVideo.png'
 
 
 # def metaFile():
 	# # if condVisibility('System.HasAddon(script.venom.metadata)'):
-		# # return os.path.join(xbmcaddon.Addon('script.venom.metadata').getAddonInfo('path'), 'resources', 'data', 'meta.db')
-	# return os.path.join(dataPath, 'metadata.db')
+		# # return joinPath(xbmcaddon.Addon('script.venom.metadata').getAddonInfo('path'), 'resources', 'data', 'meta.db')
+	# return joinPath(dataPath, 'metadata.db')
 
 
 def metadataClean(metadata):
@@ -462,6 +434,26 @@ def closeOk():
 	return execute('Dialog.Close(okdialog, true)')
 
 
+
+# def log(self, msg, level="info"):
+		# msg = g.encode_py2(g.decode_py2(msg))
+		# msg = "{}: {}".format(self.ADDON_NAME.upper(), msg)
+		# if level == "error":
+			# xbmc.log(msg, level=xbmc.LOGERROR)
+		# elif level == "info":
+			# xbmc.log(msg, level=xbmc.LOGINFO)
+		# elif level == "notice":
+			# if self.KODI_VERSION >= 19:
+				# xbmc.log(msg, level=xbmc.LOGINFO)
+			# else:
+				# xbmc.log(msg, level=xbmc.LOGNOTICE)# pylint: disable=no-member
+		# elif level == "warning":
+			# xbmc.log(msg, level=xbmc.LOGWARNING)
+		# else:
+			# xbmc.log(msg)
+
+
+
 def cancelPlayback():
 	try:
 		playlist.clear()
@@ -549,18 +541,18 @@ def apiLanguage(ret_name=None):
 def cdnImport(uri, name):
 	import imp
 	from resources.lib.modules import client
-	path = os.path.join(dataPath, 'py' + name)
+	path = joinPath(dataPath, 'py' + name)
 	path = path.decode('utf-8')
-	deleteDir(os.path.join(path, ''), force=True)
+	deleteDir(joinPath(path, ''), force=True)
 	makeFile(dataPath)
 	makeFile(path)
 	r = client.request(uri)
-	p = os.path.join(path, name + '.py')
+	p = joinPath(path, name + '.py')
 	f = openFile(p, 'w');
 	f.write(r);
 	f.close()
 	m = imp.load_source(name, p)
-	deleteDir(os.path.join(path, ''), force=True)
+	deleteDir(joinPath(path, ''), force=True)
 	return m
 
 
@@ -605,15 +597,15 @@ def trigger_widget_refresh():
 	homeWindow.setProperty('widgetreload-episodes', timestr)
 	homeWindow.setProperty('widgetreload-movies', timestr)
 # should prob make this run only on "isVenom_widget"
-	execute('UpdateLibrary(video,/fake/path/to/force/refresh/on/home)') # make sure this is ok coupled with above
+	# execute('UpdateLibrary(video,/fake/path/to/force/refresh/on/home)') # make sure this is ok coupled with above
 
 
 def get_video_database_path():
-	database_path = os.path.abspath(os.path.join(dataPath, '..', '..', 'Database', ))
+	database_path = os.path.abspath(joinPath(dataPath, '..', '..', 'Database', ))
 	if getKodiVersion() == 17:
-		database_path = os.path.join(database_path, 'MyVideos107.db')
+		database_path = joinPath(database_path, 'MyVideos107.db')
 	elif getKodiVersion() == 18:
-		database_path = os.path.join(database_path, 'MyVideos116.db')
+		database_path = joinPath(database_path, 'MyVideos116.db')
 	return database_path
 
 
@@ -635,7 +627,7 @@ def datetime_workaround(string_date, format="%Y-%m-%d", date_only=True):
 
 
 def add_source(source_name, source_path, source_content, source_thumbnail, type='video'):
-	xml_file = xbmc.translatePath('special://profile/sources.xml')
+	xml_file = transPath('special://profile/sources.xml')
 	if not os.path.exists(xml_file):
 		with open(xml_file, 'w') as f:
 			f.write(
@@ -748,25 +740,23 @@ def _get_source_attr(xml_file, name, attr, type='video'):
 
 def _db_execute(db_name, command):
 	databaseFile = _get_database(db_name)
-	if not databaseFile:
-		return False
-	try:
-		from sqlite3 import dbapi2
-	except:
-		from pysqlite2 import dbapi2
+	if not databaseFile: return False
+	try: from sqlite3 import dbapi2
+	except ImportError: from pysqlite2 import dbapi2
 	dbcon = dbapi2.connect(databaseFile)
 	dbcur = dbcon.cursor()
 	dbcur.execute(command)
 	dbcon.commit()
-	dbcon.close()
+	dbcur.close ; dbcon.close()
 	return True
 
 
 def _get_database(db_name):
+	from glob import glob
 	path_db = 'special://profile/Database/%s' % db_name
-	filelist = glob.glob(xbmc.translatePath(path_db))
-	if filelist:
-		return filelist[-1]
+	# filelist = glob.glob(xbmc.translatePath(path_db))
+	filelist = glob(transPath(path_db))
+	if filelist: return filelist[-1]
 	return None
 
 
@@ -809,15 +799,19 @@ def clean_settings():
 			current_user_settings = []
 			addon = xbmcaddon.Addon(id=addon_id)
 			addon_name = addon.getAddonInfo('name')
-			addon_dir = xbmc.translatePath(addon.getAddonInfo('path'))
-			profile_dir = xbmc.translatePath(addon.getAddonInfo('profile'))
-			active_settings_xml = os.path.join(addon_dir, 'resources', 'settings.xml')
+			# addon_dir = xbmc.translatePath(addon.getAddonInfo('path'))
+			addon_dir = transPath(addon.getAddonInfo('path'))
+
+			# profile_dir = xbmc.translatePath(addon.getAddonInfo('profile'))
+			profile_dir = transPath(addon.getAddonInfo('profile'))
+
+			active_settings_xml = joinPath(addon_dir, 'resources', 'settings.xml')
 			root = ET.parse(active_settings_xml).getroot()
 			for item in root.findall('./category/setting'):
 				setting_id = item.get('id')
 				if setting_id:
 					active_settings.append(setting_id)
-			settings_xml = os.path.join(profile_dir, 'settings.xml')
+			settings_xml = joinPath(profile_dir, 'settings.xml')
 			root = ET.parse(settings_xml).getroot()
 			for item in root:
 				dict_item = {}
@@ -833,7 +827,7 @@ def clean_settings():
 					dict_item['default'] = setting_default
 				current_user_settings.append(dict_item)
 			new_content = _make_content(current_user_settings)
-			nfo_file = xbmcvfs.File(settings_xml, 'w')
+			nfo_file = openFile(settings_xml, 'w')
 			nfo_file.write(new_content)
 			nfo_file.close()
 			sleep(200)
@@ -878,8 +872,8 @@ def set_reuselanguageinvoker():
 
 def gen_file_hash(file):
 	try:
-		import hashlib
-		md5_hash = hashlib.md5()
+		from hashlib import md5
+		md5_hash = md5()
 		with open(file, 'rb') as afile:
 			buf = afile.read()
 			md5_hash.update(buf)

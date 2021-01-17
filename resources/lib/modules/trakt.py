@@ -4,14 +4,14 @@
 '''
 
 from datetime import datetime
-import json
+from json import dumps as jsdumps, loads as jsloads
 import imp
 import re
 import threading
 import time
-try:
+try: #Py2
 	from urlparse import urljoin
-except:
+except ImportError: #Py3
 	from urllib.parse import urljoin
 
 from resources.lib.modules import cache
@@ -54,7 +54,7 @@ def getTrakt(url, post=None, cache=True, check=False, timestamp=None, extended=F
 			refresh = control.setting('trakt.refresh')
 
 		headers = {'Content-Type': 'application/json', 'trakt-api-key': V2_API_KEY, 'trakt-api-version': '2'}
-		if post: post = json.dumps(post)
+		if post: post = jsdumps(post)
 		if direct or not valid:
 			result = client.request(url, post=post, headers=headers)
 			return result
@@ -74,7 +74,7 @@ def getTrakt(url, post=None, cache=True, check=False, timestamp=None, extended=F
 		oauth = urljoin(BASE_URL, '/oauth/token')
 		opost = {'client_id': V2_API_KEY, 'client_secret': CLIENT_SECRET, 'redirect_uri': REDIRECT_URI, 'grant_type': 'refresh_token', 'refresh_token': refresh}
 
-		result = client.request(oauth, post=json.dumps(opost), headers=headers, error=True)
+		result = client.request(oauth, post=jsdumps(opost), headers=headers, error=True)
 		try: code = str(result[1])
 		except: code = ''
 
@@ -85,7 +85,7 @@ def getTrakt(url, post=None, cache=True, check=False, timestamp=None, extended=F
 		elif result and code in ['401', '405']:
 			return _error(url=url, post=post, timestamp=timestamp, message=33677)
 
-		result = json.loads(result)
+		result = jsloads(result)
 		if 'error' in result and result['error'] == 'invalid_grant':
 			return _error(url=url, post=post, timestamp=timestamp, message='Please Re-Authorize Trakt')
 
@@ -144,7 +144,7 @@ def _cache(url, post=None, timestamp=None):
 		if not post: return None
 		data = database.Database(databaseName, connect=True)
 		_cacheCreate(data)
-		# post parameter already json.dumps from getTrakt.
+		# post parameter already jsdumps from getTrakt.
 		post = ('"%s"' % post.replace('"', '""').replace("'", "''")) if post else data._null()
 
 		if not timestamp:
@@ -194,7 +194,7 @@ def _cacheProcess():
 			if not result: raise Exception()
 			data._delete('DELETE FROM %s WHERE id IS %d;' % (databaseTable, result[0]), commit = True)
 			data._unlock()
-			result = getTrakt(url=result[2], post=json.loads(result[3]) if result[3] else None, cache=True, check=False, timestamp=result[1])
+			result = getTrakt(url=result[2], post=jsloads(result[3]) if result[3] else None, cache=True, check=False, timestamp=result[1])
 	except:
 		log_utils.error()
 		data._unlock()
@@ -514,7 +514,7 @@ def listAdd(successNotification=True):
 	if not new: return
 	result = getTrakt('/users/me/lists', post = {"name" : new, "privacy" : "private"})
 	try:
-		slug = json.loads(result)['ids']['slug']
+		slug = jsloads(result)['ids']['slug']
 		if successNotification:
 			control.notification(title=32070, message=33661)
 		return slug
@@ -534,8 +534,8 @@ def list(id):
 def slug(name):
 	name = name.strip()
 	name = name.lower()
-	name = re.sub('[^a-z0-9_]', '-', name) # check apostrophe
-	name = re.sub('--+', '-', name)
+	name = re.sub(r'[^a-z0-9_]', '-', name) # check apostrophe
+	name = re.sub(r'--+', '-', name)
 	return name
 
 

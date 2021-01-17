@@ -4,17 +4,16 @@
 '''
 
 from datetime import datetime, timedelta
-import json
+from json import dumps as jsdumps, loads as jsloads
 import re
 # import _strptime to workaround python 2 bug with threads
 import _strptime
 import sys
 import time
-
-try:
+try: #Py2
 	from urllib import quote_plus, unquote
 	from urlparse import parse_qsl
-except:
+except ImportError: #Py3
 	from urllib.parse import quote_plus, parse_qsl, unquote
 
 from resources.lib.modules import cleantitle
@@ -30,10 +29,8 @@ from resources.lib.modules import workers
 from resources.lib.debrid import alldebrid
 from resources.lib.debrid import premiumize
 from resources.lib.debrid import realdebrid
-try:
-	from sqlite3 import dbapi2 as database
-except:
-	from pysqlite2 import dbapi2 as database
+try: from sqlite3 import dbapi2 as database
+except ImportError: from pysqlite2 import dbapi2 as database
 
 from fenomscrapers import sources as fs_sources
 
@@ -56,6 +53,7 @@ class Sources:
 		self.dev_disable_season_filter = control.setting('dev.disable.season.filter') == 'true'
 		self.dev_disable_show_packs = control.setting('dev.disable.show.packs') == 'true'
 		self.dev_disable_show_filter = control.setting('dev.disable.show.filter') == 'true'
+		self.extensions = source_utils.supported_video_extensions()
 
 
 	def timeIt(func):
@@ -134,21 +132,19 @@ class Sources:
 			if len(items) > 0:
 				if select == '1' and 'plugin' in control.infoLabel('Container.PluginName'):
 					control.homeWindow.clearProperty(self.itemProperty)
-					control.homeWindow.setProperty(self.itemProperty, json.dumps(items))
+					control.homeWindow.setProperty(self.itemProperty, jsdumps(items))
 					control.sleep(200)
 					control.hide()
 					return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], quote_plus(title)))
 					# self.addItem(title)
-				elif select == '0' or select == '1':
-					url = self.sourcesDialog(items)
-				else:
-					url = self.sourcesAutoPlay(items)
+				elif select == '0' or select == '1': url = self.sourcesDialog(items)
+				else: url = self.sourcesAutoPlay(items)
 
 			if url == 'close://' or url is None:
 				self.url = url
 				return self.errorForSources()
 
-			try: meta = json.loads(unquote(meta.replace('%22', '\\"')))
+			try: meta = jsloads(unquote(meta.replace('%22', '\\"')))
 			except: pass
 			from resources.lib.modules import player
 			control.sleep(200)
@@ -170,14 +166,14 @@ class Sources:
 
 		control.playlist.clear() # ?
 		items = control.homeWindow.getProperty(self.itemProperty)
-		items = json.loads(items)
+		items = jsloads(items)
 
 		if not items:
 			control.sleep(200) # added 5/14
 			control.hide()
 			sys.exit()
 
-		meta = json.loads(unquote(control.homeWindow.getProperty(self.metaProperty).replace('%22', '\\"')))
+		meta = jsloads(unquote(control.homeWindow.getProperty(self.metaProperty).replace('%22', '\\"')))
 		meta = sourcesDirMeta(meta)
 
 		sysaddon = sys.argv[0]
@@ -204,7 +200,7 @@ class Sources:
 		for i in range(len(items)):
 			try:
 				label = str(items[i]['label'])
-				syssource = quote_plus(json.dumps([items[i]]))
+				syssource = quote_plus(jsdumps([items[i]]))
 				sysurl = '%s?action=playItem&title=%s&source=%s' % (sysaddon, systitle, syssource)
 
 				cm = []
@@ -254,7 +250,7 @@ class Sources:
 
 	def playItem(self, title, source):
 		try:
-			meta = json.loads(unquote(control.homeWindow.getProperty(self.metaProperty).replace('%22', '\\"')))
+			meta = jsloads(unquote(control.homeWindow.getProperty(self.metaProperty).replace('%22', '\\"')))
 			year = meta['year'] if 'year' in meta else None
 			if 'tvshowtitle' in meta:
 				year = meta['tvshowyear'] if 'tvshowyear' in meta else year #year was changed to year of premiered in episodes module so can't use that, need original shows year.
@@ -271,7 +267,7 @@ class Sources:
 					if u in total: raise Exception()
 					total.append(u)
 					u = dict(parse_qsl(u.replace('?', '')))
-					u = json.loads(u['source'])[0]
+					u = jsloads(u['source'])[0]
 					next.append(u)
 				except: break
 			for i in range(-1000, 0)[::-1]:
@@ -280,11 +276,11 @@ class Sources:
 					if u in total: raise Exception()
 					total.append(u)
 					u = dict(parse_qsl(u.replace('?', '')))
-					u = json.loads(u['source'])[0]
+					u = jsloads(u['source'])[0]
 					prev.append(u)
 				except: break
 
-			items = json.loads(source)
+			items = jsloads(source)
 			items = [i for i in items + next + prev][:40]
 
 			header = control.homeWindow.getProperty(self.labelProperty) + ': Resolving...'
@@ -294,14 +290,12 @@ class Sources:
 			block = None
 			for i in range(len(items)):
 				try:
-					label = re.sub(' {2,}', ' ', str(items[i]['label']))
-					label = re.sub('\n', '', label)
-
+					label = re.sub(r' {2,}', ' ', str(items[i]['label']))
+					label = re.sub(r'\n', '', label)
 					try:
 						if progressDialog.iscanceled(): break
 						progressDialog.update(int((100 / float(len(items))) * i), label)
-					except:
-						progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label)
+					except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label)
 
 					if items[i]['source'] == block: raise Exception()
 					w = workers.Thread(self.sourcesResolve, items[i])
@@ -309,7 +303,6 @@ class Sources:
 
 					if 'torrent' in items[i].get('source'): offset = float('inf')
 					else: offset = 0
-
 					m = ''
 					for x in range(3600):
 						try:
@@ -337,9 +330,12 @@ class Sources:
 
 					if w.is_alive(): block = items[i]['source']
 					if not self.url: raise Exception()
+					if not any(x in self.url.lower() for x in self.extensions):
+						log_utils.log('Playback not supported for: %s' % self.url, __name__, log_utils.LOGDEBUG)
+						raise Exception()
+
 					try: progressDialog.close()
 					except: pass
-
 					control.sleep(200)
 					control.execute('Dialog.Close(virtualkeyboard)')
 					control.execute('Dialog.Close(yesnoDialog)')
@@ -535,14 +531,12 @@ class Sources:
 					return self.scraper_sources.extend(sources)
 		except:
 			log_utils.error()
-
 		try:
 			url = None
 			url = dbcur.execute('''SELECT * FROM rel_url WHERE (source=? AND imdb_id=? AND season='' AND episode='')''', (source, imdb)).fetchone()
 			if url: url = eval(url[4].encode('utf-8'))
 		except:
 			log_utils.error()
-
 		try:
 			if not url: url = call.movie(imdb, title, aliases, year)
 			if url:
@@ -550,12 +544,11 @@ class Sources:
 				dbcur.connection.commit()
 		except:
 			log_utils.error()
-
 		try:
 			sources = []
 			sources = call.sources(url, self.hostprDict)
 			if sources:
-				sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
+				sources = [jsloads(t) for t in set(jsdumps(d, sort_keys=True) for d in sources)]
 				self.scraper_sources.extend(sources)
 				dbcur.execute('''INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)''', (source, imdb, '', '', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 				dbcur.connection.commit()
@@ -571,7 +564,6 @@ class Sources:
 			dbcon = database.connect(self.sourceFile, timeout=60)
 			dbcur = dbcon.cursor()
 		except: pass
-
 # consider adding tvdb_id table column for better matching of cases where imdb_id not available. Wheeler Dealer BS shows..lol
 		''' Fix to stop items passed with a 0 IMDB id pulling old unrelated sources from the database. '''
 		if imdb == '0':
@@ -582,9 +574,7 @@ class Sources:
 				dbcur.connection.commit()
 			except:
 				log_utils.error()
-
-		try:
-			# singleEpisodes db check
+		try: # singleEpisodes db check
 			db_singleEpisodes_valid = False
 			if self.dev_mode and self.dev_disable_single: raise Exception()
 			sources = []
@@ -597,9 +587,7 @@ class Sources:
 					self.scraper_sources.extend(sources)
 		except:
 			log_utils.error()
-
-		try:
-			# seasonPacks db check
+		try: # seasonPacks db check
 			db_seasonPacks_valid = False
 			if self.is_airing: raise Exception()
 			if self.dev_mode and self.dev_disable_season_packs: raise Exception()
@@ -613,9 +601,7 @@ class Sources:
 					self.scraper_sources.extend(sources)
 		except:
 			log_utils.error()
-
-		try:
-			# showPacks db check
+		try: # showPacks db check
 			db_showPacks_valid = False
 			if self.dev_mode and self.dev_disable_show_packs: raise Exception()
 			sources = []
@@ -631,14 +617,12 @@ class Sources:
 						return self.scraper_sources
 		except:
 			log_utils.error()
-
 		try:
 			url = None
 			url = dbcur.execute('''SELECT * FROM rel_url WHERE (source=? AND imdb_id=? AND season='' AND episode='')''', (source, imdb)).fetchone()
 			if url: url = eval(url[4].encode('utf-8'))
 		except:
 			log_utils.error()
-
 		try:
 			if not url: url = call.tvshow(imdb, tvdb, tvshowtitle, aliases, year)
 			if url:
@@ -646,14 +630,12 @@ class Sources:
 				dbcur.connection.commit()
 		except:
 			log_utils.error()
-
 		try:
 			ep_url = None
 			ep_url = dbcur.execute('''SELECT * FROM rel_url WHERE (source=? AND imdb_id=? AND season=? AND episode=?)''', (source, imdb, season, episode)).fetchone()
 			if ep_url: ep_url = eval(ep_url[4].encode('utf-8'))
 		except:
 			log_utils.error()
-
 		try:
 			if url:
 				if not ep_url: ep_url = call.episode(url, imdb, tvdb, title, premiered, season, episode)
@@ -662,23 +644,19 @@ class Sources:
 					dbcur.connection.commit()
 		except:
 			log_utils.error()
-
-		try:
-			# singleEpisodes scraper call
+		try: # singleEpisodes scraper call
 			if self.dev_mode and self.dev_disable_single: raise Exception()
 			if db_singleEpisodes_valid: raise Exception()
 			sources = []
 			sources = call.sources(ep_url, self.hostprDict)
 			if sources:
-				sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
+				sources = [jsloads(t) for t in set(jsdumps(d, sort_keys=True) for d in sources)]
 				self.scraper_sources.extend(sources)
 				dbcur.execute('''INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)''', (source, imdb, season, episode, repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 				dbcur.connection.commit()
 		except:
 			log_utils.error()
-
-		try:
-			# seasonPacks scraper call
+		try: # seasonPacks scraper call
 			if self.dev_mode and self.dev_disable_season_packs: raise Exception()
 			if self.is_airing: raise Exception()
 			if self.packDict and source in self.packDict:
@@ -686,22 +664,20 @@ class Sources:
 				sources = []
 				sources = call.sources_packs(ep_url, self.hostprDict, bypass_filter=self.dev_disable_season_filter)
 				if sources:
-					sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
+					sources = [jsloads(t) for t in set(jsdumps(d, sort_keys=True) for d in sources)]
 					self.scraper_sources.extend(sources)
 					dbcur.execute('''INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)''', (source, imdb, season,'', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
 					dbcur.connection.commit()
 		except:
 			log_utils.error()
-
-		try:
-			# showPacks scraper call
+		try: # showPacks scraper call
 			if self.dev_mode and self.dev_disable_show_packs: raise Exception()
 			if self.packDict and source in self.packDict:
 				if db_showPacks_valid: raise Exception()
 				sources = []
 				sources = call.sources_packs(ep_url, self.hostprDict, search_series=True, total_seasons=self.total_seasons, bypass_filter=self.dev_disable_show_filter)
 				if sources:
-					sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
+					sources = [jsloads(t) for t in set(jsdumps(d, sort_keys=True) for d in sources)]
 					sources = [i for i in sources if i.get('last_season') >= int(season)] # filter out range items that do not apply to current season
 					self.scraper_sources.extend(sources)
 					dbcur.execute('''INSERT OR REPLACE INTO rel_src Values (?, ?, ?, ?, ?, ?)''', (source, imdb, '', '', repr(sources), datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")))
@@ -902,6 +878,7 @@ class Sources:
 	# @timeIt
 	def filter_dupes(self):
 		filter = []
+		log_dupes = control.setting('remove.duplicates.logging') == 'false'
 		for i in self.sources:
 			a = i['url'].lower()
 			for sublist in filter:
@@ -910,12 +887,12 @@ class Sources:
 					if 'magnet:' in a:
 						if i['hash'].lower() in b:
 							filter.remove(sublist)
-							if control.setting('remove.duplicates.logging') != 'true':
+							if log_dupes:
 								log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), log_utils.LOGDEBUG)
 							break
 					elif a == b:
 						filter.remove(sublist)
-						if control.setting('remove.duplicates.logging') != 'true':
+						if log_dupes:
 							log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
 						break
 				except:
@@ -923,8 +900,7 @@ class Sources:
 			filter.append(i)
 		header = control.homeWindow.getProperty(self.labelProperty)
 		control.notification(title=header, message='Removed %s duplicate sources from list' % (len(self.sources) - len(filter)))
-		log_utils.log('Removed %s duplicate sources for (%s) from list' % (len(self.sources) - len(filter),
-			control.homeWindow.getProperty(self.labelProperty)), log_utils.LOGDEBUG)
+		log_utils.log('Removed %s duplicate sources for (%s) from list' % (len(self.sources) - len(filter), control.homeWindow.getProperty(self.labelProperty)), log_utils.LOGDEBUG)
 		return filter
 
 
@@ -937,7 +913,7 @@ class Sources:
 				try:
 					meta = control.homeWindow.getProperty(self.metaProperty)
 					if meta:
-						meta = json.loads(unquote(meta.replace('%22', '\\"')))
+						meta = jsloads(unquote(meta.replace('%22', '\\"')))
 						season = meta.get('season')
 						episode = meta.get('episode')
 						title = meta.get('title')
@@ -1001,17 +977,15 @@ class Sources:
 					if items[i]['source'] == block: raise Exception()
 					w = workers.Thread(self.sourcesResolve, items[i])
 					w.start()
-					label = re.sub(' {2,}', ' ', str(items[i]['label']))
-					label = re.sub('\n', '', label)
+					label = re.sub(r' {2,}', ' ', str(items[i]['label']))
+					label = re.sub(r'\n', '', label)
 					try:
 						if progressDialog.iscanceled(): break
 						progressDialog.update(int((100 / float(len(items))) * i), label)
-					except:
-						progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label)
+					except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label)
 
 					if 'torrent' in items[i].get('source'): offset = float('inf')
 					else: offset = 0
-
 					m = ''
 					for x in range(3600):
 						try:
@@ -1048,11 +1022,12 @@ class Sources:
 
 					if w.is_alive(): block = items[i]['source']
 					if not self.url: raise Exception()
-					self.selectedSource = items[i]['label']
+					if not any(x in self.url.lower() for x in self.extensions):
+						log_utils.log('Playback not supported for: %s' % self.url, __name__, log_utils.LOGDEBUG)
+						raise Exception()
 
 					try: progressDialog.close()
 					except: pass
-
 					control.execute('Dialog.Close(virtualkeyboard)')
 					control.execute('Dialog.Close(yesnoDialog)')
 					return self.url
@@ -1085,13 +1060,12 @@ class Sources:
 		except: pass
 
 		for i in range(len(items)):
-			label = re.sub(' {2,}', ' ', str(items[i]['label']))
-			label = re.sub('\n', '', label)
+			label = re.sub(r' {2,}', ' ', str(items[i]['label']))
+			label = re.sub(r'\n', '', label)
 			try:
 				if progressDialog.iscanceled(): break
 				progressDialog.update(int((100 / float(len(items))) * i), label)
-			except:
-				progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label)
+			except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label)
 			try:
 				if control.monitor.abortRequested(): return sys.exit()
 				url = self.sourcesResolve(items[i])
@@ -1136,7 +1110,7 @@ class Sources:
 				self.url = debrid_function().unrestrict_link(chosen_result['link'])
 			from resources.lib.modules import player
 			from resources.lib.modules.source_utils import seas_ep_filter
-			meta = json.loads(unquote(control.homeWindow.getProperty(self.metaProperty).replace('%22', '\\"')))
+			meta = jsloads(unquote(control.homeWindow.getProperty(self.metaProperty).replace('%22', '\\"')))
 			title = meta['tvshowtitle']
 			year = meta['year'] if 'year' in meta else None
 
@@ -1175,7 +1149,7 @@ class Sources:
 			t = trakt.getMovieAliases(imdb) if content == 'movie' else trakt.getTVShowAliases(imdb)
 			if not t: return []
 			t = [i for i in t if i.get('country', '').lower() in [lang, '', 'us']]
-			return json.dumps(t)
+			return jsdumps(t)
 		except:
 			log_utils.error()
 			return []
@@ -1223,7 +1197,7 @@ class Sources:
 		try:
 			meta = control.homeWindow.getProperty(self.metaProperty)
 			if meta:
-				meta = json.loads(unquote(meta.replace('%22', '\\"')))
+				meta = jsloads(unquote(meta.replace('%22', '\\"')))
 				seasoncount = meta.get('seasoncount', None)
 				counts = meta.get('counts', None)
 		except:
@@ -1364,13 +1338,15 @@ class Sources:
 
 
 	def clr_item_providers(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered):
-		providerscache.remove(self.getSources, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered) # function cache removal of item
+		providerscache.remove(self.getSources, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered) # function cache removal of selected item ONLY
 		try:
 			dbcon = database.connect(self.sourceFile)
 			dbcur = dbcon.cursor()
-			dbcur.execute('''SELECT count(name) FROM sqlite_master WHERE type='table' AND name='rel_src';''')
-			if dbcur.fetchone()[0] == 1: # only flush the "rel_src" list of cached links
-				for table in ["rel_src"]: dbcur.execute('''DELETE FROM {} WHERE imdb_id=?'''.format(table), (imdb, ))
+			dbcur.execute('''SELECT count(name) FROM sqlite_master WHERE type='table' AND name='rel_src';''') # table exists so both all will
+			if dbcur.fetchone()[0] == 1:
+				dbcur.execute('''DELETE FROM rel_src WHERE imdb_id=?''', (imdb,)) # DEL the "rel_src" list of cached links
+				if not tvshowtitle:
+					dbcur.execute('''DELETE FROM rel_url WHERE imdb_id=?''', (imdb,)) #only DEL movies "rel_url" so imdb year check may update for setting change
 				dbcur.connection.commit()
 		except:
 			log_utils.error()
@@ -1383,7 +1359,7 @@ class Sources:
 		try:
 			if not imdb or imdb == '0': return year, title
 			result = client.request('https://v2.sg.media-imdb.com/suggestion/t/{}.json'.format(imdb))
-			result = json.loads(result)['d'][0]
+			result = jsloads(result)['d'][0]
 			year_ck = str(result['y'])
 			title_ck = result['l'].encode('utf-8')
 			if not year_ck or not title_ck: return year, title
@@ -1399,7 +1375,7 @@ class Sources:
 		total_seasons = None
 		is_airing = None
 		try:
-			meta = json.loads(unquote(meta.replace('%22', '\\"')))
+			meta = jsloads(unquote(meta.replace('%22', '\\"')))
 			total_seasons = meta.get('total_seasons', None)
 			is_airing = meta.get('is_airing', None)
 		except: pass

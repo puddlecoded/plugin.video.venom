@@ -3,10 +3,11 @@
 	Venom Add-on
 '''
 
-import json
-try:
+# import json
+from json import loads as jsloads
+try: #Py2
 	from urllib import urlencode
-except:
+except: #Py3
 	from urllib.parse import urlencode
 
 from resources.lib.modules import cache
@@ -32,7 +33,7 @@ class tvMaze:
 			else: query = ''
 			request = self.api_url % (endpoint, query)
 			response = cache.get(client.request, 24, request)
-			return json.loads(response)
+			return jsloads(response)
 		except: pass
 		return {}
 
@@ -40,8 +41,7 @@ class tvMaze:
 	def showLookup(self, type, id):
 		try:
 			result = self.request('lookup/shows', {type: id})
-			if ('id' in result):
-				self.show_id = result['id']
+			if ('id' in result): self.show_id = result['id']
 			return result
 		except: pass
 		return {}
@@ -49,11 +49,9 @@ class tvMaze:
 
 	def shows(self, show_id=None, embed=None):
 		try:
-			if (not self.showID(show_id)):
-				raise Exception()
+			if (not self.showID(show_id)): raise Exception()
 			result = self.request('shows/%d' % self.show_id)
-			if ('id' in result):
-				self.show_id = result['id']
+			if ('id' in result): self.show_id = result['id']
 			return result
 		except: pass
 		return {}
@@ -61,11 +59,9 @@ class tvMaze:
 
 	def showSeasons(self, show_id=None):
 		try:
-			if (not self.showID(show_id)):
-				raise Exception()
+			if (not self.showID(show_id)): raise Exception()
 			result = self.request('shows/%d/seasons' % int( self.show_id ))
-			if (len(result) > 0 and 'id' in result[0]):
-				return result
+			if (len(result) > 0 and 'id' in result[0]): return result
 		except: pass
 		return []
 
@@ -76,11 +72,9 @@ class tvMaze:
 
 	def showEpisodeList(self, show_id=None, specials=False):
 		try:
-			if (not self.showID(show_id)):
-				raise Exception()
+			if (not self.showID(show_id)): raise Exception()
 			result = self.request('shows/%d/episodes' % int( self.show_id ), 'specials=1' if specials else '')
-			if (len(result) > 0 and 'id' in result[0]):
-				return result
+			if (len(result) > 0 and 'id' in result[0]): return result
 		except: pass
 		return []
 

@@ -3,14 +3,13 @@
 	Venom Add-on
 '''
 
-import json
+import json # check using requests built in .json() to rid import
 import re
 import requests
 import sys
-
-try:
+try: #Py2
 	from urllib import quote_plus, unquote
-except:
+except ImportError: #Py3
 	from urllib.parse import quote_plus, unquote
 
 from resources.lib.modules import cache
@@ -450,7 +449,7 @@ class RealDebrid:
 								correct_files.append(value[1])
 								break
 						if len(correct_files) == 0: continue
-						episode_title = re.sub('[^A-Za-z0-9-]+', '.', ep_title.replace("\'", '')).lower()
+						episode_title = re.sub(r'[^A-Za-z0-9-]+', '.', ep_title.replace("\'", '')).lower()
 						for i in correct_files:
 							compare_link = seas_ep_filter(season, episode, i['path'], split=True)
 							compare_link = re.sub(episode_title, '', compare_link)

@@ -7,17 +7,15 @@ import re
 from collections import namedtuple
 
 DomMatch = namedtuple('DOMMatch', ['attrs', 'content'])
-re_type = type(re.compile(''))
+re_type = type(re.compile(r''))
 
 
 def __get_dom_content(html, name, match):
-	if match.endswith('/>'):
-		return ''
+	if match.endswith('/>'): return ''
 
 	# override tag name with tag from match if possible
-	tag = re.match('<([^\s/>]+)', match)
-	if tag:
-		name = tag.group(1)
+	tag = re.match(r'<([^\s/>]+)', match)
+	if tag: name = tag.group(1)
 
 	start_str = '<%s' % name
 	end_str = "</%s" % name
@@ -29,8 +27,7 @@ def __get_dom_content(html, name, match):
 
 	while pos < end and pos != -1:  # Ignore too early </endstr> return
 		tend = html.find(end_str, end + len(end_str))
-		if tend != -1:
-			end = tend
+		if tend != -1: end = tend
 		pos = html.find(start_str, pos + 1)
 
 	if start == -1 and end == -1:
@@ -48,7 +45,7 @@ def __get_dom_content(html, name, match):
 
 def __get_dom_elements(item, name, attrs):
 	if not attrs:
-		pattern = '(<%s(?:\s[^>]*>|/?>))' % name
+		pattern = r'(<%s(?:\s[^>]*>|/?>))' % name
 		this_list = re.findall(pattern, item, re.M | re.S | re.I)
 	else:
 		last_list = None
@@ -56,7 +53,7 @@ def __get_dom_elements(item, name, attrs):
 		for key, value in attrs.iteritems():
 			value_is_regex = isinstance(value, re_type)
 			value_is_str = isinstance(value, basestring)
-			pattern = '''(<{tag}[^>]*\s{key}=(?P<delim>['"])(.*?)(?P=delim)[^>]*>)'''.format(tag=name, key=key)
+			pattern = r'''(<{tag}[^>]*\s{key}=(?P<delim>['"])(.*?)(?P=delim)[^>]*>)'''.format(tag=name, key=key)
 			re_list = re.findall(pattern, item, re.M | re.S | re.I)
 
 			if value_is_regex:
@@ -68,7 +65,7 @@ def __get_dom_elements(item, name, attrs):
 			if not this_list:
 				has_space = (value_is_regex and ' ' in value.pattern) or (value_is_str and ' ' in value)
 				if not has_space:
-					pattern = '''(<{tag}[^>]*\s{key}=((?:[^\s>]|/>)*)[^>]*>)'''.format(tag=name, key=key)
+					pattern = r'''(<{tag}[^>]*\s{key}=((?:[^\s>]|/>)*)[^>]*>)'''.format(tag=name, key=key)
 					re_list = re.findall(pattern, item, re.M | re.S | re.I)
 					if value_is_regex:
 						this_list = [r[0] for r in re_list if re.match(value, r[1])]
@@ -85,7 +82,7 @@ def __get_dom_elements(item, name, attrs):
 
 def __get_attribs(element):
 	attribs = {}
-	for match in re.finditer('''\s+(?P<key>[^=]+)=\s*(?:(?P<delim>["'])(?P<value1>.*?)(?P=delim)|(?P<value2>[^"'][^>\s]*))''', element):
+	for match in re.finditer(r'''\s+(?P<key>[^=]+)=\s*(?:(?P<delim>["'])(?P<value1>.*?)(?P=delim)|(?P<value2>[^"'][^>\s]*))''', element):
 		match = match.groupdict()
 		value1 = match.get('value1')
 		value2 = match.get('value2')
@@ -96,42 +93,28 @@ def __get_attribs(element):
 
 
 def parse_dom(html, name='', attrs=None, req=False, exclude_comments=False):
-	if attrs is None:
-		attrs = {}
+	if attrs is None: attrs = {}
 	name = name.strip()
-
 	if isinstance(html, unicode) or isinstance(html, DomMatch):
 		html = [html]
 	elif isinstance(html, str):
-		try:
-			html = [html.decode("utf-8")]  # Replace with chardet thingy
+		try: html = [html.decode("utf-8")]  # Replace with chardet thingy
 		except:
-			try:
-				html = [html.decode("utf-8", "replace")]
-			except:
-				html = [html]
+			try: html = [html.decode("utf-8", "replace")]
+			except: html = [html]
 
-	elif not isinstance(html, list):
-		return ''
-
-	if not name:
-		return ''
-
-	if not isinstance(attrs, dict):
-		return ''
+	elif not isinstance(html, list): return ''
+	if not name: return ''
+	if not isinstance(attrs, dict): return ''
 
 	if req:
-		if not isinstance(req, list):
-			req = [req]
+		if not isinstance(req, list): req = [req]
 		req = set([key.lower() for key in req])
 
 	all_results = []
 	for item in html:
-		if isinstance(item, DomMatch):
-			item = item.content
-
-		if exclude_comments:
-			item = re.sub(re.compile('<!--.*?-->', re.DOTALL), '', item)
+		if isinstance(item, DomMatch): item = item.content
+		if exclude_comments: item = re.sub(re.compile(r'<!--.*?-->', re.S), '', item)
 
 		results = []
 		for element in __get_dom_elements(item, name, attrs):

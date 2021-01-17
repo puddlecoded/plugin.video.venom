@@ -3,14 +3,13 @@
 	Venom Add-on
 '''
 
-import json
+from json import dumps as jsdumps, loads as jsloads
 import re
 import requests
 import sys
-
-try:
+try: #Py2
 	from urllib import quote_plus
-except:
+except ImportError: #Py3
 	from urllib.parse import quote_plus
 
 from resources.lib.modules import cache
@@ -269,7 +268,7 @@ class AllDebrid:
 				else:
 					label = '%02d | [B]%s[/B] | [B]%s[/B] | [I]%s [/I]' % (count, status_str, folder_str, folder_name)
 				if status_code == 4:
-					url = '%s?action=ad_BrowseUserCloud&source=%s' % (sysaddon, quote_plus(json.dumps(item)))
+					url = '%s?action=ad_BrowseUserCloud&source=%s' % (sysaddon, quote_plus(jsdumps(item)))
 					isFolder = True
 				else:
 					url = ''
@@ -306,7 +305,7 @@ class AllDebrid:
 				id = item['id']
 				status_str = '[COLOR %s]%s[/COLOR]' % (control.getColor(control.setting('highlight.color')), item['status'].capitalize())
 				label = '%02d | [B]%s[/B] | [B]%s[/B] | [I]%s [/I]' % (count, status_str, folder_str, folder_name)
-				url = '%s?action=ad_BrowseUserCloud&source=%s' % (sysaddon, quote_plus(json.dumps(item)))
+				url = '%s?action=ad_BrowseUserCloud&source=%s' % (sysaddon, quote_plus(jsdumps(item)))
 
 				cm.append((deleteMenu % 'Transfer', 'RunPlugin(%s?action=ad_DeleteTransfer&id=%s&name=%s)' %
 					(sysaddon, id, folder_name)))
@@ -327,9 +326,7 @@ class AllDebrid:
 		sysaddon = sys.argv[0]
 		syshandle = int(sys.argv[1])
 		extensions = supported_video_extensions()
-
-
-		torrent_folder = json.loads(folder)
+		torrent_folder = jsloads(folder)
 		links = torrent_folder['links']
 		links = [i for i in links if i['filename'].lower().endswith(tuple(extensions))]
 		status_code = torrent_folder['statusCode'] 
@@ -378,7 +375,7 @@ class AllDebrid:
 					if seas_ep_filter(season, episode, item['filename']):
 						correct_files.append(item)
 					if len(correct_files) == 0: continue
-					episode_title = re.sub('[^A-Za-z0-9-]+', '.', ep_title.replace('\'', '')).lower()
+					episode_title = re.sub(r'[^A-Za-z0-9-]+', '.', ep_title.replace('\'', '')).lower()
 					for i in correct_files:
 						compare_link = seas_ep_filter(season, episode, i['filename'], split=True)
 						compare_link = re.sub(episode_title, '', compare_link)
@@ -515,7 +512,7 @@ class AllDebrid:
 		# url = '{0}/user/hosts?agent={1}&apikey={2}'.format(api_url, urllib_parse.quote_plus(AGENT), self.get_setting('token'))
 		# try:
 			# result = self.net.http_GET(url, headers=self.headers).content
-			# js_data = json.loads(result)
+			# js_data = jsloads(result)
 			# if js_data.get('status', False) == "success":
 				# js_data = js_data.get('data')
 				# regexes = [value.get('regexp') for _, value in js_data.get('hosts', {}).items()
@@ -545,7 +542,7 @@ class AllDebrid:
 		# url = '{0}/hosts/domains?agent={1}&apikey={2}'.format(api_url, urllib_parse.quote_plus(AGENT), self.get_setting('token'))
 		# try:
 			# js_result = self.net.http_GET(url, headers=self.headers).content
-			# js_data = json.loads(js_result)
+			# js_data = jsloads(js_result)
 			# if js_data.get('status', False) == "success":
 				# # hosts = [host.replace('www.', '') for host in js_data.get('hosts', [])]
 				# hosts = js_data.get('data').get('hosts')

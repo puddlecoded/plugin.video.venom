@@ -5,7 +5,6 @@
 
 import re
 import requests
-import threading
 
 from resources.lib.modules import control
 from resources.lib.modules import cache
@@ -144,7 +143,7 @@ class Movies:
 			# try:
 				# tagline = item.get('tagline', '0')
 				# if tagline == '' or tagline == '0' or tagline is None:
-					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
+					# tagline = re.compile(r'[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
 			# except: tagline = '0'
 			tagline = '0'
 
@@ -292,7 +291,7 @@ class Movies:
 			# try:
 				# tagline = item.get('tagline', '0')
 				# if tagline == '' or tagline == '0' or tagline is None:
-					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
+					# tagline = re.compile(r'[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
 			# except: tagline = '0'
 			tagline = '0'
 
@@ -484,7 +483,7 @@ class TVshows:
 			# try:
 				# tagline = item.get('tagline', '0')
 				# if tagline == '' or tagline == '0' or tagline is None:
-					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
+					# tagline = re.compile(r'[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
 			# except: tagline = '0'
 			tagline = '0'
 
@@ -625,7 +624,7 @@ class TVshows:
 			# try:
 				# tagline = item.get('tagline', '0')
 				# if tagline == '' or tagline == '0' or tagline is None:
-					# tagline = re.compile('[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
+					# tagline = re.compile(r'[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
 			# except:
 				# tagline = '0'
 			tagline = '0'

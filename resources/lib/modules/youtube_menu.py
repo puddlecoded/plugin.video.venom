@@ -5,14 +5,10 @@
 
 import re
 from sys import argv
-import xbmc
-
-try:
-	from urllib.request import urlopen
-	from urllib.request import Request
-except ImportError:
-	from urllib2 import urlopen
-	from urllib2 import Request
+try: #Py2
+	from urllib2 import urlopen, Request
+except ImportError: #Py3
+	from urllib.request import urlopen, Request
 
 from resources.lib.modules import control
 
@@ -34,7 +30,7 @@ class youtube_menu(object):
 
 	def processMenuFile(self, menuFile):
 		link = self.openMenuFile(menuFile).replace('\n','').replace('\r','')
-		match = re.compile('name="(.+?)".+?ection="(.+?)".+?earch="(.+?)".+?ubid="(.+?)".+?laylistid="(.+?)".+?hannelid="(.+?)".+?ideoid="(.+?)".+?con="(.+?)".+?anart="(.+?)".+?escription="(.+?)"').findall(link)
+		match = re.compile(r'name="(.+?)".+?ection="(.+?)".+?earch="(.+?)".+?ubid="(.+?)".+?laylistid="(.+?)".+?hannelid="(.+?)".+?ideoid="(.+?)".+?con="(.+?)".+?anart="(.+?)".+?escription="(.+?)"').findall(link)
 		return match
 
 
