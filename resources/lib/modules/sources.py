@@ -111,6 +111,7 @@ class Sources:
 			if rescrape :
 				self.clr_item_providers(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 			items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
+
 			if not items:
 				self.url = url
 				return self.errorForSources()
@@ -420,10 +421,15 @@ class Sources:
 		total_format = '[COLOR %s][B]%s[/B][/COLOR]'
 		pdiag_format = '4K:  %s  |  1080p:  %s  |  720p:  %s  |  SD:  %s'
 
-		while not progressDialog.iscanceled():
+		while True:
 			try:
 				if control.monitor.abortRequested(): return sys.exit()
-				if progressDialog.iscanceled(): break
+				try:
+					if progressDialog.iscanceled(): break
+				except: pass
+				try:
+					if progressDialog.isFinished(): break
+				except: pass
 
 				if pre_emp == 'true':
 					if pre_emp_res == '0':
@@ -483,9 +489,7 @@ class Sources:
 		except: pass
 		del progressDialog
 		del threads[:] # Make sure any remaining providers are stopped.
-
 		self.sources.extend(self.scraper_sources)
-
 		if len(self.sources) > 0:
 			self.sourcesFilter()
 		return self.sources
@@ -705,6 +709,8 @@ class Sources:
 		if quality == '': quality = '0'
 		if control.setting('remove.duplicates') == 'true':
 			self.sources = self.filter_dupes()
+		if self.mediatype == 'episode':
+			self.sources = self.calc_pack_size()
 		if control.setting('source.enablesizelimit') == 'true':
 			self.sources = [i for i in self.sources if i.get('size', 0) <= int(control.setting('source.sizelimit'))]
 		if control.setting('remove.hevc') == 'true':
@@ -714,8 +720,6 @@ class Sources:
 				self.sources = [i for i in self.sources if not any(value in i['quality'] for value in ['CAM', 'SD'])]
 		if control.setting('remove.3D.sources') == 'true':
 			self.sources = [i for i in self.sources if '3D' not in i.get('info', '')]
-		if self.mediatype == 'episode':
-			self.sources = self.calc_pack_size()
 
 		local = [i for i in self.sources if 'local' in i and i['local'] is True] # for library and videoscraper (skips cache check)
 		self.sources = [i for i in self.sources if not i in local]
