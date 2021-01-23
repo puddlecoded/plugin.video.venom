@@ -971,7 +971,7 @@ class Collections:
 			imdb = self.list[i]['imdb'] or '0'
 			tmdb = self.list[i]['tmdb'] or '0'
 			# item = cache.get(tmdb_indexer.Movies().get_details, 168, tmdb, imdb)
-			item = tmdb_indexer.Movies().get_details(tmdb, imdb)
+			item = tmdb_indexer.Movies().get_details(tmdb, imdb)  # seems very efficient with just one id!(api claims rq's int()...bahahah, ok)
 
 			try: title = item.get('title').encode('utf-8')
 			except: title = item.get('title')
@@ -1163,9 +1163,7 @@ class Collections:
 				systitle = quote_plus(title)
 
 				meta = dict((k, v) for k, v in i.iteritems() if v != '0')
-				meta.update({'code': imdb, 'imdbnumber': imdb})
-				meta.update({'mediatype': 'movie'})
-				meta.update({'tag': [imdb, tmdb]})
+				meta.update({'code': imdb, 'imdbnumber': imdb, 'mediatype': 'movie', 'tag': [imdb, tmdb]})
 
 				# Some descriptions have a link at the end. Remove it.
 				try:
@@ -1184,31 +1182,17 @@ class Collections:
 				try: meta.update({'year': int(meta['year'])})
 				except: pass
 
-				poster1 = meta.get('poster')
-				poster2 = meta.get('poster2')
-				poster3 = meta.get('poster3')
-				poster = poster3 or poster2 or poster1 or addonPoster
-
+				poster = meta.get('poster3') or meta.get('poster2') or meta.get('poster') or addonPoster
 				fanart = ''
 				if settingFanart:
-					fanart1 = meta.get('fanart')
-					fanart2 = meta.get('fanart2')
-					fanart3 = meta.get('fanart3')
-					fanart = fanart3 or fanart2 or fanart1 or addonFanart
-
+					fanart = meta.get('fanart3') or meta.get('fanart2') or meta.get('fanart') or addonFanart
 				landscape = meta.get('landscape')
 				thumb = meta.get('thumb') or poster or landscape
 				icon = meta.get('icon') or poster
-
-				banner1 = meta.get('banner')
-				banner2 = meta.get('banner2')
-				banner3 = meta.get('banner3')
-				banner = banner3 or banner2 or banner1 or addonBanner
-
+				banner = meta.get('banner3') or meta.get('banner2') or meta.get('banner') or addonBanner
 				clearlogo = meta.get('clearlogo')
 				clearart = meta.get('clearart')
 				discart = meta.get('discart')
-
 				art = {}
 				art.update({'icon': icon, 'thumb': thumb, 'banner': banner, 'poster': poster, 'fanart': fanart,
 								'clearlogo': clearlogo, 'clearart': clearart, 'landscape': landscape, 'discart': discart})

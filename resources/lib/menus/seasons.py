@@ -5,7 +5,7 @@
 
 from datetime import datetime, timedelta
 import re
-import requests # retest urlopen
+import requests # seems faster than urlli2.urlopen
 import sys
 import zipfile
 try: #Py2
@@ -209,7 +209,7 @@ class Seasons:
 			try:
 				years = [str(year), str(int(year)+1), str(int(year)-1)]
 				url = self.tvdb_by_query % (quote_plus(tvshowtitle))
-				# tvdb = client.request(url, timeout='10', error=True)
+				# tvdb = client.request(url, timeout='10')
 				tvdb = requests.get(url, timeout=10).content
 				tvdb = re.sub(r'[^\x00-\x7F]+', '', tvdb)
 				tvdb = client.replaceHTMLCodes(tvdb)
@@ -241,7 +241,7 @@ class Seasons:
 			if len(dupe) > 0:
 				tvdb = str(dupe[0]).encode('utf-8')
 				url = self.tvdb_info_link % (tvdb, 'en')
-				#data = urlopen(url, timeout=30).read()
+				# data = urlopen(url, timeout=30).read()
 				data = requests.get(url, timeout=30).content
 				zip = zipfile.ZipFile(StringIO(data))
 				result = zip.read('en.xml')
@@ -251,7 +251,7 @@ class Seasons:
 
 			if lang != 'en':
 				url = self.tvdb_info_link % (tvdb, lang)
-				#data = urlopen(url, timeout=30).read()
+				# data = urlopen(url, timeout=30).read()
 				data = requests.get(url, timeout=30).content
 				zip = zipfile.ZipFile(StringIO(data))
 				result2 = zip.read('%s.xml' % lang)
@@ -657,7 +657,7 @@ class Seasons:
 			try:
 				years = [str(year), str(int(year)+1), str(int(year)-1)]
 				url = self.tvdb_by_query % (quote_plus(tvshowtitle))
-				# tvdb = client.request(url, timeout='10', error=True)
+				# tvdb = client.request(url, timeout='10')
 				tvdb = requests.get(url, timeout=10).content
 				tvdb = re.sub(r'[^\x00-\x7F]+', '', tvdb)
 				tvdb = client.replaceHTMLCodes(tvdb)
@@ -688,7 +688,7 @@ class Seasons:
 			if len(dupe) > 0:
 				tvdb = str(dupe[0]).encode('utf-8')
 				url = self.tvdb_info_link % (tvdb, 'en')
-				#data = urlopen(url, timeout=30).read()
+				# data = urlopen(url, timeout=30).read()
 				data = requests.get(url, timeout=30).content
 				zip = zipfile.ZipFile(StringIO(data))
 				result = zip.read('%s.xml' % 'en')
@@ -759,9 +759,7 @@ class Seasons:
 
 				systitle = quote_plus(title)
 				meta = dict((k, v) for k, v in i.iteritems() if v != '0')
-				meta.update({'code': imdb, 'imdbnumber': imdb})
-				meta.update({'mediatype': 'tvshow'})
-				meta.update({'tag': [imdb, tvdb]})
+				meta.update({'code': imdb, 'imdbnumber': imdb, 'mediatype': 'tvshow', 'tag': [imdb, tvdb]})
 
 				# Some descriptions have a link at the end that. Remove it.
 				try:
@@ -782,41 +780,25 @@ class Seasons:
 
 				try:
 					# Year is the shows year, not the seasons year. Extract the correct year from the premier date.
-					yearNew = i['premiered']
-					yearNew = re.findall(r'(\d{4})', yearNew)[0]
+					yearNew = re.findall(r'(\d{4})', i['premiered'])[0]
 					yearNew = yearNew.encode('utf-8')
 					meta.update({'year': yearNew})
 				except: pass
 
 				# First check thumbs, since they typically contains the seasons poster. The normal poster contains the show poster.
-				poster1 = meta.get('poster')
-				poster2 = meta.get('poster2')
-				poster3 = meta.get('poster3')
-				poster4 = meta.get('thumb')
-				poster = poster4 or poster3 or poster2 or poster1 or addonPoster
-
+				poster = meta.get('thumb') or meta.get('poster3') or meta.get('poster2') or poster1 or addonPoster
 				fanart = ''
 				if settingFanart:
-					fanart1 = meta.get('fanart')
-					fanart2 = meta.get('fanart2')
-					fanart3 = meta.get('fanart3')
-					fanart = fanart3 or fanart2 or fanart1 or addonFanart
-
+					fanart = meta.get('fanart3') or meta.get('fanart2') or meta.get('fanart') or addonFanart
 				thumb = meta.get('thumb') or poster
 				icon = meta.get('icon') or poster
-
-				banner1 = meta.get('banner')
-				banner2 = meta.get('banner2')
-				banner3 = meta.get('banner3')
-				banner = banner3 or banner2 or banner1 or addonBanner
-
+				banner = meta.get('banner3') or meta.get('banner2') or meta.get('banner') or addonBanner
 				if extended_art:
 					clearlogo = extended_art.get('clearlogo')
 					clearart = extended_art.get('clearart')
 				else:
 					clearlogo = '0'
 					clearart = '0'
-
 				art = {}
 				art.update({'poster': poster, 'tvshow.poster': poster, 'season.poster': poster, 'fanart': fanart, 'icon': icon,
 									'thumb': thumb, 'banner': banner, 'clearlogo': clearlogo, 'clearart': clearart})

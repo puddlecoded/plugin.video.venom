@@ -6,7 +6,17 @@
 from datetime import datetime
 import inspect
 import xbmc
-from xbmc import LOGDEBUG, LOGERROR, LOGFATAL, LOGINFO, LOGNONE, LOGNOTICE, LOGSEVERE, LOGWARNING
+
+# only prints if venom set to "Debug"
+LOGDEBUG = 0
+LOGINFO = 1
+###--from here down methods print when "Normal" venom setting.
+LOGNOTICE = 2 #deprecated in 19(use LOGINFO) chk if #'s change in 19
+LOGWARNING = 3
+LOGERROR = 4
+LOGSEVERE = 5 #deprecated in 19(use LOGFATAL)
+LOGFATAL = 6
+LOGNONE = 7
 
 from resources.lib.modules import control
 
@@ -16,24 +26,23 @@ LOGPATH = control.transPath('special://logpath/')
 
 def log(msg, caller=None, level=LOGNOTICE):
 	debug_enabled = control.setting('debug.enabled') == 'true'
-	debug_log = control.setting('debug.location')
-
 	if not debug_enabled: return
+	debug_level = control.setting('debug.level')
+	if level == LOGDEBUG and debug_level != '1': return
+	debug_location = control.setting('debug.location')
 	try:
 		if caller is not None and level == LOGDEBUG:
 			func = inspect.currentframe().f_back.f_code
 			line_number = inspect.currentframe().f_back.f_lineno
 			caller = "%s.%s()" % (caller, func.co_name)
 			msg = 'From func name: %s Line # :%s\n                       msg : %s' % (caller, line_number, msg)
-
 		if caller is not None and level == LOGERROR:
 			msg = 'From func name: %s.%s() Line # :%s\n                       msg : %s' % (caller[0], caller[1], caller[2], msg)
 		try:
 			if isinstance(msg, unicode):
 				msg = '%s (ENCODED)' % (msg.encode('utf-8'))
 		except: pass
-
-		if debug_log == '1':
+		if debug_location == '1':
 			log_file = control.joinPath(LOGPATH, 'venom.log')
 			if not control.existsPath(log_file):
 				f = open(log_file, 'w')

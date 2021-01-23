@@ -52,12 +52,12 @@ class Furk:
 
 		for i in files:
 			# id = i['id']
-			# log_utils.log('id = %s' % id, __name__, log_utils.LOGNOTICE)
+			# log_utils.log('id = %s' % id, __name__, log_utils.LOGDEBUG)
 
 			# test = self.base_link + self.tfile_link % (self.api_key, id)
-			# log_utils.log('test = %s' % test, __name__, log_utils.LOGNOTICE)
+			# log_utils.log('test = %s' % test, __name__, log_utils.LOGDEBUG)
 			# test2 = s.get(test).json()
-			# log_utils.log('test2 = %s' % test2, __name__, log_utils.LOGNOTICE)
+			# log_utils.log('test2 = %s' % test2, __name__, log_utils.LOGDEBUG)
 
 			try:
 				name = control.strip_non_ascii_and_unprintable(i['name'])

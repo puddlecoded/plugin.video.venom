@@ -30,7 +30,7 @@ def timeIt(func):
 	def wrap(*args, **kwargs):
 		started_at = time.time()
 		result = func(*args, **kwargs)
-		log_utils.log('%s.%s = %s' % (__name__, fnc_name, time.time() - started_at), log_utils.LOGDEBUG)
+		log_utils.log('%s.%s = %s' % (__name__, fnc_name, time.time() - started_at), level=log_utils.LOGDEBUG)
 		return result
 	return wrap
 
@@ -51,16 +51,16 @@ def get_request(url):
 
 	if '200' in str(result):
 		# if '/tt' in url:
-			# log_utils.log('requests.get() found - FANART.TV URL: %s (FOUND in IMDB)' % url, log_utils.LOGDEBUG)
+			# log_utils.log('requests.get() found - FANART.TV URL: %s (FOUND in IMDB)' % url, level=log_utils.LOGDEBUG)
 		return result.json() 
 
 	elif 'Not found' in str(result.text):
-		log_utils.log('requests.get() failed - FANART.TV URL: %s (NOT FOUND)' % url, log_utils.LOGDEBUG)
+		log_utils.log('requests.get() failed - FANART.TV URL: %s (NOT FOUND)' % url, level=log_utils.LOGDEBUG)
 		return None
 
 	else:
 		title = client.parseDOM(result.text, 'title')[0]
-		log_utils.log('requests.get() failed - FANART.TV URL: %s (%s)' % (url, title), log_utils.LOGDEBUG)
+		log_utils.log('requests.get() failed - FANART.TV URL: %s (%s)' % (url, title), level=log_utils.LOGDEBUG)
 		return None
 
 
@@ -70,7 +70,7 @@ def parse_art(img):
 	try:
 		ret_img = [(x['url'], x['likes']) for x in img if any(value == x.get('lang') for value in [lang, '00', ''])]
 		if not ret_img:
-			# log_utils.log('no matching artwork in %s' % img, __name__, log_utils.LOGDEBUG)
+			# log_utils.log('no matching artwork in %s' % img, level=log_utils.LOGDEBUG)
 			return None
 		if len(ret_img) >1:
 			ret_img = sorted(ret_img, key=lambda x: int(x[1]), reverse=True)

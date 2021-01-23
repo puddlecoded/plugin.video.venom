@@ -23,7 +23,7 @@ def debrid_resolvers(order_matters=True):
 
 		if order_matters:
 			premium_resolvers.sort(key=lambda x: get_priority(x))
-			# log_utils.log('premium_resolvers sorted = %s' % str(premium_resolvers), __name__, log_utils.LOGNOTICE)
+			# log_utils.log('premium_resolvers sorted = %s' % str(premium_resolvers), __name__, log_utils.LOGDEBUG)
 		return premium_resolvers
 	except:
 		log_utils.error()
@@ -34,8 +34,8 @@ def status():
 
 
 def get_priority(cls):
-	# log_utils.log('cls __name__ priority = %s' % str(cls.__class__.__name__ + '.priority').lower(), __name__, log_utils.LOGNOTICE)
-	# log_utils.log('cls __name__ priority setting = %s' % str(control.setting((cls.__class__.__name__ + '.priority').lower())), __name__, log_utils.LOGNOTICE)
+	# log_utils.log('cls __name__ priority = %s' % str(cls.__class__.__name__ + '.priority').lower(), __name__, log_utils.LOGDEBUG)
+	# log_utils.log('cls __name__ priority setting = %s' % str(control.setting((cls.__class__.__name__ + '.priority').lower())), __name__, log_utils.LOGDEBUG)
 	try:
 		return int(control.setting((cls.__class__.__name__ + '.priority').lower()))
 	except:

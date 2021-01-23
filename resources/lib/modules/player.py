@@ -128,7 +128,7 @@ class Player(xbmc.Player):
 	def getMeta(self, meta):
 		try:
 			if not meta: raise Exception()
-			poster = meta.get('poster3') or meta.get('poster2') or meta.get('poster')
+			poster = meta.get('poster3') or meta.get('poster2') or meta.get('poster') #poster2 and poster3 may not be passed anymore
 			thumb = meta.get('thumb')
 			thumb = thumb or poster or control.addonThumb()
 			season_poster = meta.get('season_poster') or poster

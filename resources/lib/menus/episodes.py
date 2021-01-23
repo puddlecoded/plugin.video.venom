@@ -7,7 +7,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 from json import dumps as jsdumps, loads as jsloads
 import re
-import requests # retest urlopen
+import requests # seems faster than urlli2.urlopen
 import sys
 import zipfile
 try: #Py2
@@ -43,7 +43,6 @@ class Episodes:
 		self.notifications = notifications
 		self.disable_fanarttv = control.setting('disable.fanarttv')
 
-		# self.date_time = (datetime.utcnow() - timedelta(hours=5))
 		self.date_time = datetime.utcnow()
 		self.today_date = (self.date_time).strftime('%Y-%m-%d')
 
@@ -71,6 +70,18 @@ class Episodes:
 
 		self.showunaired = control.setting('showunaired') or 'true'
 		self.unairedcolor = control.getColor(control.setting('unaired.identify'))
+		self.showspecials = control.setting('tv.specials') == 'true'
+		self.highlight_color = control.getColor(control.setting('highlight.color'))
+
+	def timeIt(func):
+		import time
+		fnc_name = func.__name__
+		def wrap(*args, **kwargs):
+			started_at = time.time()
+			result = func(*args, **kwargs)
+			log_utils.log('%s.%s = %s' % (__name__, fnc_name, time.time() - started_at), level=log_utils.LOGDEBUG)
+			return result
+		return wrap
 
 
 	def get(self, tvshowtitle, year, imdb, tmdb, tvdb, season=None, episode=None, idx=True):
@@ -332,7 +343,7 @@ class Episodes:
 		self.list = sorted(self.list, key=lambda k: re.sub(r'(^the |^a |^an )', '', k['name'].lower()))
 		return self.list
 
-
+	# @timeIt
 	def trakt_progress_list(self, url, user, lang, direct=False):
 		# from resources.lib.menus import seasons
 		try:
@@ -377,7 +388,7 @@ class Episodes:
 # ### episode IDS
 				episodeIDS = {}
 				if control.setting('enable.upnext') == 'true':
-					episodeIDS = trakt.getEpisodeSummary(imdb, season, episode, full=False) or {}
+					episodeIDS = trakt.getEpisodeSummary(imdb, season, episode, full=False) or {} # this is actually wrong as id will be last watched not nextUp
 					if episodeIDS != {}:
 						episodeIDS = episodeIDS.get('ids', {})
 ##------------------
@@ -410,7 +421,7 @@ class Episodes:
 			result = trakt.getTrakt(self.hiddenprogress_link)
 			result = jsloads(result)
 			result = [str(i['show']['ids']['tvdb']) for i in result]
-			items = [i for i in items if i['tvdb'] not in result]
+			items = [i for i in items if i['tvdb'] not in result] # removes hidden progress items
 		except: pass
 
 		def items_list(i):
@@ -419,6 +430,9 @@ class Episodes:
 			imdb, tmdb, tvdb = i['imdb'], i['tmdb'], i['tvdb']
 			trailer = i.get('trailer')
 			try:
+
+
+
 				url = self.tvdb_info_link % (tvdb, lang)
 				# data = urlopen(url, timeout=30).read()
 				data = requests.get(url, timeout=30).content
@@ -434,8 +448,9 @@ class Episodes:
 
 				# TVDB en.xml sort order is by ID now so we resort by season then episode for proper indexing of nextup item to watch.
 				try:
-					sorted_item = [y for y in item if re.compile(r'<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(i['snum'])]
-					sorted_item += [y for y in item if re.compile(r'<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(int(i['snum']) + 1)]
+					# sorted_item = [y for y in item if re.compile(r'<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(i['snum'])]
+					# sorted_item += [y for y in item if re.compile(r'<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(int(i['snum']) + 1)] # only make index of snum and snum+ to reduce it's size for use.
+					sorted_item = [y for y in item if any(re.compile(r'<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == z for z in [str(i['snum']), str(int(i['snum']) + 1)])]
 					sorted_item = sorted(sorted_item, key= lambda t:(int(re.compile(r'<SeasonNumber>(\d+)</SeasonNumber>').findall(t)[-1]), int(re.compile(r'<EpisodeNumber>(\d+)</EpisodeNumber>').findall(t)[-1])))
 					num = [x for x,y in enumerate(sorted_item) if re.compile(r'<SeasonNumber>(.+?)</SeasonNumber>').findall(y)[0] == str(i['snum']) and re.compile(r'<EpisodeNumber>(.+?)</EpisodeNumber>').findall(y)[0] == str(i['enum'])][-1]
 					item = [y for x,y in enumerate(sorted_item) if x > num][0]
@@ -474,8 +489,7 @@ class Episodes:
 				season = client.parseDOM(item, 'SeasonNumber')[0]
 				season = '%01d' % int(season)
 
-				if control.setting('tv.specials') == 'false' and season == '0':
-					raise Exception()
+				if not self.showspecials and season == '0': raise Exception()
 
 				episode = client.parseDOM(item, 'EpisodeNumber')[0]
 				episode = re.sub(r'[^0-9]', '', '%01d' % int(episode))
@@ -615,7 +629,7 @@ class Episodes:
 				season = item['episode']['season']
 				season = re.sub(r'[^0-9]', '', '%01d' % int(season))
 
-				if control.setting('tv.specials') == 'false' and season == '0': continue
+				if not self.showspecials and season == '0': continue
 
 				episode = item['episode']['number']
 				episode = re.sub(r'[^0-9]', '', '%01d' % int(episode))
@@ -766,8 +780,7 @@ class Episodes:
 				season = client.parseDOM(item, 'SeasonNumber')[0]
 				season = '%01d' % int(season)
 
-				if control.setting('tv.specials') == 'false' and season == '0':
-					raise Exception()
+				if not self.showspecials and season == '0': raise Exception()
 
 				episode = client.parseDOM(item, 'EpisodeNumber')[0]
 				episode = re.sub(r'[^0-9]', '', '%01d' % int(episode))
@@ -915,7 +928,7 @@ class Episodes:
 				if not season: continue
 				season = re.sub(r'[^0-9]', '', '%01d' % int(season))
 
-				if control.setting('tv.specials') == 'false' and season == '0': continue
+				if not self.showspecials and season == '0': continue
 
 				episode = item['number']
 				if episode is None: continue
@@ -1225,8 +1238,7 @@ class Episodes:
 		else:
 			progressMenu = control.lang(32016)
 
-		if traktProgress:
-			multi = True
+		if traktProgress: multi = True
 		else:
 			try: multi = [i['tvshowtitle'] for i in items]
 			except: multi = []
@@ -1265,19 +1277,15 @@ class Episodes:
 			playbackMenu = control.lang(32063)
 		else:
 			playbackMenu = control.lang(32064)
-
 		if trakt.getTraktIndicatorsInfo():
 			watchedMenu = control.lang(32068)
 			unwatchedMenu = control.lang(32069)
 		else:
 			watchedMenu = control.lang(32066)
 			unwatchedMenu = control.lang(32067)
-
 		traktManagerMenu = control.lang(32070)
-
 		playlistManagerMenu = control.lang(35522)
 		queueMenu = control.lang(32065)
-
 		tvshowBrowserMenu = control.lang(32071)
 		addToLibrary = control.lang(32551)
 
@@ -1294,7 +1302,7 @@ class Episodes:
 				else: label = '%sx%02d . %s' % (season, int(episode), i['label'])
 
 				if multi: label = '%s - %s' % (tvshowtitle, label)
-				try: labelProgress = label + '[COLOR %s]  [%s][/COLOR]' % (control.getColor(control.setting('highlight.color')), str(round(float(i['progress'] * 100), 1)) + '%')
+				try: labelProgress = label + '[COLOR %s]  [%s][/COLOR]' % (self.highlight_color, str(round(float(i['progress'] * 100), 1)) + '%')
 				except: labelProgress = label
 
 				try:
@@ -1309,9 +1317,7 @@ class Episodes:
 				except: seasoncount = None
 
 				meta = dict((k, v) for k, v in i.iteritems() if v != '0')
-				meta.update({'code': imdb, 'imdbnumber': imdb})
-				meta.update({'mediatype': 'episode'})
-				meta.update({'tag': [imdb, tvdb]})
+				meta.update({'code': imdb, 'imdbnumber': imdb, 'mediatype': 'episode', 'tag': [imdb, tvdb]})
 
 				# Some descriptions have a link at the end that. Remove it.
 				try:
@@ -1338,27 +1344,19 @@ class Episodes:
 				except: pass
 
 				if airEnabled == 'true':
-					air = []
-					airday = None
-					airtime = None
+					air = [] ; airday = None ; airtime = None
 					if 'airday' in meta and not meta['airday'] is None and meta['airday'] != '':
 						airday = meta['airday']
 					if 'airtime' in meta and not meta['airtime'] is None and meta['airtime'] != '':
 						airtime = meta['airtime']
 						if 'airzone' in meta and not meta['airzone'] is None and meta['airzone'] != '':
-							if airZone == '1':
-								zoneTo = meta['airzone']
-							elif airZone == '2':
-								zoneTo = 'utc'
-							else:
-								zoneTo = 'local'
+							if airZone == '1': zoneTo = meta['airzone']
+							elif airZone == '2': zoneTo = 'utc'
+							else: zoneTo = 'local'
 
-							if airFormatTime == '1':
-								formatOutput = '%I:%M'
-							elif airFormatTime == '2':
-								formatOutput = '%I:%M %p'
-							else:
-								formatOutput = '%H:%M'
+							if airFormatTime == '1': formatOutput = '%I:%M'
+							elif airFormatTime == '2': formatOutput = '%I:%M %p'
+							else: formatOutput = '%H:%M'
 
 							abbreviate = airFormatDay == '1'
 							airtime = tools.Time.convert(stringTime=airtime, stringDay=airday, zoneFrom=meta['airzone'],
@@ -1369,50 +1367,29 @@ class Episodes:
 					if airday: air.append(airday)
 					if airtime: air.append(airtime)
 					if len(air) > 0:
-						if airFormat == '0':
-							air = airtime
-						elif airFormat == '1':
-							air = airday
-						elif airFormat == '2':
-							air = air = ' '.join(air)
-
-						if airLocation == '0' or airLocation == '1':
-							air = '[COLOR skyblue][%s][/COLOR]' % air
+						if airFormat == '0': air = airtime
+						elif airFormat == '1': air = airday
+						elif airFormat == '2': air = air = ' '.join(air)
+						if airLocation == '0' or airLocation == '1': air = '[COLOR skyblue][%s][/COLOR]' % air
 						if airBold == 'true': air = '[B]%s[/B]' % str(air)
-						if airLocation == '0':
-							labelProgress = '%s %s' % (air, labelProgress)
-						elif airLocation == '1':
-							labelProgress = '%s %s' % (labelProgress, air)
-						elif airLocation == '2':
-							meta['plot'] = '%s%s\r\n%s' % (airLabel, air, meta['plot'])
-						elif airLocation == '3':
-							meta['plot'] = '%s\r\n%s%s' % (meta['plot'], airLabel, air)
+						if airLocation == '0': labelProgress = '%s %s' % (air, labelProgress)
+						elif airLocation == '1': labelProgress = '%s %s' % (labelProgress, air)
+						elif airLocation == '2': meta['plot'] = '%s%s\r\n%s' % (airLabel, air, meta['plot'])
+						elif airLocation == '3': meta['plot'] = '%s\r\n%s%s' % (meta['plot'], airLabel, air)
 
-				poster1 = meta.get('poster')
-				poster2 = meta.get('poster2')
-				poster3 = meta.get('poster3')
-				poster = poster3 or poster2 or poster1 or addonPoster
+				poster = meta.get('poster3') or meta.get('poster2') or meta.get('poster') or addonPoster
 				season_poster = meta.get('season_poster') or poster
 
-				fanart = '0'
+				# fanart = '0'
+				fanart = ''
 				if settingFanart:
-					fanart1 = meta.get('fanart')
-					fanart2 = meta.get('fanart2')
-					fanart3 = meta.get('fanart3')
-					fanart = fanart3 or fanart2 or fanart1 or addonFanart
-
+					fanart = meta.get('fanart3') or meta.get('fanart2') or meta.get('fanart') or addonFanart
 				landscape = meta.get('landscape')
 				thumb = meta.get('thumb') or poster or landscape
 				icon = meta.get('icon') or poster
-
-				banner1 = meta.get('banner')
-				banner2 = meta.get('banner2')
-				banner3 = meta.get('banner3')
-				banner = banner3 or banner2 or banner1 or addonBanner
-
+				banner = meta.get('banner3') or meta.get('banner2') or meta.get('banner') or addonBanner
 				clearlogo = meta.get('clearlogo')
 				clearart = meta.get('clearart')
-
 				art = {}
 				art.update({'poster': season_poster, 'tvshow.poster': poster, 'season.poster': season_poster, 'fanart': fanart, 'icon': icon,
 									'thumb': thumb, 'banner': banner, 'clearlogo': clearlogo, 'clearart': clearart, 'landscape': landscape})
@@ -1430,11 +1407,9 @@ class Episodes:
 				try:
 					overlay = int(playcount.getEpisodeOverlay(indicators, imdb, tvdb, season, episode))
 					watched = (overlay == 7)
-
 					# # Skip episodes marked as watched for the unfinished and onDeck lists.
 					# try: if unfinished and watched and not i['progress'] is None: continue
 					# except: pass
-
 					if watched:
 						meta.update({'playcount': 1, 'overlay': 7})
 						cm.append((unwatchedMenu, 'RunPlugin(%s?action=playcount_Episode&name=%s&imdb=%s&tvdb=%s&season=%s&episode=%s&query=6)' % (
@@ -1536,10 +1511,8 @@ class Episodes:
 			try:
 				url = items[0]['next']
 				if not url: raise Exception()
-
 				nextMenu = control.lang(32053)
 				url_params = dict(parse_qsl(url))
-
 				if 'imdb.com' in url:
 					start = int(url_params.get('start'))
 					page = '  [I](%s)[/I]' % str(((start - 1) / self.count) + 1)
@@ -1547,10 +1520,8 @@ class Episodes:
 					page = url_params.get('page')
 					page = '  [I](%s)[/I]' % page
 				nextMenu = '[COLOR skyblue]' + nextMenu + page + '[/COLOR]'
-
 				if '/users/me/history/' in url:
 					url = '%s?action=calendar&url=%s' % (sysaddon, quote_plus(url))
-
 				item = control.item(label=nextMenu)
 				icon = control.addonNext()
 				item.setArt({'icon': icon, 'thumb': icon, 'poster': icon, 'banner': icon})

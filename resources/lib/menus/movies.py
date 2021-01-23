@@ -34,7 +34,6 @@ class Movies:
 		self.notifications = notifications
 		self.list = []
 
-		# self.date_time = (datetime.utcnow() - timedelta(hours=5))
 		self.date_time = datetime.utcnow()
 		self.today_date = (self.date_time).strftime('%Y-%m-%d')
 		self.three_month_date = (self.date_time - timedelta(days=90)).strftime('%Y-%m-%d')
@@ -43,7 +42,6 @@ class Movies:
 		self.hidecinema = control.setting('hidecinema') == 'true'
 		self.hidecinema_rollback = int(control.setting('hidecinema.rollback')) * 30
 		self.hidecinema_date = (self.date_time - timedelta(days=self.hidecinema_rollback)).strftime('%Y-%m')
-		# log_utils.log('self.hidecinema_date = %s' % self.hidecinema_date, log_utils.LOGDEBUG)
 
 		self.trakt_user = control.setting('trakt.user').strip()
 		self.traktCredentials = trakt.getTraktCredentialsInfo()
@@ -62,6 +60,7 @@ class Movies:
 		self.disable_fanarttv = control.setting('disable.fanarttv')
 
 		self.unairedcolor = control.getColor(control.setting('movie.unaired.identify'))
+		self.highlight_color = control.getColor(control.setting('highlight.color'))
 
 		self.tmdb_link = 'https://api.themoviedb.org'
 		self.tmdb_popular_link = 'https://api.themoviedb.org/3/movie/popular?api_key=%s&language=en-US&region=US&page=1'
@@ -136,7 +135,7 @@ class Movies:
 		def wrap(*args, **kwargs):
 			started_at = time.time()
 			result = func(*args, **kwargs)
-			log_utils.log('%s.%s = %s' % (__name__ , fnc_name, time.time() - started_at), log_utils.LOGDEBUG)
+			log_utils.log('%s.%s = %s' % (__name__ , fnc_name, time.time() - started_at), level=log_utils.LOGDEBUG)
 			return result
 		return wrap
 
@@ -1131,7 +1130,7 @@ class Movies:
 				# try: title = i['originaltitle']
 				# except: title = i['title']
 				label = '%s (%s)' % (title, year)
-				try: labelProgress = label + '[COLOR %s]  [%s][/COLOR]' % (control.getColor(control.setting('highlight.color')), str(round(float(i['progress'] * 100), 1)) + '%')
+				try: labelProgress = label + '[COLOR %s]  [%s][/COLOR]' % (self.highlight_color, str(round(float(i['progress'] * 100), 1)) + '%')
 				except: labelProgress = label
 				try:
 					if int(re.sub(r'[^0-9]', '', str(i['premiered']))) > int(re.sub(r'[^0-9]', '', str(self.today_date))):
@@ -1142,9 +1141,7 @@ class Movies:
 				systitle = quote_plus(title)
 
 				meta = dict((k, v) for k, v in i.iteritems() if v != '0')
-				meta.update({'code': imdb, 'imdbnumber': imdb})
-				meta.update({'mediatype': 'movie'})
-				meta.update({'tag': [imdb, tmdb]})
+				meta.update({'code': imdb, 'imdbnumber': imdb, 'mediatype': 'movie', 'tag': [imdb, tmdb]})
 
 				# Some descriptions have a link at the end. Remove it.
 				try:
@@ -1163,35 +1160,20 @@ class Movies:
 				try: meta.update({'year': int(meta['year'])})
 				except: pass
 
-				poster1 = meta.get('poster')
-				poster2 = meta.get('poster2')
-				poster3 = meta.get('poster3')
-				poster = poster3 or poster2 or poster1 or addonPoster
-
+				poster = meta.get('poster3') or meta.get('poster2') or meta.get('poster') or addonPoster
 				fanart = ''
 				if settingFanart:
-					fanart1 = meta.get('fanart')
-					fanart2 = meta.get('fanart2')
-					fanart3 = meta.get('fanart3')
-					fanart = fanart3 or fanart2 or fanart1 or addonFanart
-
+					fanart = meta.get('fanart3') or meta.get('fanart2') or meta.get('fanart') or addonFanart
 				landscape = meta.get('landscape')
 				thumb = meta.get('thumb') or poster or landscape
 				icon = meta.get('icon') or poster
-
-				banner1 = meta.get('banner')
-				banner2 = meta.get('banner2')
-				banner3 = meta.get('banner3')
-				banner = banner3 or banner2 or banner1 or addonBanner
-
+				banner = meta.get('banner3') or meta.get('banner2') or meta.get('banner') or addonBanner
 				clearlogo = meta.get('clearlogo')
 				clearart = meta.get('clearart')
 				discart = meta.get('discart')
-
 				art = {}
 				art.update({'icon': icon, 'thumb': thumb, 'banner': banner, 'poster': poster, 'fanart': fanart,
 								'clearlogo': clearlogo, 'clearart': clearart, 'landscape': landscape, 'discart': discart})
-
 				remove_keys = ('poster2', 'poster3', 'fanart2', 'fanart3', 'banner2', 'banner3', 'trailer')
 				for k in remove_keys: meta.pop(k, None)
 				meta.update({'poster': poster, 'fanart': fanart, 'banner': banner})

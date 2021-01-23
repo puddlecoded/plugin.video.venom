@@ -97,7 +97,7 @@ class TVDBAPI:
 		# tools.tvdb_refresh = self.jwToken
 		control.setSetting('tvdb.jw', self.jwToken)
 		self.headers['Authorization'] = self.jwToken
-		log_utils.log('Refreshed TVDB Token')
+		log_utils.log('Refreshed TVDB Token', level=log_utils.LOGDEBUG)
 		control.setSetting('tvdb.expiry', str(time.time() + (24 * (60 * 60))))
 		return response
 

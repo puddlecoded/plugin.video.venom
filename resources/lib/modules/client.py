@@ -127,7 +127,7 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 						cf_result = gzip.GzipFile(fileobj=StringIO(cf_result)).read()
 
 					if flare and 'cloudflare' in str(response.info()).lower():
-						log_utils.log('client module calling cfscrape: url=%s' % url, log_utils.LOGDEBUG)
+						log_utils.log('client module calling cfscrape: url=%s' % url, level=log_utils.LOGNOTICE)
 						try:
 							from fenomscrapers.modules import cfscrape
 							if isinstance(post, dict): data = post
@@ -153,10 +153,10 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 						_add_request_header(request, headers)
 						response = urllib2.urlopen(request, timeout=int(timeout))
 					else:
-						log_utils.log('Request-Error (%s): %s' % (str(response.code), url), log_utils.LOGDEBUG)
+						log_utils.log('Request-Error (%s): %s' % (str(response.code), url), level=log_utils.LOGERROR)
 						if error is False: return None
 				else:
-					log_utils.log('Request-Error (%s): %s' % (str(response.code), url), log_utils.LOGDEBUG)
+					log_utils.log('Request-Error (%s): %s' % (str(response.code), url), level=log_utils.LOGERROR)
 					if error is False: return None
 
 		if output == 'cookie':
@@ -230,7 +230,7 @@ def request(url, close=True, redirect=True, error=False, proxy=None, post=None, 
 			return result
 
 	except Exception as e:
-		log_utils.log('Request-Error: (%s) => %s' % (str(e), url), log_utils.LOGDEBUG)
+		log_utils.log('Request-Error: (%s) => %s' % (str(e), url), level=log_utils.LOGERROR)
 		return None
 
 

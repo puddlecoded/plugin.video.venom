@@ -17,7 +17,7 @@ from resources.lib.modules import log_utils
 
 
 def download(name, image, url, meta_name=None):
-	# log_utils.log('name = %s' % str(name), log_utils.LOGDEBUG)
+	# log_utils.log('name = %s' % str(name), level=log_utils.LOGDEBUG)
 	file_format = control.setting('downloads.file.format')
 	try:
 		if not url:

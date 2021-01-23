@@ -47,7 +47,7 @@ class documentary:
 				cat_action = 'docuHeaven&docuCat=%s' % cat_url
 				self.list.append({'name': cat_title, 'url': cat_url, 'image': cat_icon, 'action': cat_action})
 		except Exception as e:
-			log_utils.log('documentary root : Exception - ' + str(e))
+			log_utils.log('documentary root : Exception - ' + str(e), level=log_utils.LOGERROR)
 		self.list = self.list[::-1]
 		self.addDirectory(self.list)
 		return self.list
@@ -78,7 +78,7 @@ class documentary:
 				self.list.append({'name': control.lang(32053), 'url': link, 'image': control.addonNext(), 'action': docu_action})
 			except: pass
 		except Exception as e:
-			log_utils.log('documentary docu_list : Exception - ' + str(e))
+			log_utils.log('documentary docu_list : Exception - ' + str(e), level=log_utils.LOGERROR)
 		self.addDirectory(self.list)
 		return self.list
 
@@ -102,7 +102,7 @@ class documentary:
 				video_id = client.parseDOM(docu_page, 'div', attrs={'class':'youtube-player'}, ret='data-id')[0]
 				url = self.getDailyMotionStream(video_id)
 			else:
-				log_utils.log('Play Documentary: Unknown Host: ' + str(url))
+				log_utils.log('Play Documentary: Unknown Host: ' + str(url), level=log_utils.LOGDEBUG)
 				control.notification(message='Unknown Host - Report To Developer: ' + str(url))
 			control.execute('PlayMedia(%s)' % url)
 
@@ -112,7 +112,7 @@ class documentary:
 			# item.setPath(url)
 			# control.resolve(int(sys.argv[1]), True, item)
 		except Exception as e:
-			log_utils.log('docu_play: Exception - ' + str(e))
+			log_utils.log('docu_play: Exception - ' + str(e), level=log_utils.LOGERROR)
 
 
 	def sort_key(self, elem):

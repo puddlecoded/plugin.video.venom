@@ -114,7 +114,7 @@ def getTraktAsJson(url, post=None, authentication=None):
 		if isinstance(r, tuple) and len(r) == 2:
 			r , res_headers = r[0], r[1]
 		if not r or any(val in str(r) for val in ["Bad Gateway", "We're sorry, but something went wrong (500)"]):
-			log_utils.log('Trakt Service Unavailable', __name__, log_utils.LOGNOTICE)
+			log_utils.log('Trakt Service Unavailable', __name__, log_utils.LOGDEBUG)
 			return
 		# log_utils.log('r = %s' % r, __name__, log_utils.LOGDEBUG)
 		r = utils.json_loads_as_str(r)

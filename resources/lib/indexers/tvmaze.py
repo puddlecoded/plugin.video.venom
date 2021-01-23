@@ -204,6 +204,30 @@ originals_view_all = [
 		]
 
 
+# API calls are rate limited to allow at least 20 calls every 10 seconds per IP address
+def get_request(url):
+	try:
+		try:
+			response = requests.get(url, timeout=10)
+		except requests.exceptions.SSLError:
+			response = requests.get(url, verify=False)
+	except requests.exceptions.ConnectionError:
+		control.notification(message=32024)
+		return
+	if '200' in str(response):
+		return response.json()
+	elif 'Retry-After' in response.headers:
+		# API REQUESTS ARE BEING THROTTLED, INTRODUCE WAIT TIME
+		throttleTime = response.headers['Retry-After']
+		control.notification(message='TVMAZE Throttling Applied, Sleeping for %s seconds' % throttleTime)
+		control.sleep((int(throttleTime) + 0.5) * 1000)
+		return get_request(url)
+	else:
+		log_utils.log('Get request failed to TVMAZE URL: %s\n                       msg : TVMAZE Response: %s' %
+			(url, response.text), __name__, log_utils.LOGDEBUG)
+		return None
+
+
 class tvshows:
 	def __init__(self, type = 'show', notifications = True):
 		last = []
@@ -216,7 +240,7 @@ class tvshows:
 		self.notifications = notifications
 		self.disable_fanarttv = control.setting('disable.fanarttv')
 
-		self.tvmaze_link = 'https://www.tvmaze.com'
+		self.base_link = 'https://api.tvmaze.com'
 		self.tvmaze_info_link = 'https://api.tvmaze.com/shows/%s?embed=cast'
 
 		self.tvdb_key = control.setting('tvdb.api.key')
@@ -231,7 +255,7 @@ class tvshows:
 
 	def tvmaze_list(self, url):
 		try:
-			result = client.request(url)
+			result = client.request(url) # not json request
 			next = ''
 			if control.setting('tvshows.networks.view') == '0':
 				result = client.parseDOM(result, 'section', attrs = {'id': 'this-seasons-shows'})
@@ -266,7 +290,7 @@ class tvshows:
 			try:
 				tvmaze = i
 				url = self.tvmaze_info_link % i
-				item = requests.get(url, timeout=10).json()
+				item = get_request(url) 
 
 				content = item.get('type', '0').lower()
 
@@ -487,3 +511,13 @@ class tvshows:
 		except:
 			log_utils.error()
 			return
+
+
+	def show_lookup(self, tvdb):
+		url = '%s%s' % (self.base_link, '/lookup/shows?thetvdb=%s' % tvdb)
+		response = get_request(url)
+		return response
+
+
+
+

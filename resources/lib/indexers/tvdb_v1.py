@@ -6,7 +6,7 @@
 from datetime import datetime, timedelta
 import time
 import re
-import requests
+import requests # seems faster than urlli2.urlopen
 import zipfile
 try: # Py2
 	# from urllib2 import urlopen
@@ -45,7 +45,8 @@ today_date = (date_time).strftime('%Y-%m-%d')
 def getZip(tvdb):
 	url = zip_link % (tvdb, lang)
 	try:
-		data = requests.get(url).content
+		# data = urlopen(url, timeout=30).read()
+		data = requests.get(url, timeout=30).content
 		zip = zipfile.ZipFile(StringIO(data))
 		result = zip.read('%s.xml' % lang)
 		artwork = zip.read('banners.xml')
@@ -57,7 +58,7 @@ def getZip(tvdb):
 		return None
 
 
-def parseAll(tvdb):
+def parseAll(tvdb, limit):
 	try:
 		dupe = client.parseDOM(result, 'SeriesName')[0]
 		dupe = re.compile(r'[***]Duplicate (\d*)[***]').findall(dupe)
@@ -65,7 +66,8 @@ def parseAll(tvdb):
 		if len(dupe) > 0:
 			tvdb = str(dupe[0]).encode('utf-8')
 			url = zip_link % (tvdb, 'en')
-			data = requests.get(url).content
+			# data = urlopen(url, timeout=30).read()
+			data = requests.get(url, timeout=30).content
 			zip = zipfile.ZipFile(StringIO(data))
 			result = zip.read('en.xml')
 			artwork = zip.read('banners.xml')
@@ -74,9 +76,9 @@ def parseAll(tvdb):
 
 		# if lang != 'en':
 			# url = zip_link % (tvdb, lang)
-			# data = requests.get(url).content
+			# # data = urlopen(url, timeout=30).read()
+			# data = requests.get(url, timeout=30).content
 			# zip = zipfile.ZipFile(StringIO(data))
-
 			# result2 = zip.read('%s.xml' % lang)
 			# zip.close()
 		# else:
@@ -657,7 +659,8 @@ def parseActors(actors):
 def getSeries_ByIMDB(title, year, imdb):
 	try:
 		url = by_imdb % imdb
-		result = requests.get(url).content
+		# result = client.request(url, timeout='10')
+		result = requests.get(url, timeout=10).content
 		result = re.sub(r'[^\x00-\x7F]+', '', result)
 		result = client.replaceHTMLCodes(result)
 		result = client.parseDOM(result, 'Series')
@@ -679,7 +682,8 @@ def getSeries_ByIMDB(title, year, imdb):
 def getSeries_ByName(title, year):
 	try:
 		url = by_seriesname % (quote_plus(title))
-		result = requests.get(url).content
+		# result = client.request(url, timeout='10')
+		result = requests.get(url, timeout=10).content
 		result = re.sub(r'[^\x00-\x7F]+', '', result)
 		result = client.replaceHTMLCodes(result)
 		result = client.parseDOM(result, 'Series')
@@ -705,7 +709,8 @@ def getSeries_ByName(title, year):
 def get_is_airing(tvdb, season):
 	url = all_info_link % (tvdb, lang)
 	try:
-		result = requests.get(url).content
+		# result = client.request(url, timeout='10')
+		result = requests.get(url, timeout=10).content
 		result = result.split('<Episode>')
 		episodes = [i for i in result if '<EpisodeNumber>' in i]
 		if control.setting('tv.specials') == 'true':
@@ -730,7 +735,8 @@ def get_is_airing(tvdb, season):
 def get_counts(tvdb):
 	url = all_info_link % (tvdb, lang)
 	try:
-		result = requests.get(url).content
+		# result = client.request(url, timeout='10')
+		result = requests.get(url, timeout=10).content
 		result = result.split('<Episode>')
 		episodes = [i for i in result if '<EpisodeNumber>' in i]
 		if control.setting('tv.specials') == 'true':

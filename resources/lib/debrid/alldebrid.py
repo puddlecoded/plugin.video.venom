@@ -39,7 +39,6 @@ class AllDebrid:
 			if self.token == '': return None
 			url = base_url + url + '?agent=%s&apikey=%s' % (user_agent, self.token) + url_append
 			response = requests.get(url, timeout=self.timeout).json()
-			# log_utils.log('response = %s' % response, __name__, log_utils.LOGDEBUG)
 			if 'status' in response:
 				if response.get('status') == 'success':
 					if 'data' in response:
@@ -532,7 +531,7 @@ class AllDebrid:
 			# else:
 				# logger.log_error('Error getting AD Hosters')
 		# except Exception as e:
-			# logger.log_error('Error getting AD Hosters: {0}'.format(e))
+			# log_utils.log('Error getting AD hosts: %s' % e, __name__, log_utils.LOGDEBUG)
 		# return hosters
 
 
@@ -553,7 +552,7 @@ class AllDebrid:
 			# else:
 				# logger.log_error('Error getting AD Hosts')
 		# except Exception as e:
-			# logger.log_error('Error getting AD Hosts: {0}'.format(e))
+			# log_utils.log('Error getting AD hosts: %s' % e, __name__, log_utils.LOGDEBUG)
 		# return hosts
 
 

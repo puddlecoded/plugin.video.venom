@@ -19,7 +19,7 @@ if API_key == '' or API_key is None:
 
 disable_fanarttv = control.setting('disable.fanarttv')
 
-base_link = 'https://api.themoviedb.org'
+base_link = 'https://api.themoviedb.org/3/'
 poster_path = 'https://image.tmdb.org/t/p/w300'
 fanart_path = 'https://image.tmdb.org/t/p/w1280'
 
@@ -33,7 +33,6 @@ def get_request(url):
 	except requests.exceptions.ConnectionError:
 		control.notification(message=32024)
 		return
-
 	if '200' in str(response):
 		return response.json()
 	elif 'Retry-After' in response.headers:
@@ -78,7 +77,8 @@ def userlists(url):
 
 
 def popular_people(url):
-	url = 'https://api.themoviedb.org/3/person/popular?api_key=%s&language=en-US&page=1'
+	url = '%s%s' % (base_link, 'person/popular?api_key=%s&language=en-US&page=1' % API_key)
+
 
 
 def tmdb_sort():
@@ -97,11 +97,11 @@ class Movies:
 		self.list = []
 		self.meta = []
 		self.lang = control.apiLanguage()['trakt']
-		self.tmdb_info_link = base_link + '/3/movie/%s?api_key=%s&language=%s&append_to_response=credits,release_dates,videos' % ('%s', API_key, self.lang)
-		# self.tmdb_info_link = base_link + '/3/movie/%s?api_key=%s&language=%s&append_to_response=credits,release_dates,videos,alternative_titles' % ('%s', API_key, self.lang)
-###                                                                             other "append_to_response" options                             external_ids,alternative_titles,images
-		self.tmdb_art_link = base_link + '/3/movie/%s/images?api_key=%s&include_image_language=en,%s,null' % ('%s', API_key, self.lang)
-		self.tmdb_external_ids = base_link + '/3/movie/%s/external_ids?api_key=%s' % ('%s', API_key)
+		self.details_link = base_link + 'movie/%s?api_key=%s&language=%s&append_to_response=credits,release_dates,videos' % ('%s', API_key, self.lang)
+		# self.details_link = base_link + 'movie/%s?api_key=%s&language=%s&append_to_response=credits,release_dates,videos,alternative_titles' % ('%s', API_key, self.lang)
+###                                                                             other "append_to_response" options                             external_ids,alternative_titles,images,content_ratings
+		self.art_link = base_link + 'movie/%s/images?api_key=%s&include_image_language=en,%s,null' % ('%s', API_key, self.lang)
+		self.external_ids = base_link + 'movie/%s/external_ids?api_key=%s' % ('%s', API_key)
 
 
 	def tmdb_list(self, url):
@@ -157,7 +157,7 @@ class Movies:
 				next, title, originaltitle, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = \
 					i['next'], i['title'], i['originaltitle'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
 
-				url = self.tmdb_info_link % tmdb
+				url = self.details_link % tmdb
 				item =  get_request(url)
 
 				imdb = item.get('imdb_id', '0')
@@ -302,7 +302,7 @@ class Movies:
 		def items_list(i):
 			try:
 				next, title, originaltitle, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = i['next'], i['title'], i['originaltitle'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
-				url = self.tmdb_info_link % tmdb
+				url = self.details_link % tmdb
 				item = get_request(url)
 
 				imdb = item.get('imdb_id', '0')
@@ -387,23 +387,23 @@ class Movies:
 
 	def get_details(self, tmdb, imdb):
 		item = None
-		if tmdb != '0': item = get_request(self.tmdb_info_link % tmdb)
+		if tmdb != '0': item = get_request(self.details_link % tmdb)
 		if not item:
-			if imdb != '0': item = get_request(self.tmdb_info_link % imdb)
+			if imdb != '0': item = get_request(self.details_link % imdb) #api claims int rq'd but works with imdb_id
 		return item
 
 
 	def get_external_ids(self, tmdb, imdb):
 		item = None
-		if tmdb != '0': items = get_request(self.tmdb_external_ids % tmdb)
+		if tmdb != '0': items = get_request(self.external_ids % tmdb)
 		if not item:
-			if imdb != '0': item = get_request(self.tmdb_external_ids % imdb)
+			if imdb != '0': item = get_request(self.external_ids % imdb)
 		return item
 
 
 	def get_art(self, tmdb):
 		if API_key == '' or (tmdb == '0' or tmdb == 'None' or tmdb is None): return None
-		art3 = get_request(self.tmdb_art_link % tmdb)
+		art3 = get_request(self.art_link % tmdb)
 		if not art3: return None
 		try:
 			poster3 = art3['posters']
@@ -424,7 +424,7 @@ class Movies:
 
 
 	def get_credits(self, tmdb):
-		url = base_link + '/3/movie/%s/credits?api_key=%s' % ('%s', API_key)
+		url = base_link + 'movie/%s/credits?api_key=%s' % ('%s', API_key)
 		if API_key == '' or (tmdb == '0' or tmdb is None): return None
 		people = get_request(url % tmdb)
 		if not people: return None
@@ -436,11 +436,10 @@ class TVshows:
 		self.list = []
 		self.meta = []
 		self.lang = control.apiLanguage()['tvdb']
-		self.tmdb_info_link = base_link + '/3/tv/%s?api_key=%s&language=%s&append_to_response=credits,content_ratings,external_ids' % ('%s', API_key, self.lang)
+		self.details_link = base_link + 'tv/%s?api_key=%s&language=%s&append_to_response=credits,content_ratings,external_ids' % ('%s', API_key, self.lang)
 ###                                                                                  other "append_to_response" options                                           alternative_titles,videos,images
-		self.tmdb_art_link = base_link + '/3/tv/%s/images?api_key=%s&include_image_language=en,%s,null' % ('%s', API_key, self.lang)
+		self.art_link = base_link + 'tv/%s/images?api_key=%s&include_image_language=en,%s,null' % ('%s', API_key, self.lang)
 		self.tvdb_key = control.setting('tvdb.api.key')
-
 		self.imdb_user = control.setting('imdb.user').replace('ur', '')
 		self.user = str(self.imdb_user) + str(self.tvdb_key)
 
@@ -497,7 +496,7 @@ class TVshows:
 				next, title, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = \
 					i['next'], i['title'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
 
-				url = self.tmdb_info_link % tmdb
+				url = self.details_link % tmdb
 				item = get_request(url)
 
 				tvdb = str(item.get('external_ids').get('tvdb_id', '0'))
@@ -637,7 +636,7 @@ class TVshows:
 			try:
 				next, title, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = i['next'], i['title'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
 
-				url = self.tmdb_info_link % tmdb
+				url = self.details_link % tmdb
 				item = get_request(url)
 
 				tvdb = str(item.get('external_ids').get('tvdb_id', '0'))
@@ -719,15 +718,24 @@ class TVshows:
 
 	def get_details(self, tmdb, imdb):
 		item = None
-		if tmdb != '0': item = get_request(self.tmdb_info_link % tmdb)
+		if tmdb != '0': item = get_request(self.details_link % tmdb)
 		if not item:
-			if imdb != '0': item = get_request(self.tmdb_info_link % imdb)
+			if imdb != '0': item = get_request(self.details_link % imdb) #api claims int rq'd.  Works for movies but not looking like it does for shows
+		return item
+
+
+	def get_seasons(self, tmdb, imdb, season):
+		item = None
+		url = '%s%s' % (base_link, 'tv/%s/season/%s?api_key=%s&language=%s,en-US&append_to_response=credits' % ('%s', season, API_key, self.lang))
+		if tmdb != '0': item = get_request(url % tmdb)
+		if not item:
+			if imdb != '0': item = get_request(url % imdb) #api claims int rq'd.  Works for movies but not looking like it does for shows
 		return item
 
 
 	def get_art(self, tmdb):
 		if API_key == '' or (tmdb == '0' or tmdb == 'None' or tmdb is None): return None
-		art3 = get_request(self.tmdb_art_link % tmdb)
+		art3 = get_request(self.art_link % tmdb)
 		if not art3: return None
 		try:
 			poster3 = art3['posters']
@@ -748,7 +756,7 @@ class TVshows:
 
 
 	def get_credits(self, tmdb):
-		url = base_link + '/3/tv/%s/credits?api_key=%s' % ('%s', API_key)
+		url = base_link + 'tv/%s/credits?api_key=%s' % ('%s', API_key)
 		if API_key == '' or (tmdb == '0' or tmdb is None): return None
 		people = get_request(url % tmdb)
 		if not people: return None
@@ -757,7 +765,8 @@ class TVshows:
 
 class Auth:
 	def __init__(self):
-		self.auth_base_link = 'https://api.themoviedb.org/3/authentication'
+		# self.auth_base_link = 'https://api.themoviedb.org/3/authentication'
+		self.auth_base_link = '%s%s' % (base_link, 'authentication')
 
 
 	def create_session_id(self):

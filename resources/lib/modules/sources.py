@@ -54,6 +54,7 @@ class Sources:
 		self.dev_disable_show_packs = control.setting('dev.disable.show.packs') == 'true'
 		self.dev_disable_show_filter = control.setting('dev.disable.show.filter') == 'true'
 		self.extensions = source_utils.supported_video_extensions()
+		self.highlight_color = control.getColor(control.setting('highlight.color'))
 
 
 	def timeIt(func):
@@ -62,7 +63,7 @@ class Sources:
 		def wrap(*args, **kwargs):
 			started_at = time.time()
 			result = func(*args, **kwargs)
-			log_utils.log('%s.%s = %s' % (__name__, fnc_name, time.time() - started_at), log_utils.LOGDEBUG)
+			log_utils.log('%s.%s = %s' % (__name__, fnc_name, time.time() - started_at), level=log_utils.LOGDEBUG)
 			return result
 		return wrap
 
@@ -74,7 +75,7 @@ class Sources:
 			control.hide()
 			control.notification(message=33034)
 			return
-		control.busy()
+		# control.busy()
 		try:
 			control.homeWindow.clearProperty(self.metaProperty)
 			control.homeWindow.setProperty(self.metaProperty, meta)
@@ -90,9 +91,8 @@ class Sources:
 			control.homeWindow.setProperty(self.tmdbProperty, tmdb)
 			control.homeWindow.clearProperty(self.tvdbProperty)
 			control.homeWindow.setProperty(self.tvdbProperty, tvdb)
-			highlight_color = control.getColor(control.setting('highlight.color'))
-			p_label = '[COLOR %s]%s (%s)[/COLOR]' % (highlight_color, title, year) if tvshowtitle is None else \
-			'[COLOR %s]%s (S%02dE%02d)[/COLOR]' % (highlight_color, tvshowtitle, int(season), int(episode))
+			p_label = '[COLOR %s]%s (%s)[/COLOR]' % (self.highlight_color, title, year) if tvshowtitle is None else \
+			'[COLOR %s]%s (S%02dE%02d)[/COLOR]' % (self.highlight_color, tvshowtitle, int(season), int(episode))
 			control.homeWindow.clearProperty(self.labelProperty)
 			control.homeWindow.setProperty(self.labelProperty, p_label)
 
@@ -135,11 +135,13 @@ class Sources:
 					control.homeWindow.clearProperty(self.itemProperty)
 					control.homeWindow.setProperty(self.itemProperty, jsdumps(items))
 					control.sleep(200)
-					control.hide()
+					# control.hide()
 					return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], quote_plus(title)))
 					# self.addItem(title)
 				elif select == '0' or select == '1': url = self.sourcesDialog(items)
-				else: url = self.sourcesAutoPlay(items)
+				else:
+					# control.hide()
+					url = self.sourcesAutoPlay(items)
 
 			if url == 'close://' or url is None:
 				self.url = url
@@ -285,7 +287,7 @@ class Sources:
 			items = [i for i in items + next + prev][:40]
 
 			header = control.homeWindow.getProperty(self.labelProperty) + ': Resolving...'
-			progressDialog = control.progressDialog if control.setting('scraper.dialog') == '0' else control.progressDialogBG
+			progressDialog = control.progressDialog if control.setting('progress.dialog') == '0' else control.progressDialogBG
 			progressDialog.create(header, '')
 
 			block = None
@@ -296,7 +298,8 @@ class Sources:
 					try:
 						if progressDialog.iscanceled(): break
 						progressDialog.update(int((100 / float(len(items))) * i), label)
-					except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label)
+					# except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label) #some skins do not support [CR] or "\n" in BG
+					except: progressDialog.update(int((100 / float(len(items))) * i), '[COLOR %s]Resolving...[/COLOR]%s' % (self.highlight_color, items[i]['name']))
 
 					if items[i]['source'] == block: raise Exception()
 					w = workers.Thread(self.sourcesResolve, items[i])
@@ -359,8 +362,8 @@ class Sources:
 
 	# @timeIt
 	def getSources(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, quality='HD', timeout=30):
-		control.hide()
-		progressDialog = control.progressDialog if control.setting('scraper.dialog') == '0' else control.progressDialogBG
+		# control.hide()
+		progressDialog = control.progressDialog if control.setting('progress.dialog') == '0' else control.progressDialogBG
 		header = control.homeWindow.getProperty(self.labelProperty) + ': Scraping...'
 		progressDialog.create(header, '')
 
@@ -421,6 +424,7 @@ class Sources:
 		total_format = '[COLOR %s][B]%s[/B][/COLOR]'
 		pdiag_format = '4K:  %s  |  1080p:  %s  |  720p:  %s  |  SD:  %s'
 
+		control.hide()
 		while True:
 			try:
 				if control.monitor.abortRequested(): return sys.exit()
@@ -476,7 +480,7 @@ class Sources:
 					current_progress = current_time - start_time
 					percent = int((current_progress / float(timeout)) * 100)
 					if progressDialog != control.progressDialogBG: progressDialog.update(max(1, percent), line1, line2, line3)
-					else: progressDialog.update(max(1, percent), line1 + string3 % str(len(info)))
+					else: progressDialog.update(max(1, percent), line1 + '  ' + string3 % str(len(info)))
 					# if len(info) == 0: break
 					if end_time < current_time: break
 				except:
@@ -875,6 +879,7 @@ class Sources:
 
 			self.sources[i]['label'] = label
 			# self.uncached_sources[i]['label'] = label
+		control.hide()
 		return self.sources
 		# return self.sources, self.uncached_sources
 
@@ -892,19 +897,19 @@ class Sources:
 						if i['hash'].lower() in b:
 							filter.remove(sublist)
 							if log_dupes:
-								log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), log_utils.LOGDEBUG)
+								log_utils.log('Removing %s - %s (DUPLICATE TORRENT) ALREADY IN :: %s' % (sublist['provider'], b, i['provider']), level=log_utils.LOGDEBUG)
 							break
 					elif a == b:
 						filter.remove(sublist)
 						if log_dupes:
-							log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), log_utils.LOGDEBUG)
+							log_utils.log('Removing %s - %s (DUPLICATE LINK) ALREADY IN :: %s' % (sublist['source'], i['url'], i['provider']), level=log_utils.LOGDEBUG)
 						break
 				except:
 					log_utils.error()
 			filter.append(i)
 		header = control.homeWindow.getProperty(self.labelProperty)
 		control.notification(title=header, message='Removed %s duplicate sources from list' % (len(self.sources) - len(filter)))
-		log_utils.log('Removed %s duplicate sources for (%s) from list' % (len(self.sources) - len(filter), control.homeWindow.getProperty(self.labelProperty)), log_utils.LOGDEBUG)
+		log_utils.log('Removed %s duplicate sources for (%s) from list' % (len(self.sources) - len(filter), control.homeWindow.getProperty(self.labelProperty)), level=log_utils.LOGDEBUG)
 		return filter
 
 
@@ -972,10 +977,11 @@ class Sources:
 			items = [items[select]]
 			items = [i for i in items + next + prev][:40]
 			header = control.homeWindow.getProperty(self.labelProperty) + ': Resolving...'
-			progressDialog = control.progressDialog if control.setting('scraper.dialog') == '0' else control.progressDialogBG
+			progressDialog = control.progressDialog if control.setting('progress.dialog') == '0' else control.progressDialogBG
 			progressDialog.create(header, '')
 
 			block = None
+			control.hide()
 			for i in range(len(items)):
 				try:
 					if items[i]['source'] == block: raise Exception()
@@ -986,7 +992,8 @@ class Sources:
 					try:
 						if progressDialog.iscanceled(): break
 						progressDialog.update(int((100 / float(len(items))) * i), label)
-					except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label)
+					# except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label) #some skins do not support [CR] or "\n" in BG
+					except: progressDialog.update(int((100 / float(len(items))) * i), '[COLOR %s]Resolving...[/COLOR]%s' % (self.highlight_color, items[i]['name']))
 
 					if 'torrent' in items[i].get('source'): offset = float('inf')
 					else: offset = 0
@@ -1017,8 +1024,7 @@ class Sources:
 							if progressDialog.iscanceled():
 								control.notification(message=32400)
 								return progressDialog.close()
-						except:
-							log_utils.error()
+						except: pass
 
 						if m == '': break
 						if not w.is_alive(): break
@@ -1046,7 +1052,7 @@ class Sources:
 			try: progressDialog.close()
 			except: pass
 			del progressDialog
-			log_utils.log('Error %s' % str(e), __name__, log_utils.LOGNOTICE)
+			log_utils.log('Error %s' % str(e), __name__, log_utils.LOGDEBUG)
 
 
 	# @timeIt
@@ -1058,18 +1064,20 @@ class Sources:
 		try:
 			# control.sleep(1000)
 			control.sleep(500)
-			if control.setting('scraper.dialog') == '0': progressDialog = control.progressDialog
+			if control.setting('progress.dialog') == '0': progressDialog = control.progressDialog
 			else: progressDialog = control.progressDialogBG
 			progressDialog.create(header, '')
 		except: pass
 
+		control.hide()
 		for i in range(len(items)):
 			label = re.sub(r' {2,}', ' ', str(items[i]['label']))
 			label = re.sub(r'\n', '', label)
 			try:
 				if progressDialog.iscanceled(): break
 				progressDialog.update(int((100 / float(len(items))) * i), label)
-			except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label)
+			# except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label) #some skins do not support [CR] or "\n" in BG
+			except: progressDialog.update(int((100 / float(len(items))) * i), '[COLOR %s]Resolving...[/COLOR]%s' % (self.highlight_color, items[i]['name']))
 			try:
 				if control.monitor.abortRequested(): return sys.exit()
 				url = self.sourcesResolve(items[i])
@@ -1133,7 +1141,7 @@ class Sources:
 				return player.Player().play(self.url)
 		except Exception as e:
 			control.hide()
-			log_utils.log('Error debridPackDialog %s' % str(e), __name__, log_utils.LOGNOTICE)
+			log_utils.log('Error debridPackDialog %s' % str(e), __name__, log_utils.LOGDEBUG)
 
 
 	def errorForSources(self):
@@ -1410,7 +1418,6 @@ class Sources:
 						total_seasons = total_seasons - 1
 			except:
 				log_utils.error()
-
 		if not is_airing:
 			try:
 				from resources.lib.indexers import tvdb_v1

@@ -60,7 +60,7 @@ msgid "New Episodes"
 msgstr ""
 
 msgctxt "#32007"
-msgid "Channels"
+msgid ""
 msgstr ""
 
 msgctxt "#32008"
@@ -736,7 +736,7 @@ msgid "Auto Play"
 msgstr ""
 
 msgctxt "#32335"
-msgid "Scraper Dialog"
+msgid "Progress Dialog (Scraping and Resolving)"
 msgstr ""
 
 msgctxt "#32336"
@@ -1004,7 +1004,7 @@ msgid "No stream available"
 msgstr ""
 
 msgctxt "#32402"
-msgid "Playback outside Venom is not allowed"
+msgid ""
 msgstr ""
 
 msgctxt "#32403"
@@ -1268,7 +1268,7 @@ msgid "Airing Today (TMDb)"
 msgstr ""
 
 msgctxt "#32468"
-msgid "Trakt On Deck"
+msgid ""
 msgstr ""
 
 msgctxt "#32469"
@@ -1412,7 +1412,7 @@ msgid "Resume"
 msgstr ""
 
 msgctxt "#32504"
-msgid "Clear [B][COLOR red]ResolveURL[/COLOR][/B] Function Cache"
+msgid ""
 msgstr ""
 
 msgctxt "#32505"
@@ -1492,15 +1492,15 @@ msgid ""
 msgstr ""
 
 msgctxt "#32532"
-msgid "Do you want to reset?"
+msgid ""
 msgstr ""
 
 msgctxt "#32533"
-msgid "1) Visit : [COLOR skyblue]%s[/COLOR]"
+msgid ""
 msgstr ""
 
 msgctxt "#32534"
-msgid "2) When prompted enter : [COLOR skyblue]%s[/COLOR]"
+msgid ""
 msgstr ""
 
 msgctxt "#32535"
@@ -1516,15 +1516,15 @@ msgid "Nothing found to play"
 msgstr ""
 
 msgctxt "#32538"
-msgid "DEBRID-SERVICE"
+msgid ""
 msgstr ""
 
 msgctxt "#32539"
-msgid "Configure Debrid Services in ResolveURL Settings."
+msgid ""
 msgstr ""
 
 msgctxt "#32540"
-msgid "[B]RESOLVEURL[/B] : Settings"
+msgid ""
 msgstr ""
 
 msgctxt "#32541"
@@ -1640,19 +1640,19 @@ msgid ""
 msgstr ""
 
 msgctxt "#32580"
-msgid "Films/TV Movies"
+msgid ""
 msgstr ""
 
 msgctxt "#32581"
-msgid "Results Limit"
+msgid ""
 msgstr ""
 
 msgctxt "#32582"
-msgid "Personal API keys provide quicker API responses."
+msgid ""
 msgstr ""
 
 msgctxt "#32583"
-msgid "Become a VIP member for many benefits at: https://fanart.tv/vip"
+msgid ""
 msgstr ""
 
 msgctxt "#32584"
@@ -1668,7 +1668,7 @@ msgid "Recently watched"
 msgstr ""
 
 msgctxt "#32587"
-msgid "Show Extra Source Info"
+msgid ""
 msgstr ""
 
 msgctxt "#32588"
@@ -1792,15 +1792,15 @@ msgid "Logging Location"
 msgstr ""
 
 msgctxt "#32618"
-msgid "Kodi Log"
+msgid "kodi.log"
 msgstr ""
 
 msgctxt "#32619"
-msgid "Addon Log"
+msgid "venom.log"
 msgstr ""
 
 msgctxt "#32620"
-msgid "Podcasts"
+msgid ""
 msgstr ""
 
 msgctxt "#32621"
@@ -1812,31 +1812,31 @@ msgid "Main Menu"
 msgstr ""
 
 msgctxt "#32623"
-msgid "Reviews and Trailers"
+msgid ""
 msgstr ""
 
 msgctxt "#32624"
-msgid "P[COLOR red]o[/COLOR]dcast[COLOR red]One[/COLOR]"
+msgid ""
 msgstr ""
 
 msgctxt "#32625"
-msgid "Featured Podcasts"
+msgid ""
 msgstr ""
 
 msgctxt "#32626"
-msgid "New Podcasts"
+msgid ""
 msgstr ""
 
 msgctxt "#32627"
-msgid "Categories"
+msgid ""
 msgstr ""
 
 msgctxt "#32628"
-msgid "[B]SETTINGS[/B] : Navigation"
+msgid ""
 msgstr ""
 
 msgctxt "#32629"
-msgid "PodBay"
+msgid ""
 msgstr ""
 
 msgctxt "#32630"
@@ -1868,7 +1868,7 @@ msgid "Minimum Seeders"
 msgstr ""
 
 msgctxt "#32639"
-msgid "Sort By Torrent/Premium"
+msgid ""
 msgstr ""
 
 msgctxt "#32640"
@@ -1876,7 +1876,7 @@ msgid ""
 msgstr ""
 
 msgctxt "#32641"
-msgid "TV Shows"
+msgid ""
 msgstr ""
 
 msgctxt "#32642"
@@ -1912,7 +1912,7 @@ msgid "Include Special Episodes (Season 0)"
 msgstr ""
 
 msgctxt "#32650"
-msgid "Powered by..."
+msgid ""
 msgstr ""
 
 msgctxt "#32651"
@@ -1924,7 +1924,7 @@ msgid "Title Already Exists in Library"
 msgstr ""
 
 msgctxt "#32653"
-msgid "Debrid Sources Only"
+msgid ""
 msgstr ""
 
 msgctxt "#32654"
@@ -3130,15 +3130,15 @@ msgid "Enable Notification Sound"
 msgstr ""
 
 msgctxt "#35528"
-msgid ""
+msgid "Log Level"
 msgstr ""
 
 msgctxt "#35529"
-msgid ""
+msgid "Normal"
 msgstr ""
 
 msgctxt "#35530"
-msgid ""
+msgid "Debug(Extra info)"
 msgstr ""
 
 msgctxt "#35531"

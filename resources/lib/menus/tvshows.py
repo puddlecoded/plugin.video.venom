@@ -6,7 +6,7 @@
 from datetime import datetime, timedelta
 from json import loads as jsloads
 import re
-import requests # retest urlopen
+import requests # seems faster than urlli2.urlopen
 import sys
 import zipfile
 try: #Py2
@@ -118,7 +118,7 @@ class TVshows:
 		def wrap(*args, **kwargs):
 			started_at = time.time()
 			result = func(*args, **kwargs)
-			log_utils.log('%s.%s = %s' % (__name__ , fnc_name, time.time() - started_at), log_utils.LOGDEBUG)
+			log_utils.log('%s.%s = %s' % (__name__ , fnc_name, time.time() - started_at), level=log_utils.LOGDEBUG)
 			return result
 		return wrap
 
@@ -1160,9 +1160,7 @@ class TVshows:
 				systitle = quote_plus(title)
 
 				meta = dict((k, v) for k, v in i.iteritems() if v != '0')
-				meta.update({'code': imdb, 'imdbnumber': imdb})
-				meta.update({'mediatype': 'tvshow'})
-				meta.update({'tag': [imdb, tvdb]})
+				meta.update({'code': imdb, 'imdbnumber': imdb, 'mediatype': 'tvshow', 'tag': [imdb, tvdb]})
 
 				if unwatchedEnabled: trakt.seasonCount(imdb) # pre-cache season counts for the listed shows
 
@@ -1187,30 +1185,16 @@ class TVshows:
 					if 'tvshowyear' not in meta: meta.update({'tvshowyear': year})
 				except: pass
 
-				poster1 = meta.get('poster')
-				poster2 = meta.get('poster2')
-				poster3 = meta.get('poster3')
-				poster = poster3 or poster2 or poster1 or addonPoster
-
+				poster = meta.get('poster3') or meta.get('poster2') or meta.get('poster') or addonPoster
 				fanart = ''
 				if settingFanart:
-					fanart1 = meta.get('fanart')
-					fanart2 = meta.get('fanart2')
-					fanart3 = meta.get('fanart3')
-					fanart = fanart3 or fanart2 or fanart1 or addonFanart
-
+					fanart = meta.get('fanart3') or meta.get('fanart2') or meta.get('fanart') or addonFanart
 				landscape = meta.get('landscape')
 				thumb = meta.get('thumb') or poster or landscape
 				icon = meta.get('icon') or poster
-
-				banner1 = meta.get('banner')
-				banner2 = meta.get('banner2')
-				banner3 = meta.get('banner3')
-				banner = banner3 or banner2 or banner1 or addonBanner
-
+				banner = meta.get('banner3') or meta.get('banner2') or meta.get('banner') or addonBanner
 				clearlogo = meta.get('clearlogo')
 				clearart = meta.get('clearart')
-
 				art = {}
 				art.update({'poster': poster, 'tvshow.poster': poster, 'season.poster': poster, 'fanart': fanart, 'icon': icon,
 									'thumb': thumb, 'banner': banner, 'clearlogo': clearlogo, 'clearart': clearart, 'landscape': landscape})
