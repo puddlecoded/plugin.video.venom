@@ -116,7 +116,6 @@ def getTraktAsJson(url, post=None, authentication=None):
 		if not r or any(val in str(r) for val in ["Bad Gateway", "We're sorry, but something went wrong (500)"]):
 			log_utils.log('Trakt Service Unavailable', __name__, log_utils.LOGDEBUG)
 			return
-		# log_utils.log('r = %s' % r, __name__, log_utils.LOGDEBUG)
 		r = utils.json_loads_as_str(r)
 		res_headers = dict((k.lower(), v) for k, v in res_headers.iteritems())
 		if 'x-sort-by' in res_headers and 'x-sort-how' in res_headers:
@@ -682,7 +681,6 @@ def syncMovies():
 	try:
 		if not getTraktCredentialsInfo(): return
 		indicators = getTraktAsJson('/users/me/watched/movies')
-		# log_utils.log('indicators = %s' % indicators, __name__, log_utils.LOGDEBUG)
 		if not indicators: return None
 		indicators = [i['movie']['ids'] for i in indicators]
 		indicators = [str(i['imdb']) for i in indicators if 'imdb' in i]
@@ -1032,10 +1030,11 @@ def SearchAll(title, year, full=True):
 		return
 
 
-def SearchMovie(title, year, full=True):
+def SearchMovie(title, year, fields=None, full=True):
 	try:
 		url = '/search/movie?query=%s' % title
 		if year: url += '&year=%s' % year
+		if fields: url += '&fields=%s' % fields
 		if full: url += '&extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except:
@@ -1043,10 +1042,11 @@ def SearchMovie(title, year, full=True):
 		return
 
 
-def SearchTVShow(title, year, full=True):
+def SearchTVShow(title, year, fields=None, full=True):
 	try:
 		url = '/search/show?query=%s' % title
 		if year: url += '&year=%s' % year
+		if fields: url += '&fields=%s' % fields
 		if full: url += '&extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except:

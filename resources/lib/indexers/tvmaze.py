@@ -5,8 +5,11 @@
 
 import re
 import requests
-try: from urllib import quote_plus
-except ImportError: from urllib.parse import quote_plus
+
+try: #Py2
+	from urllib import quote_plus
+except ImportError: #Py3
+	from urllib.parse import quote_plus
 
 from resources.lib.modules import cache
 from resources.lib.modules import cleantitle
@@ -285,8 +288,7 @@ class tvshows:
 			return
 
 		def items_list(i):
-			# if i['metacache']:
-				# return
+			# if i['metacache']: return
 			try:
 				tvmaze = i
 				url = self.tvmaze_info_link % i
@@ -298,18 +300,13 @@ class tvshows:
 				except: title = item.get('name')
 
 				premiered = item.get('premiered', '0')
-
-				year = str(item.get('premiered', '0'))
-				if year is not None and year != 'None' and year != '0':
-					year = re.search(r"(\d{4})", year).group(1)
-				else: year = '0'
+				try: year = re.search(r"(\d{4})", premiered).group(1)
+				except: year = '0'
 
 				imdb = item.get('externals').get('imdb', '0')
 				if not imdb or imdb == 'None': imdb = '0'
-
 				tvdb = str(item.get('externals').get('thetvdb', '0'))
 				if not tvdb or tvdb == 'None': tvdb = '0'
-
 				# TVMaze does not have tmdb_id in api
 				tmdb = '0'
 
@@ -326,7 +323,9 @@ class tvshows:
 				rating = str(item.get('rating').get('average', '0'))
 
 				plot = item.get('summary', '0')
-				if plot: plot = re.sub(r'<.+?>|</.+?>|\n', '', plot)
+				# if plot: plot = re.sub(r'<.+?>|</.+?>|\n', '', plot)
+				try: plot = client.cleanHTML(plot)
+				except: pass
 
 				status = item.get('status', '0')
 
@@ -357,14 +356,12 @@ class tvshows:
 					if trakt_ids:
 						if imdb == '0':
 							imdb = str(trakt_ids.get('imdb', '0'))
-							if imdb == '' or imdb is None or imdb == 'None':
-								imdb = '0'
+							if not imdb or imdb == 'None': imdb = '0'
 						if tmdb == '0':
 							tmdb = str(trakt_ids.get('tmdb', '0'))
-							if tmdb == '' or tmdb is None or tmdb == 'None':
-								tmdb = '0'
+							if not tmdb or tmdb == 'None': tmdb = '0'
 
-###--Check TVDb by IMDB_ID for missing ID's
+###--Check TVDb by IMDB_ID for missing ID
 				if tvdb == '0' and imdb != '0':
 					try:
 						url = self.tvdb_by_imdb % imdb
@@ -437,16 +434,16 @@ class tvshows:
 
 					if rating == '0':
 						rating = client.parseDOM(item3, 'Rating')[0] or '0'
-
 					votes = client.parseDOM(item3, 'RatingCount')[0] or '0'
 
 					if status == '0':
 						status = client.parseDOM(item3, 'Status')[0] or '0'
 
+					if premiered == '0':
+						premiered = client.parseDOM(item3, 'FirstAired')[0] or '0'
 					if year == '0':
-						year = client.parseDOM(item3, 'FirstAired')[0] or '0'
-						if year != '0':
-							year = re.compile(r'(\d{4})').findall(year)[0] or '0'
+						try: year = re.compile(r'(\d{4})').findall(premiered)[0]
+						except: year = '0'
 
 					if not plot:
 						plot = client.parseDOM(item3, 'Overview')[0] or '0'
@@ -455,7 +452,6 @@ class tvshows:
 						except: pass
 
 					airday = client.parseDOM(item3, 'Airs_DayOfWeek')[0] or '0'
-					# log_utils.log('airday = %s' % str(airday), __name__, log_utils.LOGDEBUG)
 					airtime = client.parseDOM(item3, 'Airs_Time')[0] or '0'
 
 				item = {}
@@ -516,8 +512,10 @@ class tvshows:
 	def show_lookup(self, tvdb):
 		url = '%s%s' % (self.base_link, '/lookup/shows?thetvdb=%s' % tvdb)
 		response = get_request(url)
+		return response['id']
+
+
+	def get_full_series(self, tvmaze):
+		url = '%s%s' % (self.base_link, '/shows/%s?embed[]=seasons&embed[]=episodes&embed[]=cast&embed[]=images' % tvmaze)
+		response = get_request(url)
 		return response
-
-
-
-

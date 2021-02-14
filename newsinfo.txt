@@ -1,19 +1,19 @@
-[B][COLOR red]Jan. 23, 2021[/COLOR][/B]
-[COLOR yellow]--[/COLOR][I] Some of you may have heard that TVDB will be going to a paid
-    only sub for access to their api.  This would mean every user,
-    using an addon that utilizes TVDB's api, would be required to
-    pay this fee.  That is the smallest part of the problem. TVDB
-    will also deprecate all prior api versions.  Most exo forks utilize
-    TVDB's v1 api.  This would mean those addons would be
-    required to recode their addon for TVDB v4 api(json vs. xml)
-    and each user pays a $12/yr fee, or the developer recode to
-    utilize another meta provider for TVShow data.  Frankly my
-    position, at this moment, is I'm not going to deal with it and call
-    it a day.  It's not a matter of can I but more a matter if I have the
-    ambitions to spend my free time doing the work it will require.
-    Honestly after two years my ambitions have declined.  So at this
-    time it's safe to say that at the end of March Venom will cease to
-    exist.  It would still work for movies but shows will no longer work.
-    Unless TVDB changes their position on the matter that is the best
-    and honest answer I can give people without leaving them in the
+[B][COLOR red]Jan. 23, 2021[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Some of you may have heard that TVDB will be going to a paid
+    only sub for access to their api.  This would mean every user,
+    using an addon that utilizes TVDB's api, would be required to
+    pay this fee.  That is the smallest part of the problem. TVDB
+    will also deprecate all prior api versions.  Most exo forks utilize
+    TVDB's v1 api.  This would mean those addons would be
+    required to recode their addon for TVDB v4 api(json vs. xml)
+    and each user pays a $12/yr fee, or the developer recode to
+    utilize another meta provider for TVShow data.  Frankly my
+    position, at this moment, is I'm not going to deal with it and call
+    it a day.  It's not a matter of can I but more a matter if I have the
+    ambitions to spend my free time doing the work it will require.
+    Honestly after two years my ambitions have declined.  So at this
+    time it's safe to say that at the end of March Venom will cease to
+    exist.  It would still work for movies but shows will no longer work.
+    Unless TVDB changes their position on the matter that is the best
+    and honest answer I can give people without leaving them in the
     dark what is to come.[/I]

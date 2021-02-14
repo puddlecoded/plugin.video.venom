@@ -48,16 +48,13 @@ def get_request(url):
 		control.notification(message='FANART.TV server Problems')
 		log_utils.error()
 		return None
-
 	if '200' in str(result):
 		# if '/tt' in url:
 			# log_utils.log('requests.get() found - FANART.TV URL: %s (FOUND in IMDB)' % url, level=log_utils.LOGDEBUG)
 		return result.json() 
-
 	elif 'Not found' in str(result.text):
 		log_utils.log('requests.get() failed - FANART.TV URL: %s (NOT FOUND)' % url, level=log_utils.LOGDEBUG)
 		return None
-
 	else:
 		title = client.parseDOM(result.text, 'title')[0]
 		log_utils.log('requests.get() failed - FANART.TV URL: %s (%s)' % (url, title), level=log_utils.LOGDEBUG)
@@ -65,13 +62,10 @@ def get_request(url):
 
 
 def parse_art(img):
-	if not img:
-		return None
+	if not img: return None
 	try:
 		ret_img = [(x['url'], x['likes']) for x in img if any(value == x.get('lang') for value in [lang, '00', ''])]
-		if not ret_img:
-			# log_utils.log('no matching artwork in %s' % img, level=log_utils.LOGDEBUG)
-			return None
+		if not ret_img: return None
 		if len(ret_img) >1:
 			ret_img = sorted(ret_img, key=lambda x: int(x[1]), reverse=True)
 		ret_img = [x[0] for x in ret_img][0]
@@ -79,6 +73,40 @@ def parse_art(img):
 		log_utils.error()
 		return None
 	return ret_img
+
+
+# def parse_art(img):
+	# if not img: return None
+	# try:
+		# ret_img = [(x['url'], x['likes'], x['lang']) for x in img if any(value == x.get('lang') for value in [lang, '00', ''])]
+		# if not ret_img: return None
+		# if len(ret_img) >1:
+			# ret_img = sorted(ret_img, key=lambda x: (int(x[1]), x[2]), reverse=True) # this secondary sorts by lang
+		# ret_img = [x[0] for x in ret_img][0]
+	# except:
+		# log_utils.error()
+		# return None
+	# return ret_img
+
+
+# def parse_art(img):
+	# if not img: return None
+	# ret_img = []
+	# try:
+		# ret_img1 = [(x['url'], x['likes']) for x in img if x.get('lang') == lang]
+		# if len(ret_img1) >1:
+			# ret_img1 = sorted(ret_img1, key=lambda x: int(x[1]), reverse=True)
+		# ret_img2 = [(x['url'], x['likes']) for x in img if any(value == x.get('lang') for value in ['00', ''])]
+		# if len(ret_img2) >1:
+			# ret_img2 = sorted(ret_img2, key=lambda x: int(x[1]), reverse=True)
+		# ret_img += ret_img1
+		# ret_img += ret_img2 # this would make sure all set lang is first and "00" or '' last
+		# if not ret_img: return None
+		# ret_img = [x[0] for x in ret_img][0]
+	# except:
+		# log_utils.error()
+		# return None
+	# return ret_img
 
 
 def get_movie_art(imdb, tmdb):
@@ -91,10 +119,8 @@ def get_movie_art(imdb, tmdb):
 
 	try:
 		if 'movieposter' not in art: raise Exception()
-		poster2 = art['movieposter']
-		poster2 = parse_art(poster2)
-	except:
-		poster2 = '0'
+		poster2 = parse_art(art['movieposter'])
+	except: poster2 = '0'
 
 	try:
 		if 'moviebackground' in art:
@@ -103,15 +129,12 @@ def get_movie_art(imdb, tmdb):
 			if 'moviethumb' not in art: raise Exception()
 			fanart2 = art['moviethumb']
 		fanart2 = parse_art(fanart2)
-	except:
-		fanart2 = '0'
+	except: fanart2 = '0'
 
 	try:
 		if 'moviebanner' not in art: raise Exception()
-		banner2 = art['moviebanner']
-		banner2 = parse_art(banner2)
-	except:
-		banner2 = '0'
+		banner2 = parse_art(art['moviebanner'])
+	except: banner2 = '0'
 
 	try:
 		if 'hdmovielogo' in art:
@@ -120,8 +143,7 @@ def get_movie_art(imdb, tmdb):
 			if 'movielogo' not in art: raise Exception()
 			clearlogo = art['movielogo']
 		clearlogo = parse_art(clearlogo)
-	except:
-		clearlogo = '0'
+	except: clearlogo = '0'
 
 	try:
 		if 'hdmovieclearart' in art:
@@ -130,15 +152,12 @@ def get_movie_art(imdb, tmdb):
 			if 'movieart' not in art: raise Exception()
 			clearart = art['movieart']
 		clearart = parse_art(clearart)
-	except:
-		clearart = '0'
+	except: clearart = '0'
 
 	try:
 		if 'moviedisc' not in art: raise Exception()
-		discart = art['moviedisc']
-		discart = parse_art(discart)
-	except:
-		discart = '0'
+		discart = parse_art(art['moviedisc'])
+	except: discart = '0'
 
 	try:
 		if 'moviethumb' in art:
@@ -147,8 +166,7 @@ def get_movie_art(imdb, tmdb):
 			if 'moviebackground' not in art: raise Exception()
 			landscape = art['moviebackground']
 		landscape = parse_art(landscape)
-	except:
-		landscape = '0'
+	except: landscape = '0'
 
 	# try:
 		# keyart = art['movieposter']
@@ -171,24 +189,23 @@ def get_tvshow_art(tvdb):
 
 	try:
 		if 'tvposter' not in art: raise Exception()
-		poster2 = art['tvposter']
-		poster2 = parse_art(poster2)
-	except:
-		poster2 = '0'
+		poster2 = parse_art(art['tvposter'])
+	except: poster2 = '0'
+
+	# try:
+		# if 'seasonposter' not in art: raise Exception()
+		# seasonposter2 = parse_art(art['seasonposter'])
+	# except: seasonposter2 = '0'
 
 	try:
 		if 'showbackground' not in art: raise Exception()
-		fanart2 = art['showbackground']
-		fanart2 = parse_art(fanart2)
-	except:
-		fanart2= '0'
+		fanart2 = parse_art(art['showbackground'])
+	except: fanart2= '0'
 
 	try:
 		if 'tvbanner' not in art: raise Exception()
-		banner2 = art['tvbanner']
-		banner2 = parse_art(banner2)
-	except:
-		banner2 = '0'
+		banner2 = parse_art(art['tvbanner'])
+	except: banner2 = '0'
 
 	try:
 		if 'hdtvlogo' in art:
@@ -197,8 +214,7 @@ def get_tvshow_art(tvdb):
 			if 'clearlogo' not in art: raise Exception()
 			clearlogo = art['clearlogo']
 		clearlogo = parse_art(clearlogo)
-	except:
-		clearlogo = '0'
+	except: clearlogo = '0'
 
 	try:
 		if 'hdclearart' in art:
@@ -207,8 +223,7 @@ def get_tvshow_art(tvdb):
 			if 'clearart' not in art: raise Exception()
 			clearart = art['clearart']
 		clearart = parse_art(clearart)
-	except:
-		clearart = '0'
+	except: clearart = '0'
 
 	try:
 		if 'tvthumb' in art:
@@ -217,7 +232,6 @@ def get_tvshow_art(tvdb):
 			if 'showbackground' not in art: raise Exception()
 			landscape = art['showbackground']
 		landscape = parse_art(landscape)
-	except:
-		landscape = '0'
+	except: landscape = '0'
 	extended_art = {'extended': True, 'poster2': poster2, 'banner2': banner2, 'fanart2': fanart2, 'clearlogo': clearlogo, 'clearart': clearart, 'landscape': landscape}
 	return extended_art

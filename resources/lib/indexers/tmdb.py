@@ -8,7 +8,6 @@ import requests
 
 from resources.lib.modules import control
 from resources.lib.modules import cache
-from resources.lib.modules import client
 from resources.lib.modules import metacache
 from resources.lib.modules import workers
 from resources.lib.modules import log_utils
@@ -80,7 +79,6 @@ def popular_people(url):
 	url = '%s%s' % (base_link, 'person/popular?api_key=%s&language=en-US&page=1' % API_key)
 
 
-
 def tmdb_sort():
 	sort = int(control.setting('sort.movies.type'))
 	tmdb_sort = 'original_order'
@@ -110,7 +108,7 @@ class Movies:
 			items = result['results']
 		except: return
 
-		list = [] ; sortList = []
+		self.list = [] ; sortList = []
 		try:
 			page = int(result['page'])
 			total = int(result['total_pages'])
@@ -120,49 +118,44 @@ class Movies:
 		except: next = ''
 
 		for item in items:
-			try: title = item.get('title').encode('utf-8')
-			except: title = item.get('title')
+			try:
+				try: title = item.get('title').encode('utf-8')
+				except: title = item.get('title')
 
-			try: originaltitle = item.get('original_title').encode('utf-8')
-			except: originaltitle = title
+				try: originaltitle = item.get('original_title').encode('utf-8')
+				except: originaltitle = title
 
-			year = str(item.get('release_date')[:4])
-			tmdb = str(item.get('id'))
-			sortList.append(tmdb)
+				premiered = item.get('release_date', '0')
+				try: year = str(premiered[:4])
+				except: year = '0'
 
-			poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
-			fanart = '%s%s' % (fanart_path, item['backdrop_path']) if item['backdrop_path'] else '0'
+				tmdb = str(item.get('id'))
+				sortList.append(tmdb)
 
-			premiered = item.get('release_date')
+				poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
+				fanart = '%s%s' % (fanart_path, item['backdrop_path']) if item['backdrop_path'] else '0'
 
-			rating = str(item.get('vote_average', '0'))
-			votes = str(format(int(item.get('vote_count', '0')),',d'))
+				rating = str(item.get('vote_average', '0'))
+				votes = str(format(int(item.get('vote_count', '0')),',d'))
 
-			plot = item.get('overview')
+				plot = item.get('overview')
 
-			# try:
-				# tagline = item.get('tagline', '0')
-				# if tagline == '' or tagline == '0' or tagline is None:
-					# tagline = re.compile(r'[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			# except: tagline = '0'
-			tagline = '0'
-
-			values = {'next': next, 'title': title, 'originaltitle': originaltitle, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
-							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'tagline': tagline, 'metacache': False}
-			self.list.append(values)
+				values = {'next': next, 'title': title, 'originaltitle': originaltitle, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
+								'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'metacache': False}
+				self.list.append(values)
+			except:
+				log_utils.error()
 
 		def items_list(i):
 			if i['metacache']: return
 			try:
-				next, title, originaltitle, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = \
-					i['next'], i['title'], i['originaltitle'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
-
+				next, title, originaltitle, year, tmdb, poster, fanart, premiered, rating, votes, plot = \
+					i['next'], i['title'], i['originaltitle'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot']
 				url = self.details_link % tmdb
-				item =  get_request(url)
+				item = get_request(url)
 
 				imdb = item.get('imdb_id', '0')
-				if imdb == '' or imdb is None or imdb == 'None':
-					imdb = '0'
+				if not imdb or imdb == 'None': imdb = '0'
 
 				# try: studio = item.get('production_companies', None)[0]['name']
 				# except: studio = '0'
@@ -173,6 +166,7 @@ class Movies:
 
 				duration = str(item.get('runtime', '0'))
 				if duration == 'None': duration = '0'
+
 				mpaa = item['release_dates']['results']
 				mpaa = [x for x in mpaa if x['iso_3166_1'] == 'US']
 				try:
@@ -207,7 +201,7 @@ class Movies:
 
 				values = {'content': 'movie', 'title': title, 'originaltitle': originaltitle, 'year': year, 'premiered': premiered,
 							'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa, 'director': director, 'writer': writer,
-							'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'poster': poster,
+							'castandart': castandart, 'plot': plot, 'code': tmdb, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'poster': poster,
 							'poster2': '0', 'poster3': '0', 'banner': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0',
 							'landscape': fanart, 'mediatype': 'movie', 'trailer': trailer, 'metacache': False, 'next': next}
 				meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'lang': self.lang, 'user': API_key, 'item': values}
@@ -252,11 +246,9 @@ class Movies:
 			result = get_request(url)
 			if '/3/' in url: items = result['items']
 			else: items = result['results']
-		except:
-			log_utils.error()
-			return
+		except: return
 
-		list = []
+		self.list = []
 		try:
 			page = int(result['page'])
 			total = int(result['total_pages'])
@@ -266,48 +258,46 @@ class Movies:
 		except: next = ''
 
 		for item in items:
-			media_type = item.get('media_type', '0')
-			if media_type == 'tv': continue
+			try:
+				media_type = item.get('media_type', '0')
+				if media_type == 'tv': continue
 
-			try: title = item.get('title').encode('utf-8')
-			except: title = item.get('title')
+				try: title = item.get('title').encode('utf-8')
+				except: title = item.get('title')
 
-			try: originaltitle = item.get('original_title').encode('utf-8')
-			except: originaltitle = title
+				try: originaltitle = item.get('original_title').encode('utf-8')
+				except: originaltitle = title
 
-			year = str(item.get('release_date')[:4])
-			tmdb = str(item.get('id'))
+				premiered = item.get('release_date', '0')
+				try: year = str(premiered[:4])
+				except: year = '0'
 
-			poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
-			fanart = '%s%s' % (fanart_path, item['backdrop_path']) if item['backdrop_path'] else '0'
+				tmdb = str(item.get('id'))
 
-			premiered = item.get('release_date')
+				poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
+				fanart = '%s%s' % (fanart_path, item['backdrop_path']) if item['backdrop_path'] else '0'
 
-			rating = str(item.get('vote_average', '0'))
-			votes = str(format(int(item.get('vote_count', '0')),',d'))
+				rating = str(item.get('vote_average', '0'))
+				votes = str(format(int(item.get('vote_count', '0')),',d'))
 
-			plot = item.get('overview')
+				plot = item.get('overview')
 
-			# try:
-				# tagline = item.get('tagline', '0')
-				# if tagline == '' or tagline == '0' or tagline is None:
-					# tagline = re.compile(r'[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			# except: tagline = '0'
-			tagline = '0'
-
-			values = {'next': next, 'title': title, 'originaltitle': originaltitle, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
-							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'tagline': tagline}
-			list.append(values)
+				values = {'next': next, 'title': title, 'originaltitle': originaltitle, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
+								'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'metacache': False}
+				self.list.append(values)
+			except:
+				log_utils.error()
 
 		def items_list(i):
+			if i['metacache']: return
 			try:
-				next, title, originaltitle, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = i['next'], i['title'], i['originaltitle'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
+				next, title, originaltitle, year, tmdb, poster, fanart, premiered, rating, votes, plot = \
+					i['next'], i['title'], i['originaltitle'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot']
 				url = self.details_link % tmdb
 				item = get_request(url)
 
 				imdb = item.get('imdb_id', '0')
-				if imdb == '' or imdb is None or imdb == 'None':
-					imdb = '0'
+				if not imdb or imdb == 'None': imdb = '0'
 
 				# try: studio = item.get('production_companies', None)[0]['name']
 				# except: studio = '0'
@@ -353,7 +343,7 @@ class Movies:
 
 				values = {'content': 'movie', 'title': title, 'originaltitle': originaltitle, 'year': year, 'premiered': premiered,
 							'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa, 'director': director, 'writer': writer,
-							'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'poster': poster,
+							'castandart': castandart, 'plot': plot, 'code': tmdb, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'poster': poster,
 							'poster2': '0', 'poster3': '0', 'banner': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0',
 							'landscape': fanart, 'mediatype': 'movie', 'trailer': trailer, 'metacache': False, 'next': next}
 				meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': '0', 'lang': self.lang, 'user': API_key, 'item': values}
@@ -366,17 +356,21 @@ class Movies:
 						meta.update(values)
 
 				values = dict((k,v) for k, v in values.iteritems() if v != '0')
-				self.list.append(values)
 
-				if 'next' in meta.get('item'):
-					del meta['item']['next']
+				for i in range(0, len(self.list)):
+					if str(self.list[i]['tmdb']) == str(tmdb):
+						self.list[i].update(values)
+
+				if 'next' in meta.get('item'): del meta['item']['next']
 
 				self.meta.append(meta)
 				metacache.insert(self.meta)
 			except:
 				log_utils.error()
 
-		items = list[:len(list)]
+		self.list = metacache.fetch(self.list, self.lang, API_key)
+		items = self.list[:len(self.list)]
+
 		threads = []
 		for i in items:
 			threads.append(workers.Thread(items_list, i))
@@ -389,7 +383,7 @@ class Movies:
 		item = None
 		if tmdb != '0': item = get_request(self.details_link % tmdb)
 		if not item:
-			if imdb != '0': item = get_request(self.details_link % imdb) #api claims int rq'd but works with imdb_id
+			if imdb != '0': item = get_request(self.details_link % imdb) # api claims int rq'd.  But imdb_id works for movies but not looking like it does for shows
 		return item
 
 
@@ -402,7 +396,7 @@ class Movies:
 
 
 	def get_art(self, tmdb):
-		if API_key == '' or (tmdb == '0' or tmdb == 'None' or tmdb is None): return None
+		if API_key == '' or (not tmdb or tmdb == '0' or tmdb == 'None'): return None
 		art3 = get_request(self.art_link % tmdb)
 		if not art3: return None
 		try:
@@ -424,8 +418,8 @@ class Movies:
 
 
 	def get_credits(self, tmdb):
+		if API_key == '' or (not tmdb or tmdb == '0' or tmdb == 'None'): return None
 		url = base_link + 'movie/%s/credits?api_key=%s' % ('%s', API_key)
-		if API_key == '' or (tmdb == '0' or tmdb is None): return None
 		people = get_request(url % tmdb)
 		if not people: return None
 		return people
@@ -464,48 +458,38 @@ class TVshows:
 			try: title = item.get('name').encode('utf-8')
 			except: title = item.get('name')
 
-			year = str(item.get('first_air_date')[:4])
-
 			tmdb = str(item.get('id'))
 			sortList.append(tmdb)
 
 			poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
 			fanart = '%s%s' % (fanart_path, item['backdrop_path']) if item['backdrop_path'] else '0'
 
-			premiered = item.get('first_air_date')
+			premiered = item.get('first_air_date', '0')
+			try: year = str(premiered[:4])
+			except: year = '0'
 
 			rating = str(item.get('vote_average', '0'))
 			votes = str(format(int(item.get('vote_count', '0')),',d'))
 
 			plot = item.get('overview')
 
-			# try:
-				# tagline = item.get('tagline', '0')
-				# if tagline == '' or tagline == '0' or tagline is None:
-					# tagline = re.compile(r'[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			# except: tagline = '0'
-			tagline = '0'
-
 			values = {'next': next, 'title': title, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
-							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'tagline': tagline}
+							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot}
 			list.append(values)
 
-
 		def items_list(i):
+			# if i['metacache']: return
 			try:
-				next, title, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = \
-					i['next'], i['title'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
-
+				next, title, year, tmdb, poster, fanart, premiered, rating, votes, plot = \
+					i['next'], i['title'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot']
 				url = self.details_link % tmdb
 				item = get_request(url)
 
 				tvdb = str(item.get('external_ids').get('tvdb_id', '0'))
-				if tvdb == '' or tvdb is None or tvdb == 'None':
-					tvdb = '0'
+				if not tvdb or tvdb == 'None': tvdb = '0'
 
 				imdb = item.get('external_ids').get('imdb_id', '0')
-				if imdb == '' or imdb is None or imdb == 'None':
-					imdb = '0'
+				if not imdb or imdb == 'None': imdb = '0'
 
 				genre = []
 				for x in item['genres']: genre.append(x.get('name'))
@@ -545,9 +529,9 @@ class TVshows:
 					if len(castandart) == 150: break
 
 				values = {'content': 'tvshow', 'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating,
-								'votes': votes, 'mpaa': mpaa, 'status': status, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb,
-								'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'poster2': '0', 'banner': '0', 'banner2': '0', 'fanart': fanart, 'fanart2': '0', 'clearlogo': '0', 'clearart': '0', 'landscape': fanart,
-								'total_seasons': total_seasons, 'metacache': False, 'next': next}
+								'votes': votes, 'mpaa': mpaa, 'status': status, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': plot, 'code': tmdb, 'imdb': imdb,
+								'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'poster2': '0', 'poster3': '0', 'banner': '0', 'banner2': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0',
+								'landscape': fanart, 'total_seasons': total_seasons, 'metacache': False, 'next': next}
 				meta = {'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'lang': self.lang, 'user': self.user, 'item': values}
 
 				if disable_fanarttv != 'true':
@@ -605,57 +589,48 @@ class TVshows:
 			try: title = item.get('name').encode('utf-8')
 			except: title = item.get('name')
 
-			year = str(item.get('first_air_date')[:4])
-
 			tmdb = str(item.get('id'))
 			sortList.append(tmdb)
 
 			poster = '%s%s' % (poster_path, item['poster_path']) if item['poster_path'] else '0'
 			fanart = '%s%s' % (fanart_path, item['backdrop_path']) if item['backdrop_path'] else '0'
 
-			premiered = item.get('first_air_date')
+			premiered = item.get('first_air_date', '0')
+			try: year = str(premiered[:4])
+			except: year = '0'
 
 			rating = str(item.get('vote_average', '0'))
 			votes = str(format(int(item.get('vote_count', '0')),',d'))
 
-			plot = (item.get('overview'))
-
-			# try:
-				# tagline = item.get('tagline', '0')
-				# if tagline == '' or tagline == '0' or tagline is None:
-					# tagline = re.compile(r'[.!?][\s]{1,2}(?=[A-Z])').split(plot)[0]
-			# except:
-				# tagline = '0'
-			tagline = '0'
+			plot = item.get('overview')
 
 			values = {'next': next, 'title': title, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
-							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot, 'tagline': tagline}
+							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot}
 			list.append(values)
 
 		def items_list(i):
+			# if i['metacache']: return
 			try:
-				next, title, year, tmdb, poster, fanart, premiered, rating, votes, plot, tagline = i['next'], i['title'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot'], i['tagline']
-
+				next, title, year, tmdb, poster, fanart, premiered, rating, votes, plot = \
+					i['next'], i['title'], i['year'], i['tmdb'], i['poster'], i['fanart'], i['premiered'], i['rating'], i['votes'], i['plot']
 				url = self.details_link % tmdb
 				item = get_request(url)
 
 				tvdb = str(item.get('external_ids').get('tvdb_id', '0'))
-				if tvdb == '' or tvdb is None or tvdb == 'None':
-					tvdb = '0'
+				if not tvdb or tvdb == 'None': tvdb = '0'
 
 				imdb = item.get('external_ids').get('imdb_id', '0')
-				if imdb == '' or imdb is None or imdb == 'None':
-					imdb = '0'
+				if not imdb or imdb == 'None': imdb = '0'
 
 				genre = []
-				for i in item['genres']: genre.append(i.get('name'))
+				for x in item['genres']: genre.append(x.get('name'))
 				if genre == []: genre = 'NA'
 
-				try: duration = str(item.get('episode_run_time', '0'))
+				try: duration = str(item.get('episode_run_time', '0')[0])
 				except: duration = '0'
 				if duration == 'None': duration = '0'
 
-				try: mpaa = [i['rating'] for i in item['content_ratings']['results'] if i['iso_3166_1'] == 'US'][0]
+				try: mpaa = [x['rating'] for x in item['content_ratings']['results'] if x['iso_3166_1'] == 'US'][0]
 				except: 
 					try: mpaa = item['content_ratings'][0]['rating']
 					except: mpaa = 'NR'
@@ -664,6 +639,9 @@ class TVshows:
 
 				try: studio = item.get('networks', None)[0]['name']
 				except: studio = '0'
+
+				try: total_seasons = int(item.get('number_of_seasons', ''))
+				except: total_seasons = 0
 
 				credits = item['credits']
 				director = writer = '0'
@@ -681,9 +659,10 @@ class TVshows:
 					except: castandart = []
 					if len(castandart) == 150: break
 
-				values = {'content': 'tvshow', 'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes,
-								'mpaa': mpaa, 'status': status, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': plot, 'tagline': tagline, 'code': tmdb, 'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster,
-								'poster2': '0', 'poster3': '0', 'banner': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0', 'landscape': fanart, 'metacache': False, 'next': next}
+				values = {'content': 'tvshow', 'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating,
+								'votes': votes, 'mpaa': mpaa, 'status': status, 'director': director, 'writer': writer, 'castandart': castandart, 'plot': plot, 'code': tmdb, 'imdb': imdb,
+								'tmdb': tmdb, 'tvdb': tvdb, 'poster': poster, 'poster2': '0', 'poster3': '0', 'banner': '0', 'banner2': '0', 'fanart': fanart, 'fanart2': '0', 'fanart3': '0', 'clearlogo': '0', 'clearart': '0',
+								'landscape': fanart, 'total_seasons': total_seasons, 'metacache': False, 'next': next}
 				meta = {'imdb': imdb, 'tmdb': tmdb, 'tvdb': tvdb, 'lang': self.lang, 'user': self.user, 'item': values}
 
 				if disable_fanarttv != 'true':
@@ -720,7 +699,7 @@ class TVshows:
 		item = None
 		if tmdb != '0': item = get_request(self.details_link % tmdb)
 		if not item:
-			if imdb != '0': item = get_request(self.details_link % imdb) #api claims int rq'd.  Works for movies but not looking like it does for shows
+			if imdb != '0': item = get_request(self.details_link % imdb) # api claims int rq'd.  But imdb_id works for movies but not looking like it does for shows
 		return item
 
 
@@ -729,12 +708,12 @@ class TVshows:
 		url = '%s%s' % (base_link, 'tv/%s/season/%s?api_key=%s&language=%s,en-US&append_to_response=credits' % ('%s', season, API_key, self.lang))
 		if tmdb != '0': item = get_request(url % tmdb)
 		if not item:
-			if imdb != '0': item = get_request(url % imdb) #api claims int rq'd.  Works for movies but not looking like it does for shows
+			if imdb != '0': item = get_request(url % imdb) # api claims int rq'd.  But imdb_id works for movies but not looking like it does for shows
 		return item
 
 
 	def get_art(self, tmdb):
-		if API_key == '' or (tmdb == '0' or tmdb == 'None' or tmdb is None): return None
+		if API_key == '' or (not tmdb or tmdb == '0' or tmdb == 'None'): return None
 		art3 = get_request(self.art_link % tmdb)
 		if not art3: return None
 		try:
@@ -756,8 +735,8 @@ class TVshows:
 
 
 	def get_credits(self, tmdb):
+		if API_key == '' or (not tmdb or tmdb == '0' or tmdb == 'None'): return None
 		url = base_link + 'tv/%s/credits?api_key=%s' % ('%s', API_key)
-		if API_key == '' or (tmdb == '0' or tmdb is None): return None
 		people = get_request(url % tmdb)
 		if not people: return None
 		return people

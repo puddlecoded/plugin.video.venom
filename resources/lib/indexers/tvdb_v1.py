@@ -30,29 +30,39 @@ user = str(imdb_user) + str(api_key)
 baseUrl = 'https://thetvdb.com'
 info_link = '%s/api/%s/series/%s/%s.xml' % (baseUrl, api_key.decode('base64'), '%s', '%s')
 all_info_link = '%s/api/%s/series/%s/all/%s.xml' % (baseUrl, api_key.decode('base64'), '%s', '%s')
-
 zip_link = '%s/api/%s/series/%s/all/%s.zip' % (baseUrl, api_key.decode('base64'), '%s', '%s')
 by_imdb = '%s/api/GetSeriesByRemoteID.php?imdbid=%s' % (baseUrl, '%s')
 by_seriesname = '%s/api/GetSeries.php?seriesname=%s' % (baseUrl, '%s')
-
 imageUrl = '%s/banners/' % baseUrl
 tvdb_poster = '%s/banners/_cache/' % baseUrl
 
-date_time = (datetime.utcnow() - timedelta(hours = 5))
+date_time = (datetime.utcnow() - timedelta(hours=5))
 today_date = (date_time).strftime('%Y-%m-%d')
 
 
-def getZip(tvdb):
+def getZip(tvdb, art_xml=None, actors_xml=None):
 	url = zip_link % (tvdb, lang)
 	try:
 		# data = urlopen(url, timeout=30).read()
 		data = requests.get(url, timeout=30).content
 		zip = zipfile.ZipFile(StringIO(data))
 		result = zip.read('%s.xml' % lang)
-		artwork = zip.read('banners.xml')
-		actors = zip.read('actors.xml')
-		zip.close()
-		return (result, artwork, actors)
+		if not art_xml and not actors_xml:
+			zip.close()
+			return result
+		elif art_xml and not actors_xml:
+			artwork = zip.read('banners.xml')
+			zip.close()
+			return (result, artwork)
+		elif actors_xml and not art_xml:
+			actors = zip.read('actors.xml')
+			zip.close()
+			return (result, actors)
+		else:
+			artwork = zip.read('banners.xml')
+			actors = zip.read('actors.xml')
+			zip.close()
+			return (result, artwork, actors)
 	except:
 		log_utils.error()
 		return None
@@ -671,12 +681,13 @@ def getSeries_ByIMDB(title, year, imdb):
 			item = [(x[0], x[1], x[2], x[3]) for x in result if cleantitle.get(title) == cleantitle.get(str(x[3][0]))]
 		if item == []:
 			item = [(x[0], x[1], x[2], x[3]) for x in result if cleantitle.get(title) == cleantitle.get(str(x[0][0]))]
-		if item == []: return None
+		if item == []: return '0'
 		tvdb = item[0][2]
 		tvdb = tvdb[0] or '0'
 		return tvdb
 	except:
 		log_utils.error()
+	return '0'
 
 
 def getSeries_ByName(title, year):
@@ -695,13 +706,11 @@ def getSeries_ByName(title, year):
 		if item == []:
 			item = [(x[0], x[1], x[2], x[3], x[4]) for x in result if cleantitle.get(title) == cleantitle.get(str(x[0][0]))]
 		if item == []: return None
-		if tvdb == '0':
-			tvdb = item[0][2]
-			tvdb = tvdb[0] or '0'
-		if imdb == '0':
-			imdb = item[0][3]
-			imdb = imdb[0] or '0'
-		return (tvdb, imdb)
+		tvdb = item[0][2]
+		tvdb = tvdb[0] or '0'
+		imdb = item[0][3]
+		imdb = imdb[0] or '0'
+		return {'tvdb': tvdb, 'imdb': imdb}
 	except:
 		log_utils.error()
 

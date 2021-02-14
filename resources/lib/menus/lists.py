@@ -888,7 +888,7 @@ class indexer:
 			if not rating == '0': self.list[i].update({'rating': rating})
 
 			plot = item['summary']
-			if plot == '' or plot is None: plot = '0'
+			if not plot: plot = '0'
 			plot = re.sub(r'\n|<.+?>|</.+?>|.+?#\d*:', '', plot)
 			plot = plot.encode('utf-8')
 			if not plot == '0': self.list[i].update({'plot': plot})

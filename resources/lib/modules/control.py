@@ -434,26 +434,6 @@ def closeOk():
 	return execute('Dialog.Close(okdialog, true)')
 
 
-
-# def log(self, msg, level="info"):
-		# msg = g.encode_py2(g.decode_py2(msg))
-		# msg = "{}: {}".format(self.ADDON_NAME.upper(), msg)
-		# if level == "error":
-			# xbmc.log(msg, level=xbmc.LOGERROR)
-		# elif level == "info":
-			# xbmc.log(msg, level=xbmc.LOGINFO)
-		# elif level == "notice":
-			# if self.KODI_VERSION >= 19:
-				# xbmc.log(msg, level=xbmc.LOGINFO)
-			# else:
-				# xbmc.log(msg, level=xbmc.LOGNOTICE)# pylint: disable=no-member
-		# elif level == "warning":
-			# xbmc.log(msg, level=xbmc.LOGWARNING)
-		# else:
-			# xbmc.log(msg)
-
-
-
 def cancelPlayback():
 	try:
 		playlist.clear()

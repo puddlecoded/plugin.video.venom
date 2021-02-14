@@ -57,17 +57,6 @@ class Sources:
 		self.highlight_color = control.getColor(control.setting('highlight.color'))
 
 
-	def timeIt(func):
-		import time
-		fnc_name = func.__name__
-		def wrap(*args, **kwargs):
-			started_at = time.time()
-			result = func(*args, **kwargs)
-			log_utils.log('%s.%s = %s' % (__name__, fnc_name, time.time() - started_at), level=log_utils.LOGDEBUG)
-			return result
-		return wrap
-
-	# @timeIt
 	def play(self, title, year, imdb, tmdb, tvdb, season, episode, tvshowtitle, premiered, meta, select, rescrape=None):
 		gdriveEnabled = control.addon('script.module.fenomscrapers').getSetting('gdrive.cloudflare_url') != ''
 		if not self.debrid_resolvers and not gdriveEnabled:
@@ -75,7 +64,6 @@ class Sources:
 			control.hide()
 			control.notification(message=33034)
 			return
-		# control.busy()
 		try:
 			control.homeWindow.clearProperty(self.metaProperty)
 			control.homeWindow.setProperty(self.metaProperty, meta)
@@ -111,10 +99,25 @@ class Sources:
 			if rescrape :
 				self.clr_item_providers(title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
 			items = providerscache.get(self.getSources, 48, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered)
-
 			if not items:
 				self.url = url
 				return self.errorForSources()
+
+			filter = []
+			if control.setting('torrent.remove.uncached') == 'true':
+				filter += [i for i in items if not re.match(r'^uncached.*torrent', i['source'])]
+				if filter:
+					for i in range(len(filter)):
+						filter[i].update({'label': re.sub(r'](\d+)', ']%02d' % int(i + 1), filter[i]['label'], 1)})
+				elif not filter:
+					if control.yesnoDialog('No cached torrents returned. Would you like to view the uncached torrents to cache yourself?', '', ''):
+						control.cancelPlayback()
+						select = '1'
+						filter += [i for i in items if re.match(r'^uncached.*torrent', i['source'])]
+				items = filter
+				if not items:
+					self.url = url
+					return self.errorForSources()
 
 			if select is None:
 				if episode is not None and control.setting('enable.upnext') == 'true': select = '2'
@@ -135,12 +138,9 @@ class Sources:
 					control.homeWindow.clearProperty(self.itemProperty)
 					control.homeWindow.setProperty(self.itemProperty, jsdumps(items))
 					control.sleep(200)
-					# control.hide()
 					return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], quote_plus(title)))
-					# self.addItem(title)
 				elif select == '0' or select == '1': url = self.sourcesDialog(items)
 				else:
-					# control.hide()
 					url = self.sourcesAutoPlay(items)
 
 			if url == 'close://' or url is None:
@@ -158,7 +158,6 @@ class Sources:
 			control.cancelPlayback()
 
 
-	# @timeIt
 	def addItem(self, title):
 		control.hide()
 
@@ -167,12 +166,12 @@ class Sources:
 			allowed = ['poster', 'season_poster', 'fanart', 'thumb', 'title', 'year', 'tvshowtitle', 'season', 'episode']
 			return {k: v for k, v in metadata.iteritems() if k in allowed}
 
-		control.playlist.clear() # ?
+		control.playlist.clear()
 		items = control.homeWindow.getProperty(self.itemProperty)
 		items = jsloads(items)
 
 		if not items:
-			control.sleep(200) # added 5/14
+			control.sleep(200)
 			control.hide()
 			sys.exit()
 
@@ -226,6 +225,9 @@ class Sources:
 						except: seeders = '0'
 						cm.append(('[B]Cache to %s Cloud (seeders=%s)[/B]' % (d, seeders), 'RunPlugin(%s?action=cacheTorrent&caller=%s&type=%s&title=%s&url=%s&source=%s)' %
 											(sysaddon, d, link_type, sysname, quote_plus(items[i]['url']), syssource)))
+
+				cm.append(('[B]Additional Link Info[/B]', 'RunPlugin(%s?action=sourceInfo&source=%s)' %
+									(sysaddon, syssource)))
 
 				if resquality_icons:
 					quality = items[i]['quality']
@@ -298,7 +300,6 @@ class Sources:
 					try:
 						if progressDialog.iscanceled(): break
 						progressDialog.update(int((100 / float(len(items))) * i), label)
-					# except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label) #some skins do not support [CR] or "\n" in BG
 					except: progressDialog.update(int((100 / float(len(items))) * i), '[COLOR %s]Resolving...[/COLOR]%s' % (self.highlight_color, items[i]['name']))
 
 					if items[i]['source'] == block: raise Exception()
@@ -345,7 +346,7 @@ class Sources:
 					control.execute('Dialog.Close(yesnoDialog)')
 
 					from resources.lib.modules import player
-					control.sleep(200) # added 5/14
+					control.sleep(200)
 					control.hide()
 					player.Player().play_source(title, year, season, episode, imdb, tmdb, tvdb, self.url, meta, select='1')
 					return self.url
@@ -360,9 +361,7 @@ class Sources:
 			log_utils.error()
 
 
-	# @timeIt
 	def getSources(self, title, year, imdb, tvdb, season, episode, tvshowtitle, premiered, quality='HD', timeout=30):
-		# control.hide()
 		progressDialog = control.progressDialog if control.setting('progress.dialog') == '0' else control.progressDialogBG
 		header = control.homeWindow.getProperty(self.labelProperty) + ': Scraping...'
 		progressDialog.create(header, '')
@@ -379,6 +378,7 @@ class Sources:
 		sourceDict = [(i[0], i[1]) for i in sourceDict if i[2] is not None]
 		if control.setting('cf.disable') == 'true':
 			sourceDict = [(i[0], i[1]) for i in sourceDict if not any(x in i[0] for x in self.sourcecfDict)]
+
 		sourceDict = [(i[0], i[1], i[1].priority) for i in sourceDict]
 		sourceDict = sorted(sourceDict, key=lambda i: i[2]) # sorted by scraper priority num
 
@@ -497,10 +497,8 @@ class Sources:
 		if len(self.sources) > 0:
 			self.sourcesFilter()
 		return self.sources
-		# return self.sources, self.uncached_sources
 
 
-	# @timeIt
 	def prepareSources(self):
 		try:
 			control.makeFile(control.dataPath)
@@ -515,7 +513,6 @@ class Sources:
 			dbcur.close() ; dbcon.close()
 
 
-	# @timeIt
 	def getMovieSource(self, title, aliases, year, imdb, source, call):
 		try:
 			dbcon = database.connect(self.sourceFile, timeout=60)
@@ -566,13 +563,11 @@ class Sources:
 			dbcur.close() ; dbcon.close()
 
 
-	# @timeIt
 	def getEpisodeSource(self, title, year, imdb, tvdb, season, episode, tvshowtitle, aliases, premiered, source, call):
 		try:
 			dbcon = database.connect(self.sourceFile, timeout=60)
 			dbcur = dbcon.cursor()
 		except: pass
-# consider adding tvdb_id table column for better matching of cases where imdb_id not available. Wheeler Dealer BS shows..lol
 		''' Fix to stop items passed with a 0 IMDB id pulling old unrelated sources from the database. '''
 		if imdb == '0':
 			try:
@@ -706,7 +701,6 @@ class Sources:
 			log_utils.error()
 
 
-	# @timeIt
 	def sourcesFilter(self):
 		control.busy()
 		quality = control.setting('hosts.quality')
@@ -737,14 +731,11 @@ class Sources:
 		self.filter = []
 		valid_hosters = set([i['source'] for i in self.sources])
 
-		def checkStatus(function, debrid_name, valid_hoster, remove_uncached):
+		def checkStatus(function, debrid_name, valid_hoster):
 			try:
 				if deepcopy_sources:
 					cached = function(deepcopy_sources, d)
-					self.uncached_sources += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if re.match(r'^uncached.*torrent', i['source'])]
-					if remove_uncached:
-						self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if re.match(r'^cached.*torrent', i['source'])]
-					else: self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
+				self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
 				self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 			except:
 				log_utils.error()
@@ -753,22 +744,19 @@ class Sources:
 			if d.name == 'Premiumize.me' and control.setting('premiumize.enable') == 'true':
 				try:
 					valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
-					remove_uncached = control.setting('pm.remove.uncached') == 'true'
-					threads.append(workers.Thread(checkStatus, self.pm_cache_chk_list, d.name, valid_hoster, remove_uncached))
+					threads.append(workers.Thread(checkStatus, self.pm_cache_chk_list, d.name, valid_hoster))
 				except:
 					log_utils.error()
 			if d.name == 'Real-Debrid' and control.setting('realdebrid.enable') == 'true':
 				try:
 					valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
-					remove_uncached = control.setting('rd.remove.uncached') == 'true'
-					threads.append(workers.Thread(checkStatus, self.rd_cache_chk_list, d.name, valid_hoster, remove_uncached))
+					threads.append(workers.Thread(checkStatus, self.rd_cache_chk_list, d.name, valid_hoster))
 				except:
 					log_utils.error()
 			if d.name == 'AllDebrid' and control.setting('alldebrid.enable') == 'true':
 				try:
 					valid_hoster = [i for i in valid_hosters if d.valid_url(i)]
-					remove_uncached = control.setting('ad.remove.uncached') == 'true'
-					threads.append(workers.Thread(checkStatus, self.ad_cache_chk_list, d.name, valid_hoster, remove_uncached))
+					threads.append(workers.Thread(checkStatus, self.ad_cache_chk_list, d.name, valid_hoster))
 				except:
 					log_utils.error()
 		if threads:
@@ -878,18 +866,18 @@ class Sources:
 			label = line1 + line2
 
 			self.sources[i]['label'] = label
-			# self.uncached_sources[i]['label'] = label
 		control.hide()
 		return self.sources
-		# return self.sources, self.uncached_sources
 
 
-	# @timeIt
 	def filter_dupes(self):
 		filter = []
 		log_dupes = control.setting('remove.duplicates.logging') == 'false'
 		for i in self.sources:
 			a = i['url'].lower()
+			# if 'magnet:' in a and len(i['hash']) != 40: #chk 40 char hash. Some scrapers return invalid magnet and RD haults on it, eztv notorious. FS updated for this now
+				# log_utils.log('Discarding invalid magnet:  %s' % i, __name__, log_utils.LOGDEBUG)
+				# continue
 			for sublist in filter:
 				try:
 					b = sublist['url'].lower()
@@ -966,7 +954,6 @@ class Sources:
 					return
 
 
-	# @timeIt
 	def sourcesDialog(self, items):
 		try:
 			labels = [i['label'] for i in items]
@@ -992,7 +979,6 @@ class Sources:
 					try:
 						if progressDialog.iscanceled(): break
 						progressDialog.update(int((100 / float(len(items))) * i), label)
-					# except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label) #some skins do not support [CR] or "\n" in BG
 					except: progressDialog.update(int((100 / float(len(items))) * i), '[COLOR %s]Resolving...[/COLOR]%s' % (self.highlight_color, items[i]['name']))
 
 					if 'torrent' in items[i].get('source'): offset = float('inf')
@@ -1062,7 +1048,6 @@ class Sources:
 		u = None
 		header = control.homeWindow.getProperty(self.labelProperty) + ': Resolving...'
 		try:
-			# control.sleep(1000)
 			control.sleep(500)
 			if control.setting('progress.dialog') == '0': progressDialog = control.progressDialog
 			else: progressDialog = control.progressDialogBG
@@ -1076,7 +1061,6 @@ class Sources:
 			try:
 				if progressDialog.iscanceled(): break
 				progressDialog.update(int((100 / float(len(items))) * i), label)
-			# except: progressDialog.update(int((100 / float(len(items))) * i), str(header) + '[CR]' + label) #some skins do not support [CR] or "\n" in BG
 			except: progressDialog.update(int((100 / float(len(items))) * i), '[COLOR %s]Resolving...[/COLOR]%s' % (self.highlight_color, items[i]['name']))
 			try:
 				if control.monitor.abortRequested(): return sys.exit()
@@ -1144,6 +1128,31 @@ class Sources:
 			log_utils.log('Error debridPackDialog %s' % str(e), __name__, log_utils.LOGDEBUG)
 
 
+	def sourceInfo(self, info):
+		try:
+			source = jsloads(info)[0]
+			try: f = ' / '.join(['%s' % info.strip() for info in source.get('info').split('|')])
+			except: f = ''
+			if 'name_info' in source:
+				t = source_utils.getFileType(name_info=source.get('name_info'))
+			else:
+				t = source_utils.getFileType(url=source.get('url'))
+			t = '%s /%s' % (f, t) if (f != '' and f != '0 ' and f != ' ') else t
+			if t == '':
+				t = source_utils.getFileType(url=source.get('url'))
+			list = [
+				'[COLOR %s]url:[/COLOR]  %s' % (self.highlight_color, source.get('url')),
+				'[COLOR %s]name:[/COLOR]  %s' % (self.highlight_color, source.get('name')),
+				'[COLOR %s]info:[/COLOR]  %s' % (self.highlight_color, t)
+					]
+			if 'magnet:' in source.get('url'):
+				list += ['[COLOR %s]hash:[/COLOR]  %s' % (self.highlight_color, source.get('hash'))]
+				list += ['[COLOR %s]seeders:[/COLOR]  %s' % (self.highlight_color, source.get('seeders'))]
+			return control.selectDialog(list, 'Source Info')
+		except:
+			log_utils.error()
+
+
 	def errorForSources(self):
 		try:
 			control.sleep(200) # added 5/14
@@ -1154,7 +1163,7 @@ class Sources:
 		except:
 			log_utils.error()
 
-	# @timeIt
+
 	def getAliasTitles(self, imdb, content):
 		lang = 'en'
 		try:
@@ -1172,7 +1181,7 @@ class Sources:
 		return title
 
 
-	# @timeIt
+
 	def getConstants(self): # gets initialized multiple times
 		self.itemProperty = 'plugin.video.venom.container.items'
 		self.metaProperty = 'plugin.video.venom.container.meta'
@@ -1202,7 +1211,6 @@ class Sources:
 		self.sourcecfDict = premium_hosters.sourcecfDict
 
 
-	# @timeIt
 	def calc_pack_size(self):
 		seasoncount = None
 		counts = None
@@ -1280,7 +1288,6 @@ class Sources:
 		return self.sources
 
 
-	# @timeIt
 	def ad_cache_chk_list(self, torrent_List, d):
 		if len(torrent_List) == 0: return
 		try:
@@ -1305,7 +1312,6 @@ class Sources:
 			log_utils.error()
 
 
-	# @timeIt
 	def pm_cache_chk_list(self, torrent_List, d):
 		if len(torrent_List) == 0: return
 		try:
@@ -1326,12 +1332,13 @@ class Sources:
 			log_utils.error()
 
 
-	# @timeIt
 	def rd_cache_chk_list(self, torrent_List, d):
 		if len(torrent_List) == 0: return
 		try:
 			hashList = [i['hash'] for i in torrent_List]
 			cached = realdebrid.RealDebrid().check_cache_list(hashList)
+			# log_utils.log('hashList = %s' % len(hashList), __name__, log_utils.LOGDEBUG)
+			# log_utils.log('cached = %s' % len(cached), __name__, log_utils.LOGDEBUG)
 			if not cached: return None
 			for i in torrent_List:
 				if 'rd' not in cached.get(i['hash'].lower(), {}):
@@ -1366,7 +1373,6 @@ class Sources:
 			dbcur.close() ; dbcon.close()
 
 
-	# @timeIt
 	def movie_chk_imdb(self, imdb, title, year):
 		try:
 			if not imdb or imdb == '0': return year, title

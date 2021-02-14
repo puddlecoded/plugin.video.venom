@@ -715,6 +715,10 @@ elif action == 'showDebridPack':
 	caller = params.get('caller')
 	Sources().debridPackDialog(caller, name, url, source)
 
+elif action == 'sourceInfo':
+	from resources.lib.modules.sources import Sources
+	Sources().sourceInfo(source)
+
 elif action == 'cacheTorrent':
 	caller = params.get('caller')
 	pack = True if type == 'pack' else False
@@ -752,19 +756,18 @@ elif action == 'random':
 		r = argv[0]+"?action=random&rtype=season"
 
 	from random import randint
-	# import json
 	from json import dumps as jsdumps
 	try:
 		rand = randint(1,len(rlist))-1
 		for p in ['title', 'year', 'imdb', 'tvdb', 'season', 'episode', 'tvshowtitle', 'premiered', 'select']:
 			if rtype == "show" and p == "tvshowtitle":
-				try: r += '&'+p+'='+quote_plus(rlist[rand]['title'])
+				try: r += '&' + p + '=' + quote_plus(rlist[rand]['title'])
 				except: pass
 			else:
-				try: r += '&'+p+'='+quote_plus(rlist[rand][p])
+				try: r += '&' + p + '=' + quote_plus(rlist[rand][p])
 				except: pass
-		try: r += '&meta='+quote_plus(jsdumps(rlist[rand]))
-		except: r += '&meta='+quote_plus("{}")
+		try: r += '&meta=' + quote_plus(jsdumps(rlist[rand]))
+		except: r += '&meta=' + quote_plus("{}")
 		if rtype == "movie":
 			try: control.notification(title=32536, message=rlist[rand]['title'])
 			except: pass
