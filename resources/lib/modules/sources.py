@@ -733,8 +733,7 @@ class Sources:
 
 		def checkStatus(function, debrid_name, valid_hoster):
 			try:
-				if deepcopy_sources:
-					cached = function(deepcopy_sources, d)
+				if deepcopy_sources: cached = function(deepcopy_sources)
 				self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
 				self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 			except:
@@ -1041,7 +1040,6 @@ class Sources:
 			log_utils.log('Error %s' % str(e), __name__, log_utils.LOGDEBUG)
 
 
-	# @timeIt
 	def sourcesAutoPlay(self, items):
 		if control.setting('autoplay.sd') == 'true':
 			items = [i for i in items if not i['quality'] in ['4K', '1080p', '720p', 'HD']]
@@ -1181,7 +1179,6 @@ class Sources:
 		return title
 
 
-
 	def getConstants(self): # gets initialized multiple times
 		self.itemProperty = 'plugin.video.venom.container.items'
 		self.metaProperty = 'plugin.video.venom.container.meta'
@@ -1288,7 +1285,7 @@ class Sources:
 		return self.sources
 
 
-	def ad_cache_chk_list(self, torrent_List, d):
+	def ad_cache_chk_list(self, torrent_List):
 		if len(torrent_List) == 0: return
 		try:
 			hashList = [i['hash'] for i in torrent_List]
@@ -1312,7 +1309,7 @@ class Sources:
 			log_utils.error()
 
 
-	def pm_cache_chk_list(self, torrent_List, d):
+	def pm_cache_chk_list(self, torrent_List):
 		if len(torrent_List) == 0: return
 		try:
 			hashList = [i['hash'] for i in torrent_List]
@@ -1332,13 +1329,17 @@ class Sources:
 			log_utils.error()
 
 
-	def rd_cache_chk_list(self, torrent_List, d):
+	def rd_cache_chk_list(self, torrent_List):
 		if len(torrent_List) == 0: return
+		def base32_to_hex(hash):
+			import base64
+			log_utils.log('base32 hash = %s' % hash, __name__, log_utils.LOGDEBUG)
+			hex = base64.b32decode(hash).encode('hex')
+			log_utils.log('base32_to_hex = %s' % hex, __name__, log_utils.LOGDEBUG)
+			return hex
 		try:
-			hashList = [i['hash'] for i in torrent_List]
+			hashList = [i['hash'] if len(i['hash']) == 40 else base32_to_hex(i['hash']) for i in torrent_List] # RD can not handle BASE32 encoded hashes, hex 40 only (AD and PM convert)
 			cached = realdebrid.RealDebrid().check_cache_list(hashList)
-			# log_utils.log('hashList = %s' % len(hashList), __name__, log_utils.LOGDEBUG)
-			# log_utils.log('cached = %s' % len(cached), __name__, log_utils.LOGDEBUG)
 			if not cached: return None
 			for i in torrent_List:
 				if 'rd' not in cached.get(i['hash'].lower(), {}):

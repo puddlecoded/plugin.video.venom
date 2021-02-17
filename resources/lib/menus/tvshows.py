@@ -600,6 +600,7 @@ class TVshows:
 			try:
 				try: title = item['title'].encode('utf-8')
 				except: title = item['title']
+
 				listed_at = item.get('listed_at', '0')
 
 				year = str(item.get('year', '0'))
@@ -952,10 +953,15 @@ class TVshows:
 				try: imdb = client.parseDOM(result, 'IMDB_ID')[0] or '0'
 				except: pass
 
-			try: title = client.parseDOM(result, 'SeriesName')[0] or '0'
-			except: title = '0'
-			title = client.replaceHTMLCodes(title)
-			title = title.encode('utf-8')
+			# try: title = client.parseDOM(result, 'SeriesName')[0] or '0'
+			# except: title = '0'
+			# title = client.replaceHTMLCodes(title)
+			# try: title = title.encode('utf-8')
+			# except: pass 
+
+			title = client.replaceHTMLCodes(client.parseDOM(result, 'SeriesName')[0]) or '0'
+			try: title = title.encode('utf-8')
+			except: pass 
 
 			if 'year' not in self.list[i] or self.list[i]['year'] == '0':
 				year = client.parseDOM(result, 'FirstAired')[0]
@@ -1110,13 +1116,11 @@ class TVshows:
 		for i in items:
 			try:
 				imdb, tmdb, tvdb, year = i.get('imdb', '0'), i.get('tmdb', '0'), i.get('tvdb', '0'), i.get('year', '0')
-				try: title = i['originaltitle']
-				except: title = i['title']
-				label = title
+				title = control.strip_non_ascii_and_unprintable(i['originaltitle']) or i['title']
 				systitle = quote_plus(title)
-
 				meta = dict((k, v) for k, v in i.iteritems() if v != '0')
 				meta.update({'code': imdb, 'imdbnumber': imdb, 'mediatype': 'tvshow', 'tag': [imdb, tvdb]})
+
 				if unwatchedEnabled: trakt.seasonCount(imdb) # pre-cache season counts for the listed shows
 
 				# Some descriptions have a link at the end that. Remove it.
@@ -1187,9 +1191,9 @@ class TVshows:
 ####################################
 
 				if not i.get('trailer'):
-					meta.update({'trailer': '%s?action=trailer&type=%s&name=%s&year=%s&imdb=%s' % (sysaddon, 'show', quote_plus(label), year, imdb)})
+					meta.update({'trailer': '%s?action=trailer&type=%s&name=%s&year=%s&imdb=%s' % (sysaddon, 'show', systitle, year, imdb)})
 
-				item = control.item(label=label)
+				item = control.item(label=title)
 				if 'castandart' in i: item.setCast(i['castandart'])
 
 				if unwatchedEnabled:
