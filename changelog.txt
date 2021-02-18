@@ -1,3 +1,9 @@
+[B][COLOR red]Update - v4.4.0 - Feb. 18, 2021[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Fixed renumbering of source select list for direct links when
+    "remove uncached torrents" setting is used. Direct links
+    are from EasyNews, Filepursuit, Furk, GDrive, Library,
+    and Ororo.[/I]
+
 [B][COLOR red]Update - v4.3.9 - Feb. 17, 2021[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Added BASE32 to HEX conversion for RD cache checking
     of magnets with BASE32 encoded hash. AD and PM do

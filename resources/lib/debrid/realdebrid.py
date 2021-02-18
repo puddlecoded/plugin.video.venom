@@ -3,7 +3,6 @@
 	Venom Add-on
 '''
 
-import json # check using requests built in .json() to rid import
 import re
 import requests
 import sys
@@ -18,7 +17,6 @@ from resources.lib.modules import control
 from resources.lib.modules import log_utils
 from resources.lib.modules import workers
 from resources.lib.modules.source_utils import supported_video_extensions
-
 
 FormatDateTime = "%Y-%m-%dT%H:%M:%S.%fZ"
 rest_base_url = 'https://api.real-debrid.com/rest/1.0/'
@@ -63,15 +61,20 @@ class RealDebrid:
 			original_url = url
 			url = rest_base_url + url
 			if self.token == '':
-				log_utils.log('No Real Debrid Token Found', __name__, log_utils.LOGDEBUG)
+				log_utils.log('No Real-Debrid Token Found', __name__, log_utils.LOGDEBUG)
 				return None
 			# if not fail_check: # with fail_check=True new token does not get added
 			if '?' not in url:
 				url += "?auth_token=%s" % self.token
 			else:
 				url += "&auth_token=%s" % self.token
-			response = requests.get(url, timeout=30).json()
-			if 'bad_token' in str(response) or 'Bad Request' in str(response):
+			response = requests.get(url, timeout=30)
+			if 'Temporarily Down For Maintenance' in response.text:
+				control.notification(message='Real-Debrid Temporarily Down For Maintenance')
+				log_utils.log('Real-Debrid Temporarily Down For Maintenance', __name__, log_utils.LOGDEBUG)
+				return None
+			else: response = response.json()
+			if any(value in str(response) for value in ['bad_token', 'Bad Request']):
 				if not fail_check:
 					if self.refresh_token() and token_ck:
 						return
@@ -83,36 +86,45 @@ class RealDebrid:
 
 
 	def _post(self, url, data):
-		original_url = url
-		url = rest_base_url + url
-		if self.token == '':
-			log_utils.log('No Real Debrid Token Found', __name__, log_utils.LOGDEBUG)
-			return None
-		if '?' not in url:
-			url += "?auth_token=%s" % self.token
-		else:
-			url += "&auth_token=%s" % self.token
-		response = requests.post(url, data=data, timeout=15).text
-		if 'bad_token' in response or 'Bad Request' in response:
-			self.refresh_token()
-			response = self._post(original_url, data)
-		elif 'error' in response:
-			response = json.loads(response)
-			control.notification(message=response.get('error'))
-			return None
-		try: return json.loads(response)
-		except: return response
+		try:
+			original_url = url
+			url = rest_base_url + url
+			if self.token == '':
+				log_utils.log('No Real Debrid Token Found', __name__, log_utils.LOGDEBUG)
+				return None
+			if '?' not in url:
+				url += "?auth_token=%s" % self.token
+			else:
+				url += "&auth_token=%s" % self.token
+			response = requests.post(url, data=data, timeout=15)
+			if '[204]' in str(response): return None
+			if 'Temporarily Down For Maintenance' in response.text:
+				control.notification(message='Real-Debrid Temporarily Down For Maintenance')
+				log_utils.log('Real-Debrid Temporarily Down For Maintenance', __name__, log_utils.LOGDEBUG)
+				return None
+			else: response = response.json()
+			if any(value in str(response) for value in ['bad_token', 'Bad Request']):
+				self.refresh_token()
+				response = self._post(original_url, data)
+			elif 'error' in str(response):
+				control.notification(message=response.get('error'))
+				return None
+			return response
+		except:
+			log_utils.error()
+		return None
 
 
 	def auth_loop(self):
 		control.sleep(self.auth_step*1000)
 		url = 'client_id=%s&code=%s' % (self.client_ID, self.device_code)
 		url = oauth_base_url + credentials_url % url
-		response = json.loads(requests.get(url).text)
-		if 'error' in response:
+		response = requests.get(url)
+		if 'error' in response.text:
 			return control.okDialog(title='default', message=40019)
 		else:
 			try:
+				response = response.json()
 				control.progressDialog.close()
 				self.client_ID = response['client_id']
 				self.secret = response['client_secret']
@@ -127,7 +139,7 @@ class RealDebrid:
 		self.client_ID = 'X245A4XAIBGVM'
 		url = 'client_id=%s&new_credentials=yes' % self.client_ID
 		url = oauth_base_url + device_code_url % url
-		response = json.loads(requests.get(url).text)
+		response = requests.get(url).json()
 		control.progressDialog.create(control.lang(40055))
 		control.progressDialog.update(-1,
 				control.lang(32513) % 'https://real-debrid.com/device',
@@ -238,17 +250,14 @@ class RealDebrid:
 		for count, item in enumerate(pack_info, 1):
 			try:
 				cm = []
+				try: url_link = item['url_link']
+				except: continue
+				if url_link.startswith('/'): url_link = 'http' + url_link
 				name = item['path']
-				if name.startswith('/'):
-					name = name.split('/')[-1]
+				if name.startswith('/'): name = name.split('/')[-1]
 
-				url_link = item['url_link']
-				if url_link.startswith('/'):
-					url_link = 'http' + url_link
-
-				size = float(int(item['bytes']))/1073741824
+				size = float(int(item['bytes'])) / 1073741824
 				label = '%02d | [B]%s[/B] | %.2f GB | [I]%s [/I]' % (count, file_str, size, name)
-
 				url = '%s?action=playURL&url=%s&caller=realdebrid&type=unrestrict' % (sysaddon, url_link)
 
 				cm.append((downloadMenu, 'RunPlugin(%s?action=download&name=%s&image=%s&url=%s&caller=realdebrid&type=unrestrict)' %
@@ -272,8 +281,7 @@ class RealDebrid:
 	def delete_user_torrent(self, media_id, name):
 		try:
 			if not control.yesnoDialog(control.lang(40050) % '?[CR]' + name, '', ''): return
-			# Need to check token, and refresh if needed
-			ck_token = self._get('user', token_ck=True)
+			ck_token = self._get('user', token_ck=True) # check token, and refresh if needed
 			url = torrents_delete_url + "/%s&auth_token=%s" % (media_id, self.token)
 			response = requests.delete(rest_base_url + url).text
 			if not 'error' in response:
@@ -288,16 +296,14 @@ class RealDebrid:
 	def downloads(self, page):
 		import math
 		try:
-			# Need to check token, and refresh if needed
-			ck_token = self._get('user', token_ck=True)
+			ck_token = self._get('user', token_ck=True) # check token, and refresh if needed
 			url = 'downloads?page=%s&auth_token=%s' % (page, self.token)
 			response = requests.get(rest_base_url + url)
 			total_count = float(response.headers['X-Total-Count'])
 			pages = int(math.ceil(total_count / 50.0))
-			return json.loads(response.text), pages
+			return response.json(), pages
 		except:
 			log_utils.error()
-
 
 
 	def my_downloads_to_listItem(self, page):
@@ -315,14 +321,14 @@ class RealDebrid:
 		downloadMenu, deleteMenu = control.lang(40048), control.lang(40050)
 
 		for count, item in enumerate(my_downloads, 1):
-			if page > 1: count += (page-1)*50
+			if page > 1: count += (page-1) * 50
 			try: 
 				cm = []
 				try: datetime_object = datetime.strptime(item['generated'], FormatDateTime).date()
 				except TypeError: datetime_object = datetime(*(time.strptime(item['generated'], FormatDateTime)[0:6])).date()
 
 				name = control.strip_non_ascii_and_unprintable(item['filename'])
-				size = float(int(item['filesize']))/1073741824
+				size = float(int(item['filesize'])) / 1073741824
 				label = '%02d | %.2f GB | %s  | [I]%s [/I]' % (count, size, datetime_object, name)
 
 				url_link = item['download']
@@ -366,8 +372,7 @@ class RealDebrid:
 	def delete_download(self, media_id, name):
 		try:
 			if not control.yesnoDialog(control.lang(40050) % '?[CR]' + name, '', ''): return
-			# Need to check token, and refresh if needed
-			ck_token = self._get('user', token_ck=True)
+			ck_token = self._get('user', token_ck=True) # check token, and refresh if needed
 			url = downloads_delete_url + "/%s&auth_token=%s" % (media_id, self.token)
 			response = requests.delete(rest_base_url + url).text
 			if not 'error' in response:
@@ -470,7 +475,7 @@ class RealDebrid:
 			self.delete_torrent(torrent_id)
 		except Exception as e:
 			if torrent_id: self.delete_torrent(torrent_id)
-			log_utils.log('Real-Debrid Error: RESOLVE MAGNET | %s' % e, __name__, log_utils.LOGDEBUG)
+			log_utils.log('Real-Debrid Error: RESOLVE MAGNET %s | %s' % (magnet_url, e), __name__, log_utils.LOGDEBUG)
 			return None
 
 
@@ -505,9 +510,8 @@ class RealDebrid:
 			self.delete_torrent(torrent_id)
 			return list_file_items
 		except Exception as e:
-			if torrent_id:
-				self.delete_torrent(torrent_id)
-			log_utils.log('Real-Debrid Error: DISPLAY MAGNET PACK | %s' % str(e), __name__, log_utils.LOGDEBUG)
+			if torrent_id: self.delete_torrent(torrent_id)
+			log_utils.log('Real-Debrid Error: DISPLAY MAGNET PACK %s | %s' % (magnet_url, str(e)), __name__, log_utils.LOGDEBUG)
 			raise
 
 
@@ -648,7 +652,7 @@ class RealDebrid:
 			response = self._post(add_magnet_url, data)
 			return response.get('id', "")
 		except Exception as e:
-			log_utils.log('Real-Debrid Error: ADD MAGNET | %s' % e, __name__, log_utils.LOGDEBUG)
+			log_utils.log('Real-Debrid Error: ADD MAGNET %s | %s' % (magnet, e), __name__, log_utils.LOGDEBUG)
 			return None
 
 
@@ -658,7 +662,7 @@ class RealDebrid:
 			data = {'files': file_ids}
 			return self._post(url, data)
 		except Exception as e:
-			log_utils.log('Real-Debrid Error: ADD SELECT FIELES | %s' % e, __name__, log_utils.LOGDEBUG)
+			log_utils.log('Real-Debrid Error: ADD SELECT FILES | %s' % e, __name__, log_utils.LOGDEBUG)
 			return None
 
 
@@ -671,8 +675,7 @@ class RealDebrid:
 
 	def delete_torrent(self, torrent_id):
 		try:
-			# Need to check token, and refresh if needed
-			ck_token = self._get('user', token_ck=True)
+			ck_token = self._get('user', token_ck=True) # check token, and refresh if needed
 			url = torrents_delete_url + "/%s&auth_token=%s" % (torrent_id, self.token)
 			response = requests.delete(rest_base_url + url)
 			log_utils.log('Real-Debrid: Torrent ID %s was removed from your active torrents' % torrent_id, __name__, log_utils.LOGDEBUG)
@@ -733,8 +736,7 @@ class RealDebrid:
 			self.device_code = control.setting('realdebrid.refresh')
 			log_utils.log('Refreshing Expired Real Debrid Token: |%s|%s|' % (self.client_ID, self.device_code), __name__, log_utils.LOGDEBUG)
 			if not self.get_token():
-				# empty all auth settings to force a re-auth on next use
-				self.reset_authorization()
+				self.reset_authorization() # empty all auth settings to force a re-auth on next use
 				log_utils.log('Unable to Refresh Real Debrid Token', __name__, log_utils.LOGDEBUG)
 			else:
 				log_utils.log('Real Debrid Token Successfully Refreshed', __name__, log_utils.LOGDEBUG)

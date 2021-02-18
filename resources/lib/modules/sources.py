@@ -108,7 +108,7 @@ class Sources:
 				filter += [i for i in items if not re.match(r'^uncached.*torrent', i['source'])]
 				if filter:
 					for i in range(len(filter)):
-						filter[i].update({'label': re.sub(r'](\d+)', ']%02d' % int(i + 1), filter[i]['label'], 1)})
+						filter[i].update({'label': re.sub(r'(\d+)', '%02d' % int(i + 1), filter[i]['label'], 1)})
 				elif not filter:
 					if control.yesnoDialog('No cached torrents returned. Would you like to view the uncached torrents to cache yourself?', '', ''):
 						control.cancelPlayback()
@@ -733,8 +733,9 @@ class Sources:
 
 		def checkStatus(function, debrid_name, valid_hoster):
 			try:
+				cached = None
 				if deepcopy_sources: cached = function(deepcopy_sources)
-				self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
+				if cached: self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
 				self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 			except:
 				log_utils.error()
@@ -874,9 +875,6 @@ class Sources:
 		log_dupes = control.setting('remove.duplicates.logging') == 'false'
 		for i in self.sources:
 			a = i['url'].lower()
-			# if 'magnet:' in a and len(i['hash']) != 40: #chk 40 char hash. Some scrapers return invalid magnet and RD haults on it, eztv notorious. FS updated for this now
-				# log_utils.log('Discarding invalid magnet:  %s' % i, __name__, log_utils.LOGDEBUG)
-				# continue
 			for sublist in filter:
 				try:
 					b = sublist['url'].lower()
@@ -1333,13 +1331,15 @@ class Sources:
 		if len(torrent_List) == 0: return
 		def base32_to_hex(hash):
 			import base64
-			log_utils.log('base32 hash = %s' % hash, __name__, log_utils.LOGDEBUG)
+			log_utils.log('base32 hash: %s' % hash, __name__, log_utils.LOGDEBUG)
 			hex = base64.b32decode(hash).encode('hex')
-			log_utils.log('base32_to_hex = %s' % hex, __name__, log_utils.LOGDEBUG)
+			log_utils.log('base32_to_hex: %s' % hex, __name__, log_utils.LOGDEBUG)
 			return hex
 		try:
 			hashList = [i['hash'] if len(i['hash']) == 40 else base32_to_hex(i['hash']) for i in torrent_List] # RD can not handle BASE32 encoded hashes, hex 40 only (AD and PM convert)
 			cached = realdebrid.RealDebrid().check_cache_list(hashList)
+			# log_utils.log('hashList = %s' % len(hashList), __name__, log_utils.LOGDEBUG)
+			# log_utils.log('cached = %s' % len(cached), __name__, log_utils.LOGDEBUG)
 			if not cached: return None
 			for i in torrent_List:
 				if 'rd' not in cached.get(i['hash'].lower(), {}):
