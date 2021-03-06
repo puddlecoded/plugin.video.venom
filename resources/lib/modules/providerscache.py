@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
-import ast
+from ast import literal_eval
 from hashlib import md5
 import re
 import time
 try: from sqlite3 import dbapi2 as db
 except ImportError: from pysqlite2 import dbapi2 as db
-
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 
@@ -24,8 +23,7 @@ def get(function, duration, *args):
 		key = _hash_function(function, args)
 		cache_result = cache_get(key)
 		if cache_result:
-			try: result = ast.literal_eval(cache_result['value'].encode('utf-8'))
-			except: result = ast.literal_eval(cache_result['value'])
+			result = literal_eval(cache_result['value'])
 			if _is_cache_valid(cache_result['date'], duration):
 				return result
 
@@ -42,8 +40,7 @@ def get(function, duration, *args):
 			else: return None
 		else:
 			cache_insert(key, fresh_result)
-			try: return ast.literal_eval(fresh_result.encode('utf-8'))
-			except: result = ast.literal_eval(fresh_result)
+			return literal_eval(fresh_result)
 	except:
 		log_utils.error()
 		return None
@@ -83,7 +80,7 @@ def cache_insert(key, value):
 		now = int(time.time())
 		cursor.execute('''CREATE TABLE IF NOT EXISTS cache (key TEXT, value TEXT, date INTEGER, UNIQUE(key));''')
 		update_result = cursor.execute('''UPDATE cache SET value=?,date=? WHERE key=?''', (value, now, key))
-		if update_result.rowcount is 0:
+		if update_result.rowcount == 0:
 			cursor.execute('''INSERT INTO cache Values (?, ?, ?)''', (key, value, now))
 		cursor.connection.commit()
 	except:

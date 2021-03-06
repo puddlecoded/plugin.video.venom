@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from datetime import datetime, timedelta
 import time
@@ -21,16 +21,20 @@ from resources.lib.modules import cleantitle
 from resources.lib.modules import client
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
+from resources.lib.modules import py_tools
+
 
 lang = control.apiLanguage()['tvdb']
 api_key = control.setting('tvdb.api.key')
+
 imdb_user = control.setting('imdb.user').replace('ur', '')
 user = str(imdb_user) + str(api_key)
 
 baseUrl = 'https://thetvdb.com'
-info_link = '%s/api/%s/series/%s/%s.xml' % (baseUrl, api_key.decode('base64'), '%s', '%s')
-all_info_link = '%s/api/%s/series/%s/all/%s.xml' % (baseUrl, api_key.decode('base64'), '%s', '%s')
-zip_link = '%s/api/%s/series/%s/all/%s.zip' % (baseUrl, api_key.decode('base64'), '%s', '%s')
+info_link = '%s/api/%s/series/%s/%s.xml' % (baseUrl, api_key, '%s', '%s')
+all_info_link = '%s/api/%s/series/%s/all/%s.xml' % (baseUrl, api_key, '%s', '%s')
+zip_link = '%s/api/%s/series/%s/all/%s.zip' % (baseUrl, api_key, '%s', '%s')
+
 by_imdb = '%s/api/GetSeriesByRemoteID.php?imdbid=%s' % (baseUrl, '%s')
 by_seriesname = '%s/api/GetSeries.php?seriesname=%s' % (baseUrl, '%s')
 imageUrl = '%s/banners/' % baseUrl
@@ -44,23 +48,23 @@ def getZip(tvdb, art_xml=None, actors_xml=None):
 	url = zip_link % (tvdb, lang)
 	try:
 		# data = urlopen(url, timeout=30).read()
-		data = requests.get(url, timeout=30).content
+		data = requests.get(url, timeout=30, verify=True).content # test .content vs. .text
 		zip = zipfile.ZipFile(StringIO(data))
-		result = zip.read('%s.xml' % lang)
+		result = py_tools.six_decode(zip.read('%s.xml' % lang))
 		if not art_xml and not actors_xml:
 			zip.close()
 			return result
 		elif art_xml and not actors_xml:
-			artwork = zip.read('banners.xml')
+			artwork = py_tools.six_decode(zip.read('banners.xml'))
 			zip.close()
 			return (result, artwork)
 		elif actors_xml and not art_xml:
-			actors = zip.read('actors.xml')
+			actors = py_tools.six_decode(zip.read('actors.xml'))
 			zip.close()
 			return (result, actors)
 		else:
-			artwork = zip.read('banners.xml')
-			actors = zip.read('actors.xml')
+			artwork = py_tools.six_decode(zip.read('banners.xml'))
+			actors = py_tools.six_decode(zip.read('actors.xml'))
 			zip.close()
 			return (result, artwork, actors)
 	except:
@@ -74,20 +78,24 @@ def parseAll(tvdb, limit):
 		dupe = re.compile(r'[***]Duplicate (\d*)[***]').findall(dupe)
 
 		if len(dupe) > 0:
-			tvdb = str(dupe[0]).encode('utf-8')
+			# tvdb = str(dupe[0]).encode('utf-8')
+			tvdb = str(dupe[0])
 			url = zip_link % (tvdb, 'en')
 			# data = urlopen(url, timeout=30).read()
-			data = requests.get(url, timeout=30).content
+			data = requests.get(url, timeout=30).content # test .content vs. .text
 			zip = zipfile.ZipFile(StringIO(data))
-			result = zip.read('en.xml')
-			artwork = zip.read('banners.xml')
-			actors = zip.read('actors.xml')
+			# result = zip.read('en.xml')
+			result = py_tools.six_decode(zip.read('en.xml'))
+			# artwork = zip.read('banners.xml')
+			artwork = py_tools.six_decode(zip.read('banners.xml'))
+			# actors = zip.read('actors.xml')
+			actors = py_tools.six_decode(zip.read('actors.xml'))
 			zip.close()
 
 		# if lang != 'en':
 			# url = zip_link % (tvdb, lang)
 			# # data = urlopen(url, timeout=30).read()
-			# data = requests.get(url, timeout=30).content
+			# data = requests.get(url, timeout=30).content # test .content vs. .text
 			# zip = zipfile.ZipFile(StringIO(data))
 			# result2 = zip.read('%s.xml' % lang)
 			# zip.close()
@@ -131,21 +139,21 @@ def parseAll(tvdb, limit):
 		if poster != '': poster = imageUrl + poster
 		else: poster = '0'
 		poster = client.replaceHTMLCodes(poster)
-		poster = poster.encode('utf-8')
+		# poster = poster.encode('utf-8')
 
 		try: banner = client.parseDOM(item, 'banner')[0]
 		except: banner = ''
 		if banner != '': banner = imageUrl + banner
 		else: banner = '0'
 		banner = client.replaceHTMLCodes(banner)
-		banner = banner.encode('utf-8')
+		# banner = banner.encode('utf-8')
 
 		try: fanart = client.parseDOM(item, 'fanart')[0]
 		except: fanart = ''
 		if fanart != '': fanart = imageUrl + fanart
 		else: fanart = '0'
 		fanart = client.replaceHTMLCodes(fanart)
-		fanart = fanart.encode('utf-8')
+		# fanart = fanart.encode('utf-8')
 
 		if poster != '0': pass
 		elif fanart != '0': poster = fanart
@@ -159,13 +167,13 @@ def parseAll(tvdb, limit):
 		except: status = ''
 		if status == '': status = 'Ended'
 		status = client.replaceHTMLCodes(status)
-		status = status.encode('utf-8')
+		# status = status.encode('utf-8')
 
 		try: studio = client.parseDOM(item, 'Network')[0]
 		except: studio = ''
 		if studio == '': studio = '0'
 		studio = client.replaceHTMLCodes(studio)
-		studio = studio.encode('utf-8')
+		# studio = studio.encode('utf-8')
 
 		try: genre = client.parseDOM(item, 'Genre')[0]
 		except: genre = ''
@@ -173,30 +181,30 @@ def parseAll(tvdb, limit):
 		genre = ' / '.join(genre)
 		if genre == '': genre = '0'
 		genre = client.replaceHTMLCodes(genre)
-		genre = genre.encode('utf-8')
+		# genre = genre.encode('utf-8')
 
 		try: duration = client.parseDOM(item, 'Runtime')[0]
 		except: duration = ''
 		if duration == '': duration = '0'
 		duration = client.replaceHTMLCodes(duration)
-		duration = duration.encode('utf-8')
+		# duration = duration.encode('utf-8')
 
 		try:
 			rating = client.parseDOM(item, 'Rating')[0]
 			rating = client.replaceHTMLCodes(rating)
-			rating = rating.encode('utf-8')
+			# rating = rating.encode('utf-8')
 		except: rating = '0'
 
 		try:
 			votes = client.parseDOM(item, 'RatingCount')[0]
 			votes = client.replaceHTMLCodes(votes)
-			votes = votes.encode('utf-8')
+			# votes = votes.encode('utf-8')
 		except: votes = '0'
 
 		try:
 			mpaa = client.parseDOM(item, 'ContentRating')[0]
 			mpaa = client.replaceHTMLCodes(mpaa)
-			mpaa = mpaa.encode('utf-8')
+			# mpaa = mpaa.encode('utf-8')
 		except: mpaa = '0'
 
 		actors = getActors(tvdb)
@@ -205,13 +213,13 @@ def parseAll(tvdb, limit):
 		try: label = client.parseDOM(item2, 'SeriesName')[0]
 		except: label = '0'
 		label = client.replaceHTMLCodes(label)
-		label = label.encode('utf-8')
+		# label = label.encode('utf-8')
 
 		try: plot = client.parseDOM(item2, 'Overview')[0]
 		except: plot = ''
 		if plot == '': plot = '0'
 		plot = client.replaceHTMLCodes(plot)
-		plot = plot.encode('utf-8')
+		# plot = plot.encode('utf-8')
 
 		unaired = ''
 	except:
@@ -222,7 +230,7 @@ def parseAll(tvdb, limit):
 			premiered = client.parseDOM(item, 'FirstAired')[0]
 			if premiered == '' or '-00' in premiered: premiered = '0'
 			premiered = client.replaceHTMLCodes(premiered)
-			premiered = premiered.encode('utf-8')
+			# premiered = premiered.encode('utf-8')
 
 			# Show Unaired items.
 			if status.lower() == 'ended': pass
@@ -243,7 +251,7 @@ def parseAll(tvdb, limit):
 
 			season = client.parseDOM(item, 'SeasonNumber')[0]
 			season = '%01d' % int(season)
-			season = season.encode('utf-8')
+			# season = season.encode('utf-8')
 
 			thumb = [i for i in artwork if client.parseDOM(i, 'Season')[0] == season]
 			try: thumb = client.parseDOM(thumb[0], 'BannerPath')[0]
@@ -251,7 +259,7 @@ def parseAll(tvdb, limit):
 			if thumb != '': thumb = imageUrl + thumb
 			else: thumb = '0'
 			thumb = client.replaceHTMLCodes(thumb)
-			thumb = thumb.encode('utf-8')
+			# thumb = thumb.encode('utf-8')
 			if thumb == '0': thumb = poster
 
 			try: seasoncount = counts[season]
@@ -271,7 +279,7 @@ def parseAll(tvdb, limit):
 			if premiered == '' or '-00' in premiered:
 				premiered = '0'
 			premiered = client.replaceHTMLCodes(premiered)
-			premiered = premiered.encode('utf-8')
+			# premiered = premiered.encode('utf-8')
 
 			# Show Unaired items.
 			if status.lower() == 'ended': pass
@@ -293,11 +301,11 @@ def parseAll(tvdb, limit):
 
 			season = client.parseDOM(item, 'SeasonNumber')[0]
 			season = '%01d' % int(season)
-			season = season.encode('utf-8')
+			# season = season.encode('utf-8')
 
 			episode = client.parseDOM(item, 'EpisodeNumber')[0]
 			episode = re.sub(r'[^0-9]', '', '%01d' % int(episode))
-			episode = episode.encode('utf-8')
+			# episode = episode.encode('utf-8')
 
 # ### episode IDS
 			episodeIDS = {}
@@ -309,14 +317,14 @@ def parseAll(tvdb, limit):
 
 			title = client.parseDOM(item, 'EpisodeName')[0]
 			title = client.replaceHTMLCodes(title)
-			title = title.encode('utf-8')
+			# title = title.encode('utf-8')
 
 			try: thumb = client.parseDOM(item, 'filename')[0]
 			except: thumb = ''
 			if thumb != '': thumb = imageUrl + thumb
 			else: thumb = '0'
 			thumb = client.replaceHTMLCodes(thumb)
-			thumb = thumb.encode('utf-8')
+			# thumb = thumb.encode('utf-8')
 
 			if thumb != '0': pass
 			elif fanart != '0': thumb = fanart.replace(imageUrl, tvdb_poster)
@@ -328,7 +336,7 @@ def parseAll(tvdb, limit):
 			if season_poster != '': season_poster = imageUrl + season_poster
 			else: season_poster = '0'
 			season_poster = client.replaceHTMLCodes(season_poster)
-			season_poster = season_poster.encode('utf-8')
+			# season_poster = season_poster.encode('utf-8')
 			if season_poster == '0': season_poster = poster
 			# log_utils.log('season_poster = %s for tvshowtitle = %s' % (season_poster, tvshowtitle), __name__, log_utils.LOGDEBUG)
 
@@ -336,7 +344,7 @@ def parseAll(tvdb, limit):
 			except: rating = ''
 			if rating == '': rating = '0'
 			rating = client.replaceHTMLCodes(rating)
-			rating = rating.encode('utf-8')
+			# rating = rating.encode('utf-8')
 
 			try: director = client.parseDOM(item, 'Director')[0]
 			except: director = ''
@@ -344,7 +352,7 @@ def parseAll(tvdb, limit):
 			director = ' / '.join(director)
 			if director == '': director = '0'
 			director = client.replaceHTMLCodes(director)
-			director = director.encode('utf-8')
+			# director = director.encode('utf-8')
 
 			try: writer = client.parseDOM(item, 'Writer')[0]
 			except: writer = ''
@@ -352,7 +360,7 @@ def parseAll(tvdb, limit):
 			writer = ' / '.join(writer)
 			if writer == '': writer = '0'
 			writer = client.replaceHTMLCodes(writer)
-			writer = writer.encode('utf-8')
+			# writer = writer.encode('utf-8')
 
 			try:
 				local = client.parseDOM(item, 'id')[0]
@@ -370,8 +378,8 @@ def parseAll(tvdb, limit):
 			if episodeplot == '': episodeplot = '0'
 			if episodeplot == '0': episodeplot = plot
 			episodeplot = client.replaceHTMLCodes(episodeplot)
-			try: episodeplot = episodeplot.encode('utf-8')
-			except: pass
+			# try: episodeplot = episodeplot.encode('utf-8')
+			# except: pass
 
 			try: seasoncount = counts[season]
 			except: seasoncount = None
@@ -428,7 +436,7 @@ def parseEpisodeInfo(tvdb, episode):
 
 		title = client.parseDOM(item, 'EpisodeName')[0]
 		title = client.replaceHTMLCodes(title)
-		title = title.encode('utf-8')
+		# title = title.encode('utf-8')
 
 		season = client.parseDOM(item, 'SeasonNumber')[0]
 		season = '%01d' % int(season)
@@ -457,7 +465,7 @@ def parseEpisodeInfo(tvdb, episode):
 		if season_poster != '': season_poster = imageUrl + season_poster
 		else: season_poster = '0'
 		season_poster = client.replaceHTMLCodes(season_poster)
-		season_poster = season_poster.encode('utf-8')
+		# season_poster = season_poster.encode('utf-8')
 
 		banner = client.parseDOM(item2, 'banner')[0]
 		if banner and banner != '': banner = imageUrl + banner
@@ -498,12 +506,14 @@ def parseEpisodeInfo(tvdb, episode):
 
 		director = client.parseDOM(item, 'Director')[0]
 		director = [x for x in director.split('|') if x != '']
-		director = (' / '.join(director)).encode('utf-8')
+		# director = (' / '.join(director)).encode('utf-8')
+		director = (' / '.join(director))
 		director = client.replaceHTMLCodes(director)
 
 		writer = client.parseDOM(item, 'Writer')[0]
 		writer = [x for x in writer.split('|') if x != '']
-		writer = (' / '.join(writer)).encode('utf-8')
+		# writer = (' / '.join(writer)).encode('utf-8')
+		writer = (' / '.join(writer))
 		writer = client.replaceHTMLCodes(writer)
 
 		castandart = parseActors(actors)
@@ -511,7 +521,7 @@ def parseEpisodeInfo(tvdb, episode):
 		plot = client.parseDOM(item, 'Overview')[0]
 		if not plot: plot = client.parseDOM(item2, 'Overview')[0]
 		plot = client.replaceHTMLCodes(plot)
-		plot = plot.encode('utf-8')
+		# plot = plot.encode('utf-8')
 
 		values = {'title': title, 'seasoncount': seasoncount, 'season': season, 'episode': episode,
 						'year': year, 'tvshowtitle': tvshowtitle, 'tvshowyear': year, 'premiered': premiered,
@@ -542,7 +552,7 @@ def parseSeasonPoster(artwork, season):
 		season_poster = client.parseDOM(season_poster[0], 'BannerPath')[0]
 		season_poster = imageUrl + season_poster or None
 		season_poster = client.replaceHTMLCodes(season_poster)
-		season_poster = season_poster.encode('utf-8')
+		# season_poster = season_poster.encode('utf-8')
 		return season_poster
 	except:
 		log_utils.error()
@@ -561,7 +571,7 @@ def getSeries_by_id(tvdb):
 
 		title = client.parseDOM(item, 'SeriesName')[0]
 		title = client.replaceHTMLCodes(title)
-		title = title.encode('utf-8')
+		# title = title.encode('utf-8')
 
 		year = client.parseDOM(item, 'FirstAired')[0]
 		year = re.compile(r'(\d{4})').findall(year)[0]
@@ -581,8 +591,8 @@ def getSeries_by_id(tvdb):
 
 		plot = client.parseDOM(item, 'Overview')[0]
 		plot = client.replaceHTMLCodes(plot)
-		try: plot = plot.encode('utf-8')
-		except: pass
+		# try: plot = plot.encode('utf-8')
+		# except: pass
 
 		status = client.parseDOM(item, 'Status')[0]
 		if not status: status = 'Ended'
@@ -639,38 +649,61 @@ def getActors(tvdb):
 		return None
 
 
+# def parseActors(actors):
+	# castandart = []
+	# try:
+		# if not actors: return []
+		# import xml.etree.ElementTree as ET
+		# tree = ET.ElementTree(ET.fromstring(actors))
+		# root = tree.getroot()
+		# for actor in root.iter('Actor'):
+			# person = [name.text for name in actor]
+			# image = person[1]
+			# name = person[2] or ''
+			# name = client.replaceHTMLCodes(name)
+			# role = person[3] or ''
+			# role = client.replaceHTMLCodes(role)
+			# try:
+				# # try: castandart.append({'name': name.encode('utf-8'), 'role': role.encode('utf-8'), 'thumbnail': ((imageUrl + image) if image is not None else '0')})
+				# # except: castandart.append({'name': name, 'role': role, 'thumbnail': ((imageUrl + image) if image is not None else '0')})
+				# castandart.append({'name': name, 'role': role, 'thumbnail': ((imageUrl + image) if image is not None else '0')})
+			# except: castandart = []
+			# if len(castandart) == 150: break
+		# return castandart
+	# except:
+		# log_utils.error()
+		# return []
+
+
 def parseActors(actors):
 	castandart = []
 	try:
-		if not actors: return []
+		if not actors: return castandart
 		import xml.etree.ElementTree as ET
 		tree = ET.ElementTree(ET.fromstring(actors))
 		root = tree.getroot()
 		for actor in root.iter('Actor'):
 			person = [name.text for name in actor]
 			image = person[1]
-			name = person[2]
-			try: name = client.replaceHTMLCodes(person[2])
-			except: pass
-			role = person[3]
-			try: role = client.replaceHTMLCodes(person[3])
-			except: pass
+			name = py_tools.ensure_str(client.replaceHTMLCodes(person[2])) or ''
+			role = py_tools.ensure_str(client.replaceHTMLCodes(person[3])) or ''
 			try:
-				try: castandart.append({'name': name.encode('utf-8'), 'role': role.encode('utf-8'), 'thumbnail': ((imageUrl + image) if image is not None else '0')})
-				except: castandart.append({'name': name, 'role': role, 'thumbnail': ((imageUrl + image) if image is not None else '0')})
-			except: castandart = []
-			if len(castandart) == 150: break
+				castandart.append({'name': name, 'role': role, 'thumbnail': ((imageUrl + image) if image is not None else '0')})
+			except: pass
+			if len(castandart) == 150: break # cast seems to have a limit and a show like "Survivor" has 500+ actors and breaks
 		return castandart
 	except:
 		log_utils.error()
 		return []
 
 
+
 def getSeries_ByIMDB(title, year, imdb):
 	try:
 		url = by_imdb % imdb
-		# result = client.request(url, timeout='10')
-		result = requests.get(url, timeout=10).content
+		result = client.request(url, timeout='10')
+		# result = requests.get(url, timeout=10).content # test .content vs. .text
+		# result = py_tools.six_decode(result)
 		result = re.sub(r'[^\x00-\x7F]+', '', result)
 		result = client.replaceHTMLCodes(result)
 		result = client.parseDOM(result, 'Series')
@@ -693,8 +726,9 @@ def getSeries_ByIMDB(title, year, imdb):
 def getSeries_ByName(title, year):
 	try:
 		url = by_seriesname % (quote_plus(title))
-		# result = client.request(url, timeout='10')
-		result = requests.get(url, timeout=10).content
+		result = client.request(url, timeout='10')
+		# result = requests.get(url, timeout=10).content # test .content vs. .text
+		# result = py_tools.six_decode(result)
 		result = re.sub(r'[^\x00-\x7F]+', '', result)
 		result = client.replaceHTMLCodes(result)
 		result = client.parseDOM(result, 'Series')
@@ -718,8 +752,8 @@ def getSeries_ByName(title, year):
 def get_is_airing(tvdb, season):
 	url = all_info_link % (tvdb, lang)
 	try:
-		# result = client.request(url, timeout='10')
-		result = requests.get(url, timeout=10).content
+		# result = client.request(url, timeout='10', as_bytes=True)
+		result = client.request(url, timeout='10')
 		result = result.split('<Episode>')
 		episodes = [i for i in result if '<EpisodeNumber>' in i]
 		if control.setting('tv.specials') == 'true':
@@ -744,8 +778,9 @@ def get_is_airing(tvdb, season):
 def get_counts(tvdb):
 	url = all_info_link % (tvdb, lang)
 	try:
-		# result = client.request(url, timeout='10')
-		result = requests.get(url, timeout=10).content
+		result = client.request(url, timeout='10')
+		# result = requests.get(url, timeout=10).content # test .content vs. .text
+		# result = py_tools.six_decode(result)
 		result = result.split('<Episode>')
 		episodes = [i for i in result if '<EpisodeNumber>' in i]
 		if control.setting('tv.specials') == 'true':
@@ -777,14 +812,14 @@ def seasonCountParse(season = None, items = None, seasons = None, episodes = Non
 	for s in seasons:
 		season = client.parseDOM(s, 'SeasonNumber')[0]
 		season = '%01d' % int(season)
-		season = season.encode('utf-8')
+		# season = season.encode('utf-8')
 		counts[season] = 0
 
 	for e in episodes:
 		try:
 			season = client.parseDOM(e, 'SeasonNumber')[0]
 			season = '%01d' % int(season)
-			season = season.encode('utf-8')
+			# season = season.encode('utf-8')
 			counts[season] += 1
 		except: pass
 	try:

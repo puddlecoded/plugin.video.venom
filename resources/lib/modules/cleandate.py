@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from datetime import datetime, timedelta
 import time

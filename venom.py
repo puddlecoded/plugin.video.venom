@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from sys import argv
 import xbmcaddon
-try:
+try: #Py2
 	from urlparse import parse_qsl
 	from urllib import quote_plus
-except:
+except ImportError: #Py3
 	from urllib.parse import parse_qsl, quote_plus
-
 from resources.lib.modules import control
 
 params = dict(parse_qsl(argv[2].replace('?','')))
@@ -872,8 +870,7 @@ if action and action.startswith('library_'):
 			if control.condVisibility('Library.IsScanningVideo'):
 				control.sleep(3000)
 				continue
-			else:
-				break
+			else: break
 		control.sleep(1000)
 		control.notification(message=32086)
 

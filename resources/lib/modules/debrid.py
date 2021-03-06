@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -34,8 +34,6 @@ def status():
 
 
 def get_priority(cls):
-	# log_utils.log('cls __name__ priority = %s' % str(cls.__class__.__name__ + '.priority').lower(), __name__, log_utils.LOGDEBUG)
-	# log_utils.log('cls __name__ priority setting = %s' % str(control.setting((cls.__class__.__name__ + '.priority').lower())), __name__, log_utils.LOGDEBUG)
 	try:
 		return int(control.setting((cls.__class__.__name__ + '.priority').lower()))
 	except:

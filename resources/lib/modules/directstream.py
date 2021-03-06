@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import binascii
-# import json
 from json import loads as jsloads
 import os
 import re

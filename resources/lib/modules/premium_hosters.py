@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 hostprDict = ['4shared.com', 'vidcloud.r', 'fastfile.cc', 'rapidu.net', 'sky.fm', 'upload.ac', 'filer.net', 'goloady.com',
 							'backin.net', 'uploadboy.com', 'exload.com', 'turbo.to', 'takefile.link', '2shared.com', 'oboom.com',

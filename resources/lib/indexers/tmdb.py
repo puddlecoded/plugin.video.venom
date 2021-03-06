@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import re
 import requests
-
 from resources.lib.modules import control
 from resources.lib.modules import cache
 from resources.lib.modules import metacache
+from resources.lib.modules import py_tools
 from resources.lib.modules import workers
 from resources.lib.modules import log_utils
 
@@ -17,7 +17,6 @@ if API_key == '' or API_key is None:
 	API_key = '3320855e65a9758297fec4f7c9717698'
 
 disable_fanarttv = control.setting('disable.fanarttv')
-
 base_link = 'https://api.themoviedb.org/3/'
 poster_path = 'https://image.tmdb.org/t/p/w300'
 fanart_path = 'https://image.tmdb.org/t/p/w1280'
@@ -119,11 +118,8 @@ class Movies:
 
 		for item in items:
 			try:
-				try: title = item.get('title').encode('utf-8')
-				except: title = item.get('title')
-
-				try: originaltitle = item.get('original_title').encode('utf-8')
-				except: originaltitle = title
+				title = py_tools.ensure_str(item.get('title'))
+				originaltitle = title
 
 				premiered = item.get('release_date', '0')
 				try: year = str(premiered[:4])
@@ -182,15 +178,17 @@ class Movies:
 				director = writer = '0'
 				for person in credits['crew']:
 					if 'Director' in person['job']:
-						director = ', '.join([director['name'].encode('utf-8') for director in credits['crew'] if director['job'].lower() == 'director'])
+						# director = ', '.join([director['name'].encode('utf-8') for director in credits['crew'] if director['job'].lower() == 'director'])
+						director = ', '.join([director['name'] for director in credits['crew'] if director['job'].lower() == 'director'])
 					if person['job'] in ['Writer', 'Screenplay', 'Author', 'Novel']:
-						writer = ', '.join([writer['name'].encode('utf-8') for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
-
+						# writer = ', '.join([writer['name'].encode('utf-8') for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
+						writer = ', '.join([writer['name'] for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
 				castandart = []
 				for person in item['credits']['cast']:
 					try:
-						try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-						except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						# try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						# except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
 					except: castandart = []
 					if len(castandart) == 150: break
 
@@ -213,8 +211,7 @@ class Movies:
 						values.update(extended_art)
 						meta.update(values)
 
-				values = dict((k,v) for k, v in values.iteritems() if v != '0')
-
+				values = dict((k,v) for k, v in control.iteritems(values) if v and v != '0')
 				for i in range(0, len(self.list)):
 					if str(self.list[i]['tmdb']) == str(tmdb):
 						self.list[i].update(values)
@@ -262,11 +259,8 @@ class Movies:
 				media_type = item.get('media_type', '0')
 				if media_type == 'tv': continue
 
-				try: title = item.get('title').encode('utf-8')
-				except: title = item.get('title')
-
-				try: originaltitle = item.get('original_title').encode('utf-8')
-				except: originaltitle = title
+				title = py_tools.ensure_str(item.get('title'))
+				originaltitle = title
 
 				premiered = item.get('release_date', '0')
 				try: year = str(premiered[:4])
@@ -324,15 +318,18 @@ class Movies:
 				director = writer = '0'
 				for person in credits['crew']:
 					if 'Director' in person['job']:
-						director = ', '.join([director['name'].encode('utf-8') for director in credits['crew'] if director['job'].lower() == 'director'])
+						# director = ', '.join([director['name'].encode('utf-8') for director in credits['crew'] if director['job'].lower() == 'director'])
+						director = ', '.join([director['name'] for director in credits['crew'] if director['job'].lower() == 'director'])
 					if person['job'] in ['Writer', 'Screenplay', 'Author', 'Novel']:
-						writer = ', '.join([writer['name'].encode('utf-8') for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
+						# writer = ', '.join([writer['name'].encode('utf-8') for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
+						writer = ', '.join([writer['name'] for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
 
 				castandart = []
 				for person in item['credits']['cast']:
 					try:
-						try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-						except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						# try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						# except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
 					except: castandart = []
 					if len(castandart) == 150: break
 
@@ -355,8 +352,7 @@ class Movies:
 						values.update(extended_art)
 						meta.update(values)
 
-				values = dict((k,v) for k, v in values.iteritems() if v != '0')
-
+				values = dict((k,v) for k, v in control.iteritems(values) if v and v != '0')
 				for i in range(0, len(self.list)):
 					if str(self.list[i]['tmdb']) == str(tmdb):
 						self.list[i].update(values)
@@ -455,8 +451,7 @@ class TVshows:
 		except: next = ''
 
 		for item in items:
-			try: title = item.get('name').encode('utf-8')
-			except: title = item.get('name')
+			title = py_tools.ensure_str(item.get('name'))
 
 			tmdb = str(item.get('id'))
 			sortList.append(tmdb)
@@ -470,8 +465,7 @@ class TVshows:
 
 			rating = str(item.get('vote_average', '0'))
 			votes = str(format(int(item.get('vote_count', '0')),',d'))
-
-			plot = item.get('overview')
+			plot = py_tools.ensure_str(item.get('overview'))
 
 			values = {'next': next, 'title': title, 'year': year, 'tmdb': tmdb, 'poster': poster, 'fanart': fanart,
 							'premiered': premiered, 'rating': rating, 'votes': votes, 'plot': plot}
@@ -516,15 +510,17 @@ class TVshows:
 				director = writer = '0'
 				for person in credits['crew']:
 					if 'Director' in person['job']:
-						director = ', '.join([director['name'].encode('utf-8') for director in credits['crew'] if director['job'].lower() == 'director'])
+						# director = ', '.join([director['name'].encode('utf-8') for director in credits['crew'] if director['job'].lower() == 'director'])
+						director = ', '.join([director['name'] for director in credits['crew'] if director['job'].lower() == 'director'])
 					if person['job'] in ['Writer', 'Screenplay', 'Author', 'Novel']:
-						writer = ', '.join([writer['name'].encode('utf-8') for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
-
+						# writer = ', '.join([writer['name'].encode('utf-8') for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
+						writer = ', '.join([writer['name'] for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
 				castandart = []
 				for person in item['credits']['cast']:
 					try:
-						try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-						except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						# try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						# except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
 					except: castandart = []
 					if len(castandart) == 150: break
 
@@ -541,11 +537,9 @@ class TVshows:
 						values.update(extended_art)
 						meta.update(values)
 
-				values = dict((k,v) for k, v in values.iteritems() if v != '0')
+				values = dict((k,v) for k, v in control.iteritems(values) if v and v != '0')
 				self.list.append(values)
-
 				if 'next' in meta.get('item'): del meta['item']['next']
-
 				self.meta.append(meta)
 				metacache.insert(self.meta)
 			except:
@@ -586,8 +580,9 @@ class TVshows:
 			media_type = item.get('media_type', '0')
 			if media_type == 'movie': 	continue
 
-			try: title = item.get('name').encode('utf-8')
-			except: title = item.get('name')
+			# try: title = item.get('name').encode('utf-8')
+			# except: title = item.get('name')
+			title = item.get('name')
 
 			tmdb = str(item.get('id'))
 			sortList.append(tmdb)
@@ -647,15 +642,17 @@ class TVshows:
 				director = writer = '0'
 				for person in credits['crew']:
 					if 'Director' in person['job']:
-						director = ', '.join([director['name'].encode('utf-8') for director in credits['crew'] if director['job'].lower() == 'director'])
+						# director = ', '.join([director['name'].encode('utf-8') for director in credits['crew'] if director['job'].lower() == 'director'])
+						director = ', '.join([director['name'] for director in credits['crew'] if director['job'].lower() == 'director'])
 					if person['job'] in ['Writer', 'Screenplay', 'Author', 'Novel']:
-						writer = ', '.join([writer['name'].encode('utf-8') for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
-
+						# writer = ', '.join([writer['name'].encode('utf-8') for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
+						writer = ', '.join([writer['name'] for writer in credits['crew'] if writer['job'].lower() in ['writer', 'screenplay', 'author', 'novel']])
 				castandart = []
 				for person in item['credits']['cast']:
 					try:
-						try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
-						except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						# try: castandart.append({'name': person['name'].encode('utf-8'), 'role': person['character'].encode('utf-8'), 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						# except: castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
+						castandart.append({'name': person['name'], 'role': person['character'], 'thumbnail': ((poster_path + person.get('profile_path')) if person.get('profile_path') is not None else '0')})
 					except: castandart = []
 					if len(castandart) == 150: break
 
@@ -672,11 +669,9 @@ class TVshows:
 						values.update(extended_art)
 						meta.update(values)
 
-				values = dict((k,v) for k, v in values.iteritems() if v != '0')
+				values = dict((k,v) for k, v in control.iteritems(values) if v and v != '0')
 				self.list.append(values)
-
 				if 'next' in meta.get('item'): del meta['item']['next']
-
 				self.meta.append(meta)
 				metacache.insert(self.meta)
 			except:
@@ -755,7 +750,8 @@ class Auth:
 				return
 			url = self.auth_base_link + '/token/new?api_key=%s' % API_key
 			result = requests.get(url).json()
-			token = result.get('request_token').encode('utf-8')
+			# token = result.get('request_token').encode('utf-8')
+			token = result.get('request_token')
 			url2 = self.auth_base_link + '/token/validate_with_login?api_key=%s' % API_key
 			post2 = {"username": "%s" % control.setting('tmdb.username'),
 							"password": "%s" % control.setting('tmdb.password'),

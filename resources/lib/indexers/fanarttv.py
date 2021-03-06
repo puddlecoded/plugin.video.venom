@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 
@@ -173,8 +172,7 @@ def get_movie_art(imdb, tmdb):
 		# keyart = [(x['url'], x['likes']) for x in keyart if any(value in x.get('lang') for value in ['00', 'None', None])]
 		# keyart = sorted(keyart, key=lambda x: int(x[1]), reverse=True)
 		# keyart = [x[0] for x in keyart][0]
-	# except:
-		# keyart = '0'
+	# except: keyart = '0'
 
 	extended_art = {'extended': True, 'poster2': poster2, 'fanart2': fanart2, 'banner2': banner2, 'clearlogo': clearlogo, 'clearart': clearart, 'discart': discart, 'landscape': landscape}
 	# extended_art = {'extended': True, 'poster2': poster2, 'fanart2': fanart2, 'banner2': banner2, 'clearlogo': clearlogo, 'clearart': clearart, 'discart': discart, 'landscape': landscape, 'keyart': keyart}

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import time, datetime, calendar
 from resources.lib.modules import log_utils

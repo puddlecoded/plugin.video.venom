@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from datetime import datetime, timedelta
 from json import dumps as jsdumps, loads as jsloads
@@ -15,9 +15,7 @@ try: #Py2
 	from urlparse import parse_qsl
 except ImportError: #Py3
 	from urllib.parse import quote_plus, parse_qsl, unquote
-
 from resources.lib.modules import cleantitle
-from resources.lib.modules import client
 from resources.lib.modules import control
 from resources.lib.modules import debrid
 from resources.lib.modules import log_utils
@@ -164,7 +162,9 @@ class Sources:
 		def sourcesDirMeta(metadata):
 			if not metadata: return metadata
 			allowed = ['poster', 'season_poster', 'fanart', 'thumb', 'title', 'year', 'tvshowtitle', 'season', 'episode']
-			return {k: v for k, v in metadata.iteritems() if k in allowed}
+			#return {k: v for k, v in metadata.iteritems() if k in allowed}
+			try: return {k: v for k, v in metadata.iteritems() if k in allowed}
+			except: return {k: v for k, v in metadata.items() if k in allowed}
 
 		control.playlist.clear()
 		items = control.homeWindow.getProperty(self.itemProperty)
@@ -196,7 +196,8 @@ class Sources:
 
 		resquality_icons = control.setting('enable.resquality.icons') == 'true'
 		artPath = control.artPath()
-		sysimage = quote_plus(poster.encode('utf-8'))
+		# sysimage = quote_plus(poster.encode('utf-8'))
+		sysimage = quote_plus(poster)
 		downloadMenu = control.lang(32403)
 
 		for i in range(len(items)):
@@ -479,7 +480,9 @@ class Sources:
 					current_time = time.time()
 					current_progress = current_time - start_time
 					percent = int((current_progress / float(timeout)) * 100)
-					if progressDialog != control.progressDialogBG: progressDialog.update(max(1, percent), line1, line2, line3)
+					# if progressDialog != control.progressDialogBG: progressDialog.update(max(1, percent), line1, line2, line3)
+					if progressDialog != control.progressDialogBG: progressDialog.update(max(1, percent), line1 + '[CR]' + line2 + '[CR]' + line3)
+
 					else: progressDialog.update(max(1, percent), line1 + '  ' + string3 % str(len(info)))
 					# if len(info) == 0: break
 					if end_time < current_time: break
@@ -532,14 +535,16 @@ class Sources:
 				timestamp = control.datetime_workaround(str(db_movie[5]), '%Y-%m-%d %H:%M:%S.%f', False)
 				db_movie_valid = abs(self.time - timestamp) < self.single_expiry
 				if db_movie_valid:
-					sources = eval(db_movie[4].encode('utf-8'))
+					# sources = eval(db_movie[4].encode('utf-8'))
+					sources = eval(db_movie[4])
 					return self.scraper_sources.extend(sources)
 		except:
 			log_utils.error()
 		try:
 			url = None
 			url = dbcur.execute('''SELECT * FROM rel_url WHERE (source=? AND imdb_id=? AND season='' AND episode='')''', (source, imdb)).fetchone()
-			if url: url = eval(url[4].encode('utf-8'))
+			# if url: url = eval(url[4].encode('utf-8'))
+			if url: url = eval(url[4])
 		except:
 			log_utils.error()
 		try:
@@ -586,7 +591,8 @@ class Sources:
 				timestamp = control.datetime_workaround(str(db_singleEpisodes[5]), '%Y-%m-%d %H:%M:%S.%f', False)
 				db_singleEpisodes_valid = abs(self.time - timestamp) < self.single_expiry
 				if db_singleEpisodes_valid:
-					sources = eval(db_singleEpisodes[4].encode('utf-8'))
+					# sources = eval(db_singleEpisodes[4].encode('utf-8'))
+					sources = eval(db_singleEpisodes[4])
 					self.scraper_sources.extend(sources)
 		except:
 			log_utils.error()
@@ -600,7 +606,8 @@ class Sources:
 				timestamp = control.datetime_workaround(str(db_seasonPacks[5]), '%Y-%m-%d %H:%M:%S.%f', False)
 				db_seasonPacks_valid = abs(self.time - timestamp) < self.season_expiry
 				if db_seasonPacks_valid:
-					sources = eval(db_seasonPacks[4].encode('utf-8'))
+					# sources = eval(db_seasonPacks[4].encode('utf-8'))
+					sources = eval(db_seasonPacks[4])
 					self.scraper_sources.extend(sources)
 		except:
 			log_utils.error()
@@ -613,7 +620,8 @@ class Sources:
 				timestamp = control.datetime_workaround(str(db_showPacks[5]), '%Y-%m-%d %H:%M:%S.%f', False)
 				db_showPacks_valid = abs(self.time - timestamp) < self.show_expiry
 				if db_showPacks_valid:
-					sources = eval(db_showPacks[4].encode('utf-8'))
+					# sources = eval(db_showPacks[4].encode('utf-8'))
+					sources = eval(db_showPacks[4])
 					sources = [i for i in sources if i.get('last_season') >= int(season)] # filter out range items that do not apply to current season
 					self.scraper_sources.extend(sources)
 					if db_singleEpisodes_valid and db_seasonPacks_valid:
@@ -623,7 +631,8 @@ class Sources:
 		try:
 			url = None
 			url = dbcur.execute('''SELECT * FROM rel_url WHERE (source=? AND imdb_id=? AND season='' AND episode='')''', (source, imdb)).fetchone()
-			if url: url = eval(url[4].encode('utf-8'))
+			# if url: url = eval(url[4].encode('utf-8'))
+			if url: url = eval(url[4])
 		except:
 			log_utils.error()
 		try:
@@ -636,7 +645,8 @@ class Sources:
 		try:
 			ep_url = None
 			ep_url = dbcur.execute('''SELECT * FROM rel_url WHERE (source=? AND imdb_id=? AND season=? AND episode=?)''', (source, imdb, season, episode)).fetchone()
-			if ep_url: ep_url = eval(ep_url[4].encode('utf-8'))
+			# if ep_url: ep_url = eval(ep_url[4].encode('utf-8'))
+			if ep_url: ep_url = eval(ep_url[4])
 		except:
 			log_utils.error()
 		try:
@@ -735,8 +745,10 @@ class Sources:
 			try:
 				cached = None
 				if deepcopy_sources: cached = function(deepcopy_sources)
-				if cached: self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
-				self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
+				# if cached: self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
+				if cached: self.filter += [dict(list(i.items()) + [('debrid', debrid_name)]) for i in cached if 'magnet:' in i['url']]
+				# self.filter += [dict(i.items() + [('debrid', debrid_name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
+				self.filter += [dict(list(i.items()) + [('debrid', debrid_name)]) for i in self.sources if i['source'] in valid_hoster and 'magnet:' not in i['url']]
 			except:
 				log_utils.error()
 
@@ -1126,6 +1138,8 @@ class Sources:
 
 	def sourceInfo(self, info):
 		try:
+			platform = sys.platform
+			supported_platform = any(value in platform for value in ['win32', 'linux2'])
 			source = jsloads(info)[0]
 			try: f = ' / '.join(['%s' % info.strip() for info in source.get('info').split('|')])
 			except: f = ''
@@ -1136,15 +1150,21 @@ class Sources:
 			t = '%s /%s' % (f, t) if (f != '' and f != '0 ' and f != ' ') else t
 			if t == '':
 				t = source_utils.getFileType(url=source.get('url'))
-			list = [
-				'[COLOR %s]url:[/COLOR]  %s' % (self.highlight_color, source.get('url')),
-				'[COLOR %s]name:[/COLOR]  %s' % (self.highlight_color, source.get('name')),
-				'[COLOR %s]info:[/COLOR]  %s' % (self.highlight_color, t)
-					]
+			list = [('[COLOR %s]url:[/COLOR]  %s' % (self.highlight_color, source.get('url')), source.get('url'))]
+			# "&" in magnets causes copy2clip to fail
+			if 'magnet:' not in source.get('url') and not source.get('direct'):
+				if supported_platform: list += [('[COLOR %s]  -- Copy url To Clipboard[/COLOR]' % self.highlight_color, ' ')]
+			list += [('[COLOR %s]name:[/COLOR]  %s' % (self.highlight_color, source.get('name')), source.get('name'))]
+			if supported_platform: list += [('[COLOR %s]  -- Copy name To Clipboard[/COLOR]' % self.highlight_color, ' ')]
+			list += [('[COLOR %s]info:[/COLOR]  %s' % (self.highlight_color, t), ' ')]
 			if 'magnet:' in source.get('url'):
-				list += ['[COLOR %s]hash:[/COLOR]  %s' % (self.highlight_color, source.get('hash'))]
-				list += ['[COLOR %s]seeders:[/COLOR]  %s' % (self.highlight_color, source.get('seeders'))]
-			return control.selectDialog(list, 'Source Info')
+				list += [('[COLOR %s]hash:[/COLOR]  %s' % (self.highlight_color, source.get('hash')), source.get('hash'))]
+				if supported_platform: list += [('[COLOR %s]  -- Copy hash To Clipboard[/COLOR]' % self.highlight_color, ' ')]
+				list += [('[COLOR %s]seeders:[/COLOR]  %s' % (self.highlight_color, source.get('seeders')), ' ')]
+			select = control.selectDialog([i[0] for i in list], 'Source Info')
+			if any(x in list[select][0] for x in ['Copy url To Clipboard', 'Copy name To Clipboard', 'Copy hash To Clipboard']):
+				control.copy2clip(list[select - 1][1])
+			return
 		except:
 			log_utils.error()
 
@@ -1330,9 +1350,9 @@ class Sources:
 	def rd_cache_chk_list(self, torrent_List):
 		if len(torrent_List) == 0: return
 		def base32_to_hex(hash):
-			import base64
+			from base64 import b32decode
 			log_utils.log('base32 hash: %s' % hash, __name__, log_utils.LOGDEBUG)
-			hex = base64.b32decode(hash).encode('hex')
+			hex = b32decode(hash).encode('hex') # 19 compatible?
 			log_utils.log('base32_to_hex: %s' % hex, __name__, log_utils.LOGDEBUG)
 			return hex
 		try:
@@ -1377,10 +1397,12 @@ class Sources:
 	def movie_chk_imdb(self, imdb, title, year):
 		try:
 			if not imdb or imdb == '0': return year, title
-			result = client.request('https://v2.sg.media-imdb.com/suggestion/t/{}.json'.format(imdb))
+			from resources.lib.modules.client import _basic_request
+			result = _basic_request('https://v2.sg.media-imdb.com/suggestion/t/{}.json'.format(imdb))
+			if not result: return year, title
 			result = jsloads(result)['d'][0]
 			year_ck = str(result['y'])
-			title_ck = result['l'].encode('utf-8')
+			title_ck = result['l']
 			if not year_ck or not title_ck: return year, title
 			if year != year_ck: year = year_ck
 			if title != title_ck: title = title_ck

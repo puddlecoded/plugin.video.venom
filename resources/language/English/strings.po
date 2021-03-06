@@ -2642,11 +2642,11 @@ msgid ""
 msgstr ""
 
 msgctxt "#33674"
-msgid ""
+msgid "Trakt Throttling Applied, Sleeping for %s seconds"
 msgstr ""
 
 msgctxt "#33675"
-msgid ""
+msgid "Locked User Account - contact Trakt support"
 msgstr ""
 
 msgctxt "#33676"

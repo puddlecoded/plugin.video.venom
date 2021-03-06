@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from json import loads as jsloads
-import xbmc
-import xbmcaddon
 try: from sqlite3 import dbapi2 as database
-except: from pysqlite2 import dbapi2 as database
-
+except ImportError: from pysqlite2 import dbapi2 as database
 from resources.lib.modules import control
 
-addonInfo = xbmcaddon.Addon().getAddonInfo
-dataPath = xbmc.translatePath(addonInfo('profile')).decode('utf-8')
+dataPath = control.transPath(control.addonInfo('path'))
 favouritesFile = control.joinPath(dataPath, 'favourites.db')
 progressFile = control.joinPath(dataPath, 'progress.db')
 
@@ -22,26 +18,26 @@ def getFavourites(content):
 		dbcon = database.connect(favouritesFile)
 		dbcur = dbcon.cursor()
 		items = dbcur.execute("SELECT * FROM %s" % content).fetchall()
-		items = [(i[0].encode('utf-8'), eval(i[1].encode('utf-8'))) for i in items]
+		# items = [(i[0].encode('utf-8'), eval(i[1].encode('utf-8'))) for i in items]
+		items = [(i[0], eval(i[1])) for i in items]
 	except:
 		items = []
 	finally:
 		dbcur.close() ; dbcon.close()
 	return items
-
 
 def getProgress(content):
 	try:
 		dbcon = database.connect(progressFile)
 		dbcur = dbcon.cursor()
 		items = dbcur.execute("SELECT * FROM %s" % content).fetchall()
-		items = [(i[0].encode('utf-8'), eval(i[1].encode('utf-8'))) for i in items]
+		# items = [(i[0].encode('utf-8'), eval(i[1].encode('utf-8'))) for i in items]
+		items = [(i[0], eval(i[1])) for i in items]
 	except:
 		items = []
 	finally:
 		dbcur.close() ; dbcon.close()
 	return items
-
 
 def addFavourite(meta, content):
 	try:
@@ -76,7 +72,6 @@ def addFavourite(meta, content):
 		return
 	finally:
 		dbcur.close() ; dbcon.close()
-
 
 def addEpisodes(meta, content):
 	try:
@@ -121,7 +116,6 @@ def addEpisodes(meta, content):
 	finally:
 		dbcur.close() ; dbcon.close()
 
-
 def deleteFavourite(meta, content):
 	try:
 		meta = jsloads(meta)
@@ -139,7 +133,6 @@ def deleteFavourite(meta, content):
 		return
 	finally:
 		dbcur.close() ; dbcon.close()
-
 
 def deleteProgress(meta, content):
 	try:

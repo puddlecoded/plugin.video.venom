@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from datetime import datetime, timedelta
 from json import loads
@@ -343,7 +343,8 @@ class libmovies:
 				lib = control.jsonrpc('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": {"filter":{"or": [{"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}]}, "properties" : ["imdbnumber", "title", "originaltitle", "year"]}, "id": 1}' % (year, str(int(year)+1), str(int(year)-1)))
 				lib = unicode(lib, 'utf-8', errors = 'ignore')
 				lib = loads(lib)['result']['movies']
-				lib = [i for i in lib if str(i['imdbnumber']) in id or (cleantitle.get(title) in [cleantitle.get(i['title'].encode('utf-8')), cleantitle.get(i['originaltitle'].encode('utf-8'))] and str(i['year']) == year)]
+				# lib = [i for i in lib if str(i['imdbnumber']) in id or (cleantitle.get(title) in [cleantitle.get(i['title'].encode('utf-8')), cleantitle.get(i['originaltitle'].encode('utf-8'))] and str(i['year']) == year)]
+				lib = [i for i in lib if str(i['imdbnumber']) in id or (cleantitle.get(title) in [cleantitle.get(i['title']), cleantitle.get(i['originaltitle'])] and str(i['year']) == year)]
 			except:
 				lib = []
 
@@ -609,7 +610,8 @@ class libtvshows:
 				lib = control.jsonrpc('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": {"filter":{"or": [{"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}, {"field": "year", "operator": "is", "value": "%s"}]}, "properties": ["imdbnumber", "title", "year"]}, "id": 1}' % (year, str(int(year)+1), str(int(year)-1)))
 				lib = unicode(lib, 'utf-8', errors='ignore')
 				lib = loads(lib)['result']['tvshows']
-				lib = [i['title'].encode('utf-8') for i in lib if str(i['imdbnumber']) in id or (i['title'].encode('utf-8') == items[0]['tvshowtitle'] and str(i['year']) == items[0]['year'])][0]
+				# lib = [i['title'].encode('utf-8') for i in lib if str(i['imdbnumber']) in id or (i['title'].encode('utf-8') == items[0]['tvshowtitle'] and str(i['year']) == items[0]['year'])][0]
+				lib = [i['title'] for i in lib if str(i['imdbnumber']) in id or (i['title'] == items[0]['tvshowtitle'] and str(i['year']) == items[0]['year'])][0]
 				lib = control.jsonrpc('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": {"filter":{"and": [{"field": "tvshow", "operator": "is", "value": "%s"}]}, "properties": ["season", "episode"]}, "id": 1}' % lib)
 				lib = unicode(lib, 'utf-8', errors='ignore')
 				lib = loads(lib)['result']['episodes']
@@ -812,7 +814,7 @@ class libepisodes:
 				try:
 					file = control.openFile(file)
 					read = file.read()
-					read = read.encode('utf-8')
+					# read = read.encode('utf-8')
 					file.close()
 					if not read.startswith(sys.argv[0]): continue
 
@@ -881,7 +883,8 @@ class libepisodes:
 
 			try:
 				fetch = dbcur.execute("SELECT * FROM tvshows WHERE id = '%s'" % item['tvdb']).fetchone()
-				if fetch: it = eval(fetch[1].encode('utf-8'))
+				# if fetch: it = eval(fetch[1].encode('utf-8'))
+				if fetch: it = eval(fetch[1])
 			except:
 				log_utils.error()
 
@@ -902,7 +905,8 @@ class libepisodes:
 				id = [item['imdb'], item['tvdb']]
 				if item['tmdb'] != '0':
 					id += [item['tmdb']]
-				ep = [x['title'].encode('utf-8') for x in lib if str(x['imdbnumber']) in id or (x['title'].encode('utf-8') == item['tvshowtitle'] and str(x['year']) == item['year'])][0]
+				# ep = [x['title'].encode('utf-8') for x in lib if str(x['imdbnumber']) in id or (x['title'].encode('utf-8') == item['tvshowtitle'] and str(x['year']) == item['year'])][0]
+				ep = [x['title'] for x in lib if str(x['imdbnumber']) in id or (x['title'] == item['tvshowtitle'] and str(x['year']) == item['year'])][0]
 				ep = control.jsonrpc('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": {"filter":{"and": [{"field": "tvshow", "operator": "is", "value": "%s"}]}, "properties": ["season", "episode"]}, "id": 1}' % ep)
 				ep = unicode(ep, 'utf-8', errors = 'ignore')
 				ep = loads(ep).get('result', {}).get('episodes', {})

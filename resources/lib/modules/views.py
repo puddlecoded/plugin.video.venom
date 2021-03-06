@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 try: from sqlite3 import dbapi2 as db
 except: from pysqlite2 import dbapi2 as db
-
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 
@@ -44,7 +43,6 @@ def clearViews():
 	except:
 		log_utils.error()
 
-
 def addView(content):
 	try:
 		skin = control.skin
@@ -64,7 +62,6 @@ def addView(content):
 		log_utils.error()
 	finally:
 		dbcur.close() ; dbcon.close()
-
 
 def setView(content, viewDict=None):
 	for i in range(0, 200):

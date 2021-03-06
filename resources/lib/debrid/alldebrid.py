@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from json import dumps as jsdumps, loads as jsloads
 import re
@@ -11,7 +11,6 @@ try: #Py2
 	from urllib import quote_plus
 except ImportError: #Py3
 	from urllib.parse import quote_plus
-
 from resources.lib.modules import cache
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -111,8 +110,17 @@ class AllDebrid:
 			return
 		control.sleep(2000)
 		account_info = self._get('user')
+		control.setSetting('alldebrid.username', str(account_info['user']['username']))
 		control.notification(message=40010, icon=pm_icon)
 
+
+	def revoke_auth(self):
+		try:
+			control.setSetting('alldebrid.token', '')
+			control.setSetting('alldebrid.username', '')
+			control.okDialog(title=40059, message=40009)
+		except:
+			log_utils.error()
 
 	def account_info(self):
 		response = self._get('user')
@@ -497,12 +505,6 @@ class AllDebrid:
 		except:
 			log_utils.error()
 		return hosts_dict
-
-
-	def revoke_auth(self):
-		control.setSetting('alldebrid.token', '')
-		control.setSetting('alldebrid.username', '')
-		control.okDialog(title=40059, message=40009)
 
 
 # # from resolveURL

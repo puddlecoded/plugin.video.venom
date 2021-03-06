@@ -89,7 +89,7 @@
 	<category label="32002">
 		<setting id="flatten.tvshows" type="bool" label="32317" default="false" />
 		<setting id="tv.specials" type="bool" label="32649" default="false" />
-		<setting id="showunaired" type="bool" label="32570" default="true" />
+		<setting id="showunaired" type="bool" label="32570" default="false" />
 		<setting id="unaired.identify" type="select" label="32608" lvalues="32589|32590|32591|32592|32593|32594|32595|32596|32597|32666|32667|32668|32669|32670|32671|32598" default="8" enable="eq(-1,true)" />
 		<setting id="tvshows.unwatched.enabled" type="bool" label="33891" default="false" />
 		<setting id="multi.unwatched.enabled" type="bool" label="    allow multi Episodes to Show Unwatched Count" default="false" visible="eq(-1,true)" />

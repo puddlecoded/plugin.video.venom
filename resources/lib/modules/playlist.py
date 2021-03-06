@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from json import loads as jsloads
 import xbmc
-
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 
@@ -46,10 +45,8 @@ def playlistManager(name=None, url=None, meta=None, art=None):
 		log_utils.error()
 		control.hide()
 
-
 def playlist():
 	return xbmc.PlayList(Id)
-
 
 def playlistShow():
 	if len(playListItems()) > 0:
@@ -60,12 +57,10 @@ def playlistShow():
 		if notification:
 			control.notification(title=35522, message=32119)
 
-
 def playlistClear():
 	playlist().clear()
 	if notification:
 		control.notification(title=35522, message=35521)
-
 
 def playListItems():
 	rpc = '{"jsonrpc": "2.0", "method": "Playlist.GetItems", "params": {"playlistid" : %s}, "id": 1 }' % Id
@@ -76,18 +71,17 @@ def playListItems():
 		return []
 	result = unicode(result, 'utf-8', errors = 'ignore')
 	result = jsloads(result)['result']['items']
-	try: return [i['label'].encode('utf-8') for i in result]
+	# try: return [i['label'].encode('utf-8') for i in result]
+	try: return [i['label'] for i in result]
 	except: return []
-
 
 def position(label):
 	try: return playListItems().index(label)
 	except: return -1
 
-
 def playlistAdd(name, url, meta, art):
 	# if not name is None: name.encode('utf-8')
-	labelPosition = position(label = name)
+	labelPosition = position(label=name)
 	if labelPosition >= 0:
 		return control.notification(title=35522, message=32120)
 	if isinstance(meta, basestring):
@@ -105,7 +99,6 @@ def playlistAdd(name, url, meta, art):
 	playlist().add(url=url, listitem=item)
 	if notification:
 		control.notification(title=35522, message=control.lang(32121) % str(name))
-
 
 def playlistRemove(name):
 	labelPosition = position(label=name)

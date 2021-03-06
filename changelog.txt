@@ -1,3 +1,9 @@
+[B][COLOR red]Update - v4.4.1 - March 06, 2021[/COLOR][/B]
+[COLOR yellow]--[/COLOR][I] Matrix(py3) compatibility update.[/I]
+[COLOR yellow]--[/COLOR][I] Added copy to clipboard feature.  This is accessible from the
+    context menu in source select list.  Now you can copy to
+    clipboar d url's, file names, and magnet hashes.[/I]
+
 [B][COLOR red]Update - v4.4.0 - Feb. 18, 2021[/COLOR][/B]
 [COLOR yellow]--[/COLOR][I] Fixed renumbering of source select list for direct links when
     "remove uncached torrents" setting is used. Direct links

@@ -1,38 +1,30 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
-import os.path
-import xbmc
-import xbmcaddon
-import xbmcgui
-
-try:
+try: #PY2
 	from urllib.request import urlopen, Request
-except ImportError:
+except ImportError: # PY3
 	from urllib2 import urlopen, Request
+from resources.lib.modules import control
 
-ADDON_ID = xbmcaddon.Addon().getAddonInfo('id')
-HOMEPATH = xbmc.translatePath('special://home/')
-ADDONSPATH = os.path.join(HOMEPATH, 'addons')
-THISADDONPATH = os.path.join(ADDONSPATH, ADDON_ID)
-NEWSFILE = 'https://raw.githubusercontent.com/123Venom/zips/master/plugin.video.venom/newsinfo.txt'
-LOCALNEWS = os.path.join(THISADDONPATH, 'newsinfo.txt')
+venom_path = control.addonPath(control.addonId())
+news_file = 'https://raw.githubusercontent.com/123Venom/zips/master/plugin.video.venom/newsinfo.txt'
+local_news = control.joinPath(venom_path, 'newsinfo.txt')
 
 
 def news():
-	message = open_news_url(NEWSFILE)
-	compfile = open(LOCALNEWS).read()
+	message = open_news_url(news_file)
+	compfile = open(local_news).read()
 	if len(message) > 1:
 		if compfile == message: pass
 		else:
-			text_file = open(LOCALNEWS, "w")
+			text_file = open(local_news, "wb")
 			text_file.write(message)
 			text_file.close()
 			compfile = message
 	showText('[B][COLOR red]News and Info[/COLOR][/B]', compfile)
-
 
 def open_news_url(url):
 	req = Request(url)
@@ -42,12 +34,9 @@ def open_news_url(url):
 	response.close()
 	return link
 
-
 def news_local():
-	compfile = open(LOCALNEWS).read()
-	showText('[B]News and Info[/B]', compfile)
-
+	compfile = open(local_news).read()
+	showText('[B][COLOR red]News and Info[/COLOR][/B', compfile)
 
 def showText(heading, text):
-	return xbmcgui.Dialog().textviewer(heading, text)
-
+	return control.dialog.textviewer(heading, text)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 # import datetime
 import json
@@ -75,11 +75,9 @@ def trakt_list(self, url, user):
 
 	for item in items:
 		try:
-			try:
-				title = (item.get('title')).encode('utf-8')
-			except:
-				title = item.get('title')
-
+			# try: title = (item.get('title')).encode('utf-8')
+			# except: title = item.get('title')
+			title = item.get('title')
 			premiered = item.get('released', '0')
 
 			year = str(item.get('year', '0'))
@@ -115,8 +113,8 @@ def trakt_list(self, url, user):
 			mpaa = item.get('certification', '0')
 
 			plot = item.get('overview')
-			try: plot = plot.encode('utf-8')
-			except: pass
+			# try: plot = plot.encode('utf-8')
+			# except: pass
 
 			# tagline = item.get('tagline', '0')
 			tagline = '0'
@@ -139,17 +137,16 @@ def trakt_user_list(self, url, user):
 	for item in items:
 		try:
 			try: name = item['list']['name']
-			except:
-				name = item['name']
+			except: name = item['name']
 			name = client.replaceHTMLCodes(name)
-			name = name.encode('utf-8')
+			# name = name.encode('utf-8')
 
 			try:
 				url = (trakt.slug(item['list']['user']['username']), item['list']['ids']['slug'])
 			except:
 				url = ('me', item['ids']['slug'])
 			url = self.traktlist_link % url
-			url = url.encode('utf-8')
+			# url = url.encode('utf-8')
 
 			self.list.append({'name': name, 'url': url, 'context': url})
 		except:

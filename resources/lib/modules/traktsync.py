@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from datetime import datetime
 try: from sqlite3 import dbapi2 as db
 except ImportError: from pysqlite2 import dbapi2 as db
-
 from resources.lib.modules import cleandate
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -50,7 +49,6 @@ def fetch_bookmarks(imdb, tmdb='', tvdb='', season=None, episode=None):
 		dbcur.close() ; dbcon.close()
 	return progress
 
-
 def insert_bookmarks(items, new_scrobble=False):
 	try:
 		if not control.existsPath(control.dataPath):
@@ -62,6 +60,7 @@ def insert_bookmarks(items, new_scrobble=False):
 		dbcur.execute('''CREATE TABLE IF NOT EXISTS service (setting TEXT, value TEXT, UNIQUE(setting));''')
 		if not new_scrobble:
 			dbcur.execute('''DELETE FROM bookmarks''')
+			dbcur.connection.commit() # added this for what looks like a 19 bug not found in 18, normal commit is at end
 			dbcur.execute('''VACUUM''')
 		for i in items:
 			imdb, tmdb, tvdb, season, episode = '', '', '', '', ''
@@ -79,7 +78,6 @@ def insert_bookmarks(items, new_scrobble=False):
 		log_utils.error()
 	finally:
 		dbcur.close() ; dbcon.close()
-
 
 def delete_bookmark(items):
 	try:
@@ -111,7 +109,6 @@ def delete_bookmark(items):
 		log_utils.error()
 	finally:
 		dbcur.close() ; dbcon.close()
-
 
 def last_paused_at():
 	last_paused = 0

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from sys import argv
 from resources.lib.modules import control
+from resources.lib.modules import log_utils
 from resources.lib.modules import youtube_menu
 
 
@@ -17,7 +18,6 @@ class yt_index:  # initializes as musicvids, functions can override based on act
 		self.default_icon = '%s/icons/music_video_folder_icon.png'
 		self.default_fanart = '%s/icons/music_video_folder_fanart.jpg'
 
-
 	def init_vars(self, action):
 		try:
 			if action == 'youtube':
@@ -27,8 +27,8 @@ class yt_index:  # initializes as musicvids, functions can override based on act
 			self.submenu = self.submenu % (self.base_url, '%s')
 			self.default_icon = self.default_icon % (self.base_url)
 			self.default_fanart = self.default_fanart % (self.base_url)
-		except: pass
-
+		except:
+			log_utils.error()
 
 	def root(self, action):
 		try:
@@ -45,15 +45,14 @@ class yt_index:  # initializes as musicvids, functions can override based on act
 					if channelid.startswith('UC'):
 						youtube_menu.youtube_menu().addChannelItem(name, channelid, iconimage, fanart)
 					else:
-						# This really needs it's own userid created in the .txt files
-						youtube_menu.youtube_menu().addUserItem(name, channelid, iconimage, fanart)
+						youtube_menu.youtube_menu().addUserItem(name, channelid, iconimage, fanart) # This really needs it's own userid created in the .txt files
 				elif playlistid != 'false': # Means this is a playlist id entry
 					youtube_menu.youtube_menu().addPlaylistItem(name, playlistid, iconimage, fanart)
 				elif section != 'false': # Means this is a section placeholder/info line
 					youtube_menu.youtube_menu().addSectionItem(name, self.default_icon, self.default_fanart)
 			self.endDirectory()
-		except: pass
-
+		except:
+			log_utils.error()
 
 	def get(self, action, subid):
 		try:
@@ -71,15 +70,14 @@ class yt_index:  # initializes as musicvids, functions can override based on act
 					if channelid.startswith('UC'):
 						youtube_menu.youtube_menu().addChannelItem(name, channelid, iconimage, fanart)
 					else:
-						# This really needs it's own userid created in the .txt files
-						youtube_menu.youtube_menu().addUserItem(name, channelid, iconimage, fanart)
+						youtube_menu.youtube_menu().addUserItem(name, channelid, iconimage, fanart) # This really needs it's own userid created in the .txt files
 				elif playlistid != 'false': # Means this is a playlist id entry
 					youtube_menu.youtube_menu().addPlaylistItem(name, playlistid, iconimage, fanart)
 				elif section != 'false': # Means this is a section placeholder/info line
 					youtube_menu.youtube_menu().addSectionItem(name, self.default_icon, self.default_fanart)
 			self.endDirectory()
-		except: pass
-
+		except:
+			log_utils.error()
 
 	def endDirectory(self):
 		control.directory(int(argv[1]), cacheToDisc=True)

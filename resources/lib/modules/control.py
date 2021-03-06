@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from datetime import datetime
 from json import dumps as jsdumps, loads as jsloads
 import os.path
 import re
-import string
-from sys import argv
+from string import printable
+from sys import argv, version_info
 import time
 import xbmc
 import xbmcaddon
@@ -19,6 +19,9 @@ import xml.etree.ElementTree as ET
 
 def getKodiVersion():
 	return int(xbmc.getInfoLabel("System.BuildVersion")[:2])
+
+isPY2 = version_info[0] == 2
+isPY3 = version_info[0] == 3
 
 addon = xbmcaddon.Addon
 AddonID = xbmcaddon.Addon().getAddonInfo('id')
@@ -60,7 +63,7 @@ player = xbmc.Player()
 player2 = xbmc.Player
 playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 skin = xbmc.getSkinDir()
-transPath = xbmc.translatePath
+transPath = xbmc.translatePath if getKodiVersion() < 19 else xbmcvfs.translatePath
 
 deleteDir = xbmcvfs.rmdir
 deleteFile = xbmcvfs.delete
@@ -88,6 +91,13 @@ libcacheFile = joinPath(dataPath, 'library.db')
 cacheFile = joinPath(dataPath, 'cache.db')
 traktSyncFile = joinPath(dataPath, 'traktSync.db')
 trailer = 'plugin://plugin.video.youtube/play/?video_id=%s'
+
+if isPY3:
+	def iteritems(d, **kw):
+		return iter(d.items(**kw))
+else:
+	def iteritems(d, **kw):
+		return d.iteritems(**kw)
 
 
 def syncMyAccounts(silent=False):
@@ -194,7 +204,7 @@ def lang(language_id):
 	text = getLangString(language_id)
 	if getKodiVersion() < 19:
 		text = text.encode('utf-8', 'replace')
-	return text
+	return str(text)
 
 
 def display_string(object):
@@ -222,8 +232,12 @@ def deaccentString(text):
 
 
 def strip_non_ascii_and_unprintable(text):
-	result = ''.join(char for char in text if char in string.printable)
-	return result.encode('ascii', errors='ignore').decode('ascii', errors='ignore')
+	try:
+		result = ''.join(char for char in text if char in printable)
+		return result.encode('ascii', errors='ignore').decode('ascii', errors='ignore')
+	except:
+		from resources.lib.modules import log_utils
+		log_utils.error()
 
 
 def sleep(time):  # Modified `sleep`(in milli secs) command that honors a user exit request
@@ -352,86 +366,77 @@ def metadataClean(metadata):
 					'duration', 'studio', 'tagline', 'writer', 'tvshowtitle', 'premiered', 'status', 'set', 'setoverview',
 					'tag', 'imdbnumber', 'code', 'aired', 'credits', 'lastplayed', 'album', 'artist', 'votes', 'path',
 					'trailer', 'dateadded', 'mediatype', 'dbid']
-	return {k: v for k, v in metadata.iteritems() if k in allowed}
+	return {k: v for k, v in iteritems(metadata) if k in allowed}
+
 
 
 ####################################################
 # --- Dialogs
 ####################################################
 def notification(title=None, message=None, icon=None, time=3000, sound=(setting('notification.sound') == 'true')):
-	if title == 'default' or title is None:
-		title = addonName()
-	if isinstance(title, (int, long)):
-		heading = lang(title)
-	else:
-		heading = str(title)
-	if isinstance(message, (int, long)):
-		body = lang(message)
-	else:
-		body = str(message)
-	if icon is None or icon == '' or icon == 'default':
-		icon = addonIcon()
-	elif icon == 'INFO':
-		icon = xbmcgui.NOTIFICATION_INFO
-	elif icon == 'WARNING':
-		icon = xbmcgui.NOTIFICATION_WARNING
-	elif icon == 'ERROR':
-		icon = xbmcgui.NOTIFICATION_ERROR
-	dialog.notification(heading, body, icon, time, sound=sound)
-
+	if title == 'default' or title is None: title = addonName()
+	if isinstance(title, int): heading = lang(title)
+	else: heading = str(title)
+	if isinstance(message, int): body = lang(message)
+	else: body = str(message)
+	if icon is None or icon == '' or icon == 'default': icon = addonIcon()
+	elif icon == 'INFO': icon = xbmcgui.NOTIFICATION_INFO
+	elif icon == 'WARNING': icon = xbmcgui.NOTIFICATION_WARNING
+	elif icon == 'ERROR': icon = xbmcgui.NOTIFICATION_ERROR
+	return dialog.notification(heading, body, icon, time, sound)
 
 def yesnoDialog(line1, line2, line3, heading=addonInfo('name'), nolabel='', yeslabel=''):
-	return dialog.yesno(heading, line1, line2, line3, nolabel, yeslabel)
-
+	if isPY3:
+		message = line1 + line2 + line3
+		return dialog.yesno(heading, message, nolabel, yeslabel)
+	else: return dialog.yesno(heading, line1, line2, line3, nolabel, yeslabel)
 
 def selectDialog(list, heading=addonInfo('name')):
 	return dialog.select(heading, list)
 
-
 def okDialog(title=None, message=None):
 	if title == 'default' or title is None:
 		title = addonName()
-	if isinstance(title, (int, long)):
+	if isinstance(title, int):
 		heading = lang(title)
 	else:
 		heading = str(title)
-	if isinstance(message, (int, long)):
+	if isinstance(message, int):
 		body = lang(message)
 	else:
 		body = str(message)
 	return dialog.ok(heading, body)
 
-
 def context(items=None, labels=None):
 	if items:
 		labels = [i[0] for i in items]
-		choice = xbmcgui.Dialog().contextmenu(labels)
+		# choice = xbmcgui.Dialog().contextmenu(labels)
+		choice = dialog.contextmenu(labels)
 		if choice >= 0: return items[choice][1]()
 		else: return False
-	else:
-		return xbmcgui.Dialog().contextmenu(labels)
-
+	else: return dialog.contextmenu(labels)
 
 def busy():
 	if getKodiVersion() >= 18:
 		return execute('ActivateWindow(busydialognocancel)')
-	else:
-		return execute('ActivateWindow(busydialog)')
-
+	else: return execute('ActivateWindow(busydialog)')
 
 def hide():
 	if getKodiVersion() >= 18 and condVisibility('Window.IsActive(busydialognocancel)'):
 		return execute('Dialog.Close(busydialognocancel)')
-	else:
-		return execute('Dialog.Close(busydialog)')
-
+	else: return execute('Dialog.Close(busydialog)')
 
 def closeAll():
 	return execute('Dialog.Close(all, true)')
 
-
 def closeOk():
 	return execute('Dialog.Close(okdialog, true)')
+
+def visible():
+	if getKodiVersion() >= 18 and xbmc.getCondVisibility('Window.IsActive(busydialognocancel)') == 1:
+		return True
+	return xbmc.getCondVisibility('Window.IsActive(busydialog)') == 1
+########################
 
 
 def cancelPlayback():
@@ -440,16 +445,8 @@ def cancelPlayback():
 		resolve(int(argv[1]), False, item(offscreen=True))
 		closeOk()
 	except:
-		import traceback
-		traceback.print_exc()
-		return
-
-
-def visible():
-	if getKodiVersion() >= 18 and xbmc.getCondVisibility('Window.IsActive(busydialognocancel)') == 1:
-		return True
-	return xbmc.getCondVisibility('Window.IsActive(busydialog)') == 1
-########################
+		from resources.lib.modules import log_utils
+		log_utils.error()
 
 
 def refresh():
@@ -473,9 +470,9 @@ def openSettings(query=None, id=addonInfo('id')):
 			execute('SetFocus(%i)' % (int(c) + 100))
 			execute('SetFocus(%i)' % (int(f) + 200))
 	except:
-		import traceback
-		traceback.print_exc()
-		return
+		from resources.lib.modules import log_utils
+		log_utils.error()
+
 
 
 def apiLanguage(ret_name=None):
@@ -512,9 +509,9 @@ def apiLanguage(ret_name=None):
 	lang['tvdb'] = name if name in tvdb else 'en'
 	lang['youtube'] = name if name in youtube else 'en'
 	if ret_name:
-		lang['trakt'] = [i[0] for i in langDict.iteritems() if i[1] == lang['trakt']][0]
-		lang['tvdb'] = [i[0] for i in langDict.iteritems() if i[1] == lang['tvdb']][0]
-		lang['youtube'] = [i[0] for i in langDict.iteritems() if i[1] == lang['youtube']][0]
+		lang['trakt'] = [i[0] for i in iteritems(langDict) if i[1] == lang['trakt']][0]
+		lang['tvdb'] = [i[0] for i in iteritems(langDict) if i[1] == lang['tvdb']][0]
+		lang['youtube'] = [i[0] for i in iteritems(langDict) if i[1] == lang['youtube']][0]
 	return lang
 
 
@@ -582,10 +579,13 @@ def trigger_widget_refresh():
 
 def get_video_database_path():
 	database_path = os.path.abspath(joinPath(dataPath, '..', '..', 'Database', ))
-	if getKodiVersion() == 17:
+	kodi_version = getKodiVersion()
+	if kodi_version == 17:
 		database_path = joinPath(database_path, 'MyVideos107.db')
-	elif getKodiVersion() == 18:
+	elif kodi_version == 18:
 		database_path = joinPath(database_path, 'MyVideos116.db')
+	elif kodi_version == 19:
+		database_path = joinPath(database_path, 'MyVideos119.db')
 	return database_path
 
 
@@ -601,8 +601,8 @@ def datetime_workaround(string_date, format="%Y-%m-%d", date_only=True):
 			else: res = datetime(*(time.strptime(string_date, format)[0:6]))
 		return res
 	except:
-		import traceback
-		traceback.print_exc()
+		from resources.lib.modules import log_utils
+		log_utils.error()
 
 
 
@@ -734,7 +734,6 @@ def _db_execute(db_name, command):
 def _get_database(db_name):
 	from glob import glob
 	path_db = 'special://profile/Database/%s' % db_name
-	# filelist = glob.glob(xbmc.translatePath(path_db))
 	filelist = glob(transPath(path_db))
 	if filelist: return filelist[-1]
 	return None
@@ -779,12 +778,8 @@ def clean_settings():
 			current_user_settings = []
 			addon = xbmcaddon.Addon(id=addon_id)
 			addon_name = addon.getAddonInfo('name')
-			# addon_dir = xbmc.translatePath(addon.getAddonInfo('path'))
 			addon_dir = transPath(addon.getAddonInfo('path'))
-
-			# profile_dir = xbmc.translatePath(addon.getAddonInfo('profile'))
 			profile_dir = transPath(addon.getAddonInfo('profile'))
-
 			active_settings_xml = joinPath(addon_dir, 'resources', 'settings.xml')
 			root = ET.parse(active_settings_xml).getroot()
 			for item in root.findall('./category/setting'):
@@ -813,8 +808,8 @@ def clean_settings():
 			sleep(200)
 			notification(title=addon_name, message=lang(32084).format(str(len(removed_settings))))
 		except:
-			import traceback
-			traceback.print_exc()
+			from resources.lib.modules import log_utils
+			log_utils.error()
 			notification(title=addon_name, message=32115)
 
 
@@ -846,8 +841,8 @@ def set_reuselanguageinvoker():
 			current_profile = infoLabel('system.profilename')
 			execute('LoadProfile(%s)' % current_profile)
 	except:
-		import traceback
-		traceback.print_exc()
+		from resources.lib.modules import log_utils
+		log_utils.error()
 
 
 def gen_file_hash(file):
@@ -859,5 +854,39 @@ def gen_file_hash(file):
 			md5_hash.update(buf)
 			return md5_hash.hexdigest()
 	except:
-		import traceback
-		traceback.print_exc()
+		from resources.lib.modules import log_utils
+		log_utils.error()
+
+
+def copy2clip(txt):
+	from sys import platform as sys_platform
+	platform = sys_platform
+	if platform == "win32":
+		try:
+			from subprocess import check_call
+			cmd = "echo " + txt.strip() + "|clip"
+			return check_call(cmd, shell=True)
+		except:
+			from resources.lib.modules import log_utils
+			log_utils.error('Failure to copy to clipboard')
+	elif platform == "linux2":
+		try:
+			from subprocess import Popen, PIPE
+			p = Popen(["xsel", "-pi"], stdin=PIPE)
+			p.communicate(input=txt)
+		except:
+			from resources.lib.modules import log_utils
+			log_utils.error('Failure to copy to clipboard')
+
+def cleanPlot(plot):
+	if not plot: return
+	try:
+		index = plot.rfind('See full summary')
+		if index == -1: index = plot.rfind("It's publicly available on")
+		if index >= 0: plot = plot[:index]
+		plot = plot.strip()
+		if re.match(r'[a-zA-Z\d]$', plot): plot += ' ...'
+		return plot
+	except:
+		from resources.lib.modules import log_utils
+		log_utils.error()

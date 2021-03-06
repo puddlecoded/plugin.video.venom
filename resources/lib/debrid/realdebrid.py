@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import re
 import requests
@@ -10,7 +10,6 @@ try: #Py2
 	from urllib import quote_plus, unquote
 except ImportError: #Py3
 	from urllib.parse import quote_plus, unquote
-
 from resources.lib.modules import cache
 from resources.lib.modules import cleantitle
 from resources.lib.modules import control

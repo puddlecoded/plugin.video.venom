@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from json import loads as jsloads
 import random
@@ -11,7 +11,6 @@ try: #Py2
 	from urllib import quote_plus
 except ImportError: #Py3
 	from urllib.parse import quote_plus
-
 from resources.lib.modules import client
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
@@ -28,7 +27,6 @@ class Trailer:
 		# self.search_link = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=%s' + self.key_link
 		self.youtube_watch = 'https://www.youtube.com/watch?v=%s'
 
-
 	def play(self, type='', name='', year='', url='', imdb='', windowedtrailer=0):
 		try:
 			url = self.worker(type, name, year, url, imdb)
@@ -36,9 +34,13 @@ class Trailer:
 			title = control.infoLabel('ListItem.Title')
 			if not title: title = control.infoLabel('ListItem.Label')
 			icon = control.infoLabel('ListItem.Icon')
-			item = control.item(label=title, iconImage=icon, thumbnailImage=icon, path=url)
-			item.setInfo(type="video", infoLabels={'title': title})
+			# item = control.item(label=title, iconImage=icon, thumbnailImage=icon, path=url)
+			item = control.item(label=title)
 			item.setProperty('IsPlayable', 'true')
+			item.setArt({'icon': icon, 'thumb': icon,})
+			item.setInfo(type='video', infoLabels={'title': title})
+			item.addStreamInfo('video', {'codec': 'h264'})
+			control.addItem(handle=int(argv[1]), url=url, listitem=item, isFolder=False)
 			control.refresh()
 			control.resolve(handle=int(argv[1]), succeeded=True, listitem=item)
 			if windowedtrailer == 1:
@@ -48,7 +50,6 @@ class Trailer:
 				control.execute("Dialog.Close(%s, true)" % control.getCurrentDialogId)
 		except:
 			log_utils.error()
-
 
 	def worker(self, type, name, year, url, imdb):
 		try:
@@ -67,13 +68,12 @@ class Trailer:
 			query = self.search_link % quote_plus(query)
 			return self.search(query, type, name, year, imdb)
 
-
 	def search(self, url, type, name, year, imdb):
 		try:
 			apiLang = control.apiLanguage().get('youtube', 'en')
-			if apiLang != 'en':
-				url += "&relevanceLanguage=%s" % apiLang
+			if apiLang != 'en': url += "&relevanceLanguage=%s" % apiLang
 			result = client.request(url, error=True)
+			if not result: return
 			if 'error' in result:
 				items = jsloads(result).get('error', []).get('errors', [])
 				log_utils.log('message = %s' % str(items[0].get('message')), __name__, log_utils.LOGDEBUG)
@@ -88,7 +88,6 @@ class Trailer:
 			log_utils.error()
 			return
 
-
 	def trakt_trailer(self, type, name, year, imdb):
 		try:
 			trailer_id = ''
@@ -102,7 +101,6 @@ class Trailer:
 		except:
 			log_utils.error()
 		return trailer_id
-
 
 	def resolve(self, url):
 		try:

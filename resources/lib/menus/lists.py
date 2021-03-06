@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import base64
 from datetime import datetime, timedelta
@@ -9,13 +9,13 @@ from hashlib import md5
 from json import loads as jsloads
 import random
 import re
-import sys
+from sys import argv
 import xbmc
 
-try:
+try: #Py2
 	from urllib import quote_plus, unquote_plus
 	from urlparse import parse_qsl, parse_qs, urlparse
-except:
+except ImportError: #Py3
 	from urllib.parse import quote_plus, unquote_plus, parse_qsl, parse_qs, urlparse
 
 try:
@@ -744,16 +744,16 @@ class indexer:
 				return self.meta.append({'imdb': imdb, 'tmdb': '0', 'tvdb': '0', 'lang': self.lang, 'item': {'code': '0'}})
 
 			title = item['Title']
-			title = title.encode('utf-8')
+			# title = title.encode('utf-8')
 			if not title == '0': self.list[i].update({'title': title})
 
 			year = item['Year']
-			year = year.encode('utf-8')
+			# year = year.encode('utf-8')
 			if not year == '0': self.list[i].update({'year': year})
 
 			imdb = item['imdbID']
 			if imdb is None or imdb == '' or imdb == 'N/A': imdb = '0'
-			imdb = imdb.encode('utf-8')
+			# imdb = imdb.encode('utf-8')
 			if not imdb == '0': self.list[i].update({'imdb': imdb, 'code': imdb})
 
 			premiered = item['Released']
@@ -761,13 +761,13 @@ class indexer:
 			premiered = re.findall(r'(\d*) (.+?) (\d*)', premiered)
 			try: premiered = '%s-%s-%s' % (premiered[0][2], {'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}[premiered[0][1]], premiered[0][0])
 			except: premiered = '0'
-			premiered = premiered.encode('utf-8')
+			# premiered = premiered.encode('utf-8')
 			if not premiered == '0': self.list[i].update({'premiered': premiered})
 
 			genre = item['Genre']
 			if genre is None or genre == '' or genre == 'N/A': genre = '0'
 			genre = genre.replace(', ', ' / ')
-			genre = genre.encode('utf-8')
+			# genre = genre.encode('utf-8')
 			if not genre == '0': self.list[i].update({'genre': genre})
 
 			duration = item['Runtime']
@@ -775,24 +775,24 @@ class indexer:
 			duration = re.sub(r'[^0-9]', '', str(duration))
 			try: duration = str(int(duration) * 60)
 			except: pass
-			duration = duration.encode('utf-8')
+			# duration = duration.encode('utf-8')
 			if not duration == '0': self.list[i].update({'duration': duration})
 
 			rating = item['imdbRating']
 			if rating is None or rating == '' or rating == 'N/A' or rating == '0.0': rating = '0'
-			rating = rating.encode('utf-8')
+			# rating = rating.encode('utf-8')
 			if not rating == '0': self.list[i].update({'rating': rating})
 
 			votes = item['imdbVotes']
 			try: votes = str(format(int(votes),',d'))
 			except: pass
 			if votes is None or votes == '' or votes == 'N/A': votes = '0'
-			votes = votes.encode('utf-8')
+			# votes = votes.encode('utf-8')
 			if not votes == '0': self.list[i].update({'votes': votes})
 
 			mpaa = item['Rated']
 			if mpaa is None or mpaa == '' or mpaa == 'N/A': mpaa = '0'
-			mpaa = mpaa.encode('utf-8')
+			# mpaa = mpaa.encode('utf-8')
 			if not mpaa == '0': self.list[i].update({'mpaa': mpaa})
 
 			director = item['Director']
@@ -800,7 +800,7 @@ class indexer:
 			director = director.replace(', ', ' / ')
 			director = re.sub(r'\(.*?\)', '', director)
 			director = ' '.join(director.split())
-			director = director.encode('utf-8')
+			# director = director.encode('utf-8')
 			if not director == '0': self.list[i].update({'director': director})
 
 			writer = item['Writer']
@@ -808,21 +808,21 @@ class indexer:
 			writer = writer.replace(', ', ' / ')
 			writer = re.sub(r'\(.*?\)', '', writer)
 			writer = ' '.join(writer.split())
-			writer = writer.encode('utf-8')
+			# writer = writer.encode('utf-8')
 			if not writer == '0': self.list[i].update({'writer': writer})
 
 			cast = item['Actors']
 			if cast is None or cast == '' or cast == 'N/A': cast = '0'
 			cast = [x.strip() for x in cast.split(',') if not x == '']
-			try: cast = [(x.encode('utf-8'), '') for x in cast]
-			except: cast = []
+			# try: cast = [(x.encode('utf-8'), '') for x in cast]
+			# except: cast = []
 			if cast == []: cast = '0'
 			if not cast == '0': self.list[i].update({'cast': cast})
 
 			plot = item['Plot']
 			if plot is None or plot == '' or plot == 'N/A': plot = '0'
 			plot = client.replaceHTMLCodes(plot)
-			plot = plot.encode('utf-8')
+			# plot = plot.encode('utf-8')
 			if not plot == '0': self.list[i].update({'plot': plot})
 
 			self.meta.append({'imdb': imdb, 'tmdb': '0', 'tvdb': '0', 'lang': self.lang, 'item': {'title': title, 'year': year, 'code': imdb, 'imdb': imdb, 'premiered': premiered, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 'mpaa': mpaa, 'director': director, 'writer': writer, 'cast': cast, 'plot': plot}})
@@ -848,30 +848,30 @@ class indexer:
 			item = jsloads(item[0])
 
 			tvshowtitle = item['name']
-			tvshowtitle = tvshowtitle.encode('utf-8')
+			# tvshowtitle = tvshowtitle.encode('utf-8')
 			if not tvshowtitle == '0': self.list[i].update({'tvshowtitle': tvshowtitle})
 
 			year = item['premiered']
 			year = re.findall(r'(\d{4})', year)[0]
-			year = year.encode('utf-8')
+			# year = year.encode('utf-8')
 			if not year == '0': self.list[i].update({'year': year})
 
 			try: imdb = item['externals']['imdb']
 			except: imdb = '0'
 			if imdb == '' or imdb is None: imdb = '0'
-			imdb = imdb.encode('utf-8')
+			# imdb = imdb.encode('utf-8')
 			if self.list[i]['imdb'] == '0' and not imdb == '0': self.list[i].update({'imdb': imdb})
 
 			try: studio = item['network']['name']
 			except: studio = '0'
 			if studio == '' or studio is None: studio = '0'
-			studio = studio.encode('utf-8')
+			# studio = studio.encode('utf-8')
 			if not studio == '0': self.list[i].update({'studio': studio})
 
 			genre = item['genres']
 			if genre == '' or genre is None or genre == []: genre = '0'
 			genre = ' / '.join(genre)
-			genre = genre.encode('utf-8')
+			# genre = genre.encode('utf-8')
 			if not genre == '0': self.list[i].update({'genre': genre})
 
 			try: duration = str(item['runtime'])
@@ -879,18 +879,18 @@ class indexer:
 			if duration == '' or duration is None: duration = '0'
 			try: duration = str(int(duration) * 60)
 			except: pass
-			duration = duration.encode('utf-8')
+			# duration = duration.encode('utf-8')
 			if not duration == '0': self.list[i].update({'duration': duration})
 
 			rating = str(item['rating']['average'])
 			if rating == '' or rating is None: rating = '0'
-			rating = rating.encode('utf-8')
+			# rating = rating.encode('utf-8')
 			if not rating == '0': self.list[i].update({'rating': rating})
 
 			plot = item['summary']
 			if not plot: plot = '0'
 			plot = re.sub(r'\n|<.+?>|</.+?>|.+?#\d*:', '', plot)
-			plot = plot.encode('utf-8')
+			# plot = plot.encode('utf-8')
 			if not plot == '0': self.list[i].update({'plot': plot})
 
 			self.meta.append({'imdb': imdb, 'tmdb': '0', 'tvdb': tvdb, 'lang': self.lang, 'item': {'tvshowtitle': tvshowtitle, 'year': year, 'code': imdb, 'imdb': imdb, 'tvdb': tvdb, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'plot': plot}})
@@ -900,7 +900,7 @@ class indexer:
 
 	def addDirectory(self, items, queue=False):
 		if items is None or len(items) == 0: return
-		sysaddon = sys.argv[0]
+		sysaddon = argv[0]
 		addonPoster = addonBanner = control.addonInfo('icon')
 		addonFanart = control.addonInfo('fanart')
 
@@ -946,7 +946,9 @@ class indexer:
 				content = i['content'] if 'content' in i else '0'
 				folder = i['folder'] if 'folder' in i else True
 
-				meta = dict((k, v) for k, v in i.iteritems() if v != '0' and v != '')
+				# meta = dict((k, v) for k, v in i.iteritems() if v != '0' and v != '')
+				try: meta = dict((k, v) for k, v in i.iteritems() if v != '0' and v != '')
+				except: meta = dict((k, v) for k, v in i.items() if v != '0' and v != '')
 				cm = []
 
 				if content in ['movies', 'tvshows']:
@@ -986,18 +988,14 @@ class indexer:
 					try: cm.append(('Open in browser', 'RunPlugin(%s?action=browser&url=%s)' % (sysaddon, quote_plus(i['url']))))
 					except: pass
 
-				item = control.item(label=name, iconImage=poster, thumbnailImage=poster)
-
-				if fanart == '0':
-					fanart = addonFanart
-
+				item = control.item(label=name)
+				if fanart == '0': fanart = addonFanart
 				try: item.setArt({'poster': poster, 'fanart': fanart, 'tvshow.poster': poster, 'season.poster': poster, 'banner': banner, 'tvshow.banner': banner, 'season.banner': banner})
 				except: pass
-
 				if queue is False:
 					item.setInfo(type='Video', infoLabels = meta)
 					item.addContextMenuItems(cm)
-					control.addItem(handle=int(sys.argv[1]), url=url, listitem=item, isFolder=folder)
+					control.addItem(handle=int(argv[1]), url=url, listitem=item, isFolder=folder)
 				else:
 					item.setInfo(type='Video', infoLabels = meta)
 					playlist.add(url=url, listitem=item)
@@ -1019,12 +1017,12 @@ class indexer:
 			url = '%s?action=%s&url=%s' % (sysaddon, i['nextaction'], quote_plus(i['next']))
 			item = control.item(label=control.lang(30500))
 			item.setArt({'addonPoster': addonPoster, 'thumb': addonPoster, 'poster': addonPoster, 'fanart': addonFanart, 'tvshow.poster': addonPoster, 'season.poster': addonPoster, 'banner': addonPoster, 'tvshow.banner': addonPoster, 'season.banner': addonPoster})
-			control.addItem(handle=int(sys.argv[1]), url=url, listitem=item, isFolder=True)
+			control.addItem(handle=int(argv[1]), url=url, listitem=item, isFolder=True)
 		except:
 			log_utils.error()
 
-		if not mode is None: control.content(int(sys.argv[1]), mode)
-		control.directory(int(sys.argv[1]), cacheToDisc=True)
+		if not mode is None: control.content(int(argv[1]), mode)
+		control.directory(int(argv[1]), cacheToDisc=True)
 		if mode in ['movies', 'tvshows', 'seasons', 'episodes']:
 			views.setView(mode, {'skin.estuary': 55})
 
@@ -1231,7 +1229,9 @@ class player(xbmc.Player):
 			for i in ['title', 'originaltitle', 'tvshowtitle', 'year', 'season', 'episode', 'genre', 'rating', 'votes', 'director', 'writer', 'plot', 'tagline']:
 				try: meta[i] = control.infoLabel('listitem.%s' % i)
 				except: pass
-			meta = dict((k, v) for k, v in meta.iteritems() if v != '')
+			# meta = dict((k, v) for k, v in meta.iteritems() if v != '')
+			try: meta = dict((k, v) for k, v in meta.iteritems() if v != '')
+			except: meta = dict((k, v) for k, v in meta.items() if v != '')
 			if not 'title' in meta: meta['title'] = control.infoLabel('listitem.label')
 			icon = control.infoLabel('listitem.icon')
 
@@ -1247,7 +1247,7 @@ class player(xbmc.Player):
 			except: pass
 			item.setInfo(type='Video', infoLabels = meta)
 			control.player.play(url, item)
-			control.resolve(int(sys.argv[1]), True, item)
+			control.resolve(int(argv[1]), True, item)
 
 			self.totalTime = 0 ; self.currentTime = 0
 

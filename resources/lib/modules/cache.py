@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
-import ast
+from ast import literal_eval
 from hashlib import md5
-import re
+from re import sub as re_sub
 import time
 try: from sqlite3 import dbapi2 as db
 except ImportError: from pysqlite2 import dbapi2 as db
-
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 
@@ -24,8 +23,7 @@ def get(function, duration, *args):
 		key = _hash_function(function, args)
 		cache_result = cache_get(key)
 		if cache_result:
-			try: result = ast.literal_eval(cache_result['value'].encode('utf-8'))
-			except: result = ast.literal_eval(cache_result['value'])
+			result = literal_eval(cache_result['value'])
 			if _is_cache_valid(cache_result['date'], duration):
 				return result
 
@@ -42,8 +40,7 @@ def get(function, duration, *args):
 			else: return None
 		else:
 			cache_insert(key, fresh_result)
-			try: return ast.literal_eval(fresh_result.encode('utf-8'))
-			except: result = ast.literal_eval(fresh_result)
+			return literal_eval(fresh_result)
 	except:
 		log_utils.error()
 		return None
@@ -77,8 +74,7 @@ def cache_existing(function, *args):
 	try:
 		cache_result = cache_get(_hash_function(function, args))
 		if cache_result:
-			try: return ast.literal_eval(cache_result['value'].encode('utf-8'))
-			except: return ast.literal_eval(cache_result['value']) # fails
+			return literal_eval(cache_result['value'])
 		else: return None
 	except:
 		log_utils.error()
@@ -105,7 +101,7 @@ def cache_insert(key, value):
 		now = int(time.time())
 		cursor.execute('''CREATE TABLE IF NOT EXISTS cache (key TEXT, value TEXT, date INTEGER, UNIQUE(key));''')
 		update_result = cursor.execute('''UPDATE cache SET value=?,date=? WHERE key=?''', (value, now, key))
-		if update_result.rowcount is 0:
+		if update_result.rowcount == 0:
 			cursor.execute('''INSERT INTO cache Values (?, ?, ?)''', (key, value, now))
 		cursor.connection.commit()
 	except:
@@ -234,9 +230,9 @@ def cache_clear_bookmark(name, year='0'):
 
 
 def clear_local_bookmarks(): # clear all venom bookmarks from kodi database
-	conn = db.connect(control.get_video_database_path())
-	cursor = conn.cursor()
 	try:
+		conn = db.connect(control.get_video_database_path())
+		cursor = conn.cursor()
 		cursor.execute("SELECT * FROM files WHERE strFilename LIKE '%plugin.video.venom%'")
 		file_ids = [str(i[0]) for i in cursor.fetchall()]
 		for table in ["bookmark", "streamdetails", "files"]:
@@ -249,9 +245,9 @@ def clear_local_bookmarks(): # clear all venom bookmarks from kodi database
 
 
 def clear_local_bookmark(url): # clear all item specific bookmarks from kodi database
-	conn = db.connect(control.get_video_database_path())
-	cursor = conn.cursor()
 	try:
+		conn = db.connect(control.get_video_database_path())
+		cursor = conn.cursor()
 		cursor.execute('SELECT * FROM files WHERE strFilename LIKE "%{}%"'.format(url))
 		file_ids = [str(i[0]) for i in cursor.fetchall()]
 		if not file_ids:
@@ -337,7 +333,8 @@ def _hash_function(function_instance, *args):
 
 
 def _get_function_name(function_instance):
-	return re.sub(r'.+\smethod\s|.+function\s|\sat\s.+|\sof\s.+', '', repr(function_instance))
+	# return re.sub(r'.+\smethod\s|.+function\s|\sat\s.+|\sof\s.+', '', repr(function_instance))
+	return re_sub(r'.+\smethod\s|.+function\s|\sat\s.+|\sof\s.+', '', repr(function_instance))
 
 
 def _generate_md5(*args):
@@ -364,18 +361,14 @@ def _find_cache_version():
 		ad_folder = control.transPath('special://profile/addon_data/plugin.video.venom')
 		control.makeDirs(ad_folder)
 	try:
-		with open(versionFile, 'rb') as fh:
-			oldVersion = fh.read()
-	except:
-		oldVersion = '0'
+		with open(versionFile, 'r') as fh: oldVersion = fh.read()
+	except: oldVersion = '0'
 	try:
 		curVersion = control.addon('plugin.video.venom').getAddonInfo('version')
 		if oldVersion != curVersion:
-			with open(versionFile, 'wb') as fh:
-				fh.write(curVersion)
+			with open(versionFile, 'w') as fh: 	fh.write(curVersion)
 			return True
-		else:
-			return False
+		else: return False
 	except:
 		log_utils.error()
 		return False

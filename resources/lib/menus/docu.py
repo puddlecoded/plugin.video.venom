@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 
-# import json
 import re
 import requests
 import sys
@@ -14,7 +13,6 @@ try:
 	from urllib import quote_plus
 except:
 	from urllib.parse import quote_plus
-
 from resources.lib.modules import log_utils
 from resources.lib.modules import cache
 from resources.lib.modules import client
@@ -39,7 +37,8 @@ class documentary:
 			for content in cat_list:
 				cat_info = client.parseDOM(content, 'h2')[0]
 				cat_url = client.parseDOM(cat_info, 'a', ret='href')[0]
-				cat_title = client.parseDOM(cat_info, 'a')[0].encode('utf-8', 'ignore').decode('utf-8').replace("&amp;","&").replace('&#39;',"'").replace('&quot;','"').replace('&#39;',"'").replace('&#8211;',' - ').replace('&#8217;',"'").replace('&#8216;',"'").replace('&#038;','&').replace('&acirc;','')
+				# cat_title = client.parseDOM(cat_info, 'a')[0].encode('utf-8', 'ignore').decode('utf-8').replace("&amp;","&").replace('&#39;',"'").replace('&quot;','"').replace('&#39;',"'").replace('&#8211;',' - ').replace('&#8217;',"'").replace('&#8216;',"'").replace('&#038;','&').replace('&acirc;','')
+				cat_title = client.parseDOM(cat_info, 'a')[0].replace("&amp;","&").replace('&#39;',"'").replace('&quot;','"').replace('&#39;',"'").replace('&#8211;',' - ').replace('&#8217;',"'").replace('&#8216;',"'").replace('&#038;','&').replace('&acirc;','')
 				try:
 					cat_icon = client.parseDOM(content, 'img', ret='data-src')[0]
 				except:
@@ -91,7 +90,8 @@ class documentary:
 				docu_item = 'https:' + docu_item
 			url = docu_item
 
-			docu_title = client.parseDOM(docu_page, 'meta', attrs={'property':'og:title'}, ret='content')[0].encode('utf-8', 'ignore').decode('utf-8').replace("&amp;","&").replace('&#39;',"'").replace('&quot;','"').replace('&#39;',"'").replace('&#8211;',' - ').replace('&#8217;',"'").replace('&#8216;',"'").replace('&#038;','&').replace('&acirc;','')
+			# docu_title = client.parseDOM(docu_page, 'meta', attrs={'property':'og:title'}, ret='content')[0].encode('utf-8', 'ignore').decode('utf-8').replace("&amp;","&").replace('&#39;',"'").replace('&quot;','"').replace('&#39;',"'").replace('&#8211;',' - ').replace('&#8217;',"'").replace('&#8216;',"'").replace('&#038;','&').replace('&acirc;','')
+			docu_title = client.parseDOM(docu_page, 'meta', attrs={'property':'og:title'}, ret='content')[0].replace("&amp;","&").replace('&#39;',"'").replace('&quot;','"').replace('&#39;',"'").replace('&#8211;',' - ').replace('&#8217;',"'").replace('&#8216;',"'").replace('&#038;','&').replace('&acirc;','')
 
 			if 'youtube' in url:
 				if 'videoseries' not in url:

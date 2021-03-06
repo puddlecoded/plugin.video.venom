@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 try: import AddonSignals
 except: pass
@@ -16,7 +16,6 @@ try: # Py2
 except ImportError: # Py3
 	from urllib.parse import quote_plus, unquote_plus
 import xbmc
-
 from resources.lib.modules import control
 from resources.lib.modules import cleantitle
 from resources.lib.modules import log_utils
@@ -63,8 +62,7 @@ class Player(xbmc.Player):
 			self.tmdb = tmdb if tmdb is not None else '0'
 			self.tvdb = tvdb if tvdb is not None else '0'
 			self.ids = {'imdb': self.imdb, 'tmdb': self.tmdb, 'tvdb': self.tvdb}
-			self.ids = dict((k, v) for k, v in self.ids.iteritems() if v != '0')
-
+			self.ids = dict((k, v) for k, v in control.iteritems(self.ids) if v != '0')
 			item = control.item(path=url)
 
 ## - compare meta received to database and use largest(eventually switch to a request to fetch missing db meta for item)
@@ -160,12 +158,14 @@ class Player(xbmc.Player):
 			if 'duration' not in meta:
 				meta.update({'duration': meta.get('runtime') / 60})
 
-			for k, v in meta.iteritems():
+			for k, v in control.iteritems(meta):
 				if type(v) == list:
-					try: meta[k] = str(' / '.join([i.encode('utf-8') for i in v]))
+					# try: meta[k] = str(' / '.join([i.encode('utf-8') for i in v]))
+					try: meta[k] = str(' / '.join([i for i in v]))
 					except: meta[k] = ''
 				else:
-					try: meta[k] = str(v.encode('utf-8'))
+					# try: meta[k] = str(v.encode('utf-8'))
+					try: meta[k] = str(v)
 					except: meta[k] = str(v)
 
 			if 'plugin' not in control.infoLabel('Container.PluginName'):
@@ -194,12 +194,14 @@ class Player(xbmc.Player):
 			if 'duration' not in meta:
 				meta.update({'duration': meta.get('runtime') / 60})
 
-			for k, v in meta.iteritems():
+			for k, v in control.iteritems(meta):
 				if type(v) == list:
-					try: meta[k] = str(' / '.join([i.encode('utf-8') for i in v]))
+					# try: meta[k] = str(' / '.join([i.encode('utf-8') for i in v]))
+					try: meta[k] = str(' / '.join([i for i in v]))
 					except: meta[k] = ''
 				else:
-					try: meta[k] = str(v.encode('utf-8'))
+					# try: meta[k] = str(v.encode('utf-8'))
+					try: meta[k] = str(v)
 					except: meta[k] = str(v)
 
 			if 'plugin' not in control.infoLabel('Container.PluginName'):
@@ -216,16 +218,16 @@ class Player(xbmc.Player):
 		if self.isPlayback():
 			try:
 				position = self.getTime()
-				if position is not 0:
+				if position != 0:
 					self.current_time = position
 				total_length = self.getTotalTime()
-				if total_length is not 0:
+				if total_length != 0:
 					self.media_length = total_length
 			except: pass
 		current_position = self.current_time
 		total_length = self.media_length
 		watched_percent = 0
-		if int(total_length) is not 0:
+		if int(total_length) != 0:
 			try:
 				watched_percent = float(current_position) / float(total_length) * 100
 				if watched_percent > 100:
@@ -545,14 +547,14 @@ class Subtitles:
 			content = base64.b64decode(content['data'][0]['data'])
 			content = gzip.GzipFile(fileobj=StringIO(content)).read()
 
-			subtitle = xbmc.translatePath('special://temp/')
+			subtitle = control.transPath('special://temp/')
 			subtitle = control.joinPath(subtitle, 'TemporarySubs.%s.srt' % lang)
 
 			codepage = codePageDict.get(lang, '')
 			if codepage and control.setting('subtitles.utf') == 'true':
 				try:
-					content_encoded = codecs.decode(content, codepage)
-					content = codecs.encode(content_encoded, 'utf-8')
+					content_encoded = codecs.decode(content, codepage) # check for kodi 19?
+					content = codecs.encode(content_encoded, 'utf-8') # check for kodi 19?
 				except: pass
 
 			file = control.openFile(subtitle, 'w')
@@ -588,8 +590,7 @@ class Bookmarks:
 				dbcur.execute('''CREATE TABLE IF NOT EXISTS bookmark (idFile TEXT, timeInSeconds TEXT, Name TEXT, year TEXT, UNIQUE(idFile));''')
 				if not year or year == 'None': return offset
 				years = [str(year), str(int(year)+1), str(int(year)-1)]
-				#helps fix random cases where trakt and imdb, or tvdb, differ by a year for eps
-				match = dbcur.execute('''SELECT * FROM bookmark WHERE Name="%s" AND year IN (%s)''' % (name, ','.join(i for i in years))).fetchone()
+				match = dbcur.execute('''SELECT * FROM bookmark WHERE Name="%s" AND year IN (%s)''' % (name, ','.join(i for i in years))).fetchone() # helps fix random cases where trakt and imdb, or tvdb, differ by a year for eps
 			except:
 				log_utils.error()
 				return offset
@@ -610,34 +611,38 @@ class Bookmarks:
 
 
 	def reset(self, current_time, media_length, name, year='0'):
-		from resources.lib.modules import cache
-		cache.clear_local_bookmarks()
-		if control.setting('bookmarks') != 'true' or media_length == 0 or current_time == 0: return
-		timeInSeconds = str(current_time)
-		seekable = (int(current_time) > 180 and (current_time / media_length) <= .85)
-		idFile = md5()
-		for i in name: idFile.update(str(i))
-		for i in year: idFile.update(str(i))
-		idFile = str(idFile.hexdigest())
-		control.makeFile(control.dataPath)
 		try:
+			from resources.lib.modules import cache
+			cache.clear_local_bookmarks()
+			if control.setting('bookmarks') != 'true' or media_length == 0 or current_time == 0: return
+			timeInSeconds = str(current_time)
+			seekable = (int(current_time) > 180 and (current_time / media_length) <= .85)
+			idFile = md5()
+			try: [idFile.update(str(i)) for i in name]
+			except: [idFile.update(str(i).encode('utf-8')) for i in name]
+			try: [idFile.update(str(i)) for i in year]
+			except: [idFile.update(str(i).encode('utf-8')) for i in year]
+			idFile = str(idFile.hexdigest())
+			control.makeFile(control.dataPath)
 			dbcon = database.connect(control.bookmarksFile)
 			dbcur = dbcon.cursor()
 			dbcur.execute('''CREATE TABLE IF NOT EXISTS bookmark (idFile TEXT, timeInSeconds TEXT, Name TEXT, year TEXT, UNIQUE(idFile));''')
 			years = [str(year), str(int(year)+1), str(int(year)-1)]
 			dbcur.execute('''DELETE FROM bookmark WHERE Name="%s" AND year IN (%s)''' % (name, ','.join(i for i in years))) #helps fix random cases where trakt and imdb, or tvdb, differ by a year for eps
+
+			if seekable:
+				dbcur.execute('''INSERT INTO bookmark Values (?, ?, ?, ?)''', (idFile, timeInSeconds, name, year))
+				minutes, seconds = divmod(float(timeInSeconds), 60)
+				hours, minutes = divmod(minutes, 60)
+				label = ('%02d:%02d:%02d' % (hours, minutes, seconds))
+				message = control.lang(32660)
+				control.notification(title=name, message=message + '(' + label + ')')
+			dbcur.connection.commit()
+			try: dbcur.close ; dbcon.close()
+			except: pass
 		except:
 			log_utils.error()
-		if seekable:
-			dbcur.execute('''INSERT INTO bookmark Values (?, ?, ?, ?)''', (idFile, timeInSeconds, name, year))
-			minutes, seconds = divmod(float(timeInSeconds), 60)
-			hours, minutes = divmod(minutes, 60)
-			label = ('%02d:%02d:%02d' % (hours, minutes, seconds)).encode('utf-8')
-			message = control.lang(32660)
-			control.notification(title=name, message=message + '(' + label + ')')
-		dbcur.connection.commit()
-		try: dbcur.close ; dbcon.close()
-		except: pass
+
 
 	def set_scrobble(self, current_time, media_length, media_type, imdb='', tmdb='', tvdb='', season='', episode=''):
 		try:

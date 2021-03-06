@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from datetime import datetime
 from json import dumps as jsdumps, loads as jsloads
@@ -13,111 +13,81 @@ try: #Py2
 	from urlparse import urljoin
 except ImportError: #Py3
 	from urllib.parse import urljoin
-
 from resources.lib.modules import cache
 from resources.lib.modules import cleandate
 from resources.lib.modules import client
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
+from resources.lib.modules import py_tools
 from resources.lib.modules import traktsync
 from resources.lib.modules import utils
-from resources.lib.extensions import database
 
 BASE_URL = 'https://api.trakt.tv'
-
 # Venom trakt app
 # V2_API_KEY = 'c622fa66e6cdd783b23f2fc1a1abedc1f1e6ea739d8755248487d1dcfeda66e5'
 # CLIENT_SECRET = '3430dbd20bd3eb55c0f4e3dc05c7cbbadaf1fd4b8e2a572f4200e482a2041bd8'
-
 # My Accounts trakt app
 V2_API_KEY = '1ff09b52d009f286be2d9bdfc0314c688319cbf931040d5f8847e7694a01de42'
 CLIENT_SECRET = '0c5134e5d15b57653fefed29d813bfbd58d73d51fb9bcd6442b5065f30c4d4dc'
-
+headers = {'Content-Type': 'application/json', 'trakt-api-key': V2_API_KEY, 'trakt-api-version': '2'}
 REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'
-
 databaseName = control.cacheFile
 databaseTable = 'trakt'
 
 
-def getTrakt(url, post=None, cache=True, check=False, timestamp=None, extended=False, direct=False, authentication=None):
+def getTrakt(url, post=None, extended=False):
 	try:
-		if not url.startswith(BASE_URL):
-			url = urljoin(BASE_URL, url)
-
-		if authentication:
-			valid = True
-			token = authentication['token']
-			refresh = authentication['refresh']
-		else:
-			valid = getTraktCredentialsInfo()
-			token = control.setting('trakt.token')
-			refresh = control.setting('trakt.refresh')
-
-		headers = {'Content-Type': 'application/json', 'trakt-api-key': V2_API_KEY, 'trakt-api-version': '2'}
+		if not url.startswith(BASE_URL): url = urljoin(BASE_URL, url)
 		if post: post = jsdumps(post)
-		if direct or not valid:
+		if not getTraktCredentialsInfo():
 			result = client.request(url, post=post, headers=headers)
 			return result
 
-		headers['Authorization'] = 'Bearer %s' % token
+		headers['Authorization'] = 'Bearer %s' % control.setting('trakt.token')
 		result = client.request(url, post=post, headers=headers, output='extended', error=True)
-		if result and not (result[1] == '401' or result[1] == '405'):
-			if check: _cacheCheck()
+		# result = utils.byteify(result) # check if this is needed because client "as_bytes" should handle this
+		try: code = str(result[1]) # result[1] is already a str from client module
+		except: code = ''
+
+		if code.startswith('5') or (result and isinstance(result, py_tools.string_types) and '<html' in result) or not result: # covers Maintenance html responses ["Bad Gateway", "We're sorry, but something went wrong (500)"])
+			log_utils.log('Temporary Trakt Server Problems', level=log_utils.LOGNOTICE)
+			control.notification(title=32315, message=33676)
+			return None
+		elif result and code in ['423']:
+			log_utils.log('Locked User Account - Contact Trakt Support: %s' % str(result[0]), level=log_utils.LOGWARNING)
+			control.notification(title=32315, message=33675)
+			return None
+		elif result and code in ['404']:
+			log_utils.log('Request Not Found: url=(%s): %s' % (url, str(result[0])), level=log_utils.LOGDEBUG)
+			return None
+		elif result and code in ['429']:
+			if 'Retry-After' in result[2]:
+				# API REQUESTS ARE BEING THROTTLED, INTRODUCE WAIT TIME (1000 calls every 5 minutes, doubt we'll ever hit that)
+				throttleTime = result[2]['Retry-After']
+				control.notification(title=32315, message='Trakt Throttling Applied, Sleeping for %s seconds' % throttleTime) # message ang code 33674
+				control.sleep((int(throttleTime) + 1) * 1000)
+				return getTrakt(url, post=post, extended=extended)
+		elif result and code in ['401']: # Re-Auth token
+			log_utils.log('Re-Authenticating Trakt Token', level=log_utils.LOGDEBUG)
+			success = re_auth(headers)
+			if success: return getTrakt(url, post=post, extended=extended)
+		if result and code not in ['401', '405']:
 			if extended: return result[0], result[2]
 			else: return result[0]
-
-		try: code = str(result[1])
-		except: code = ''
-		if code.startswith('5') or (result and isinstance(result, basestring) and '<html' in result) or not result:
-			return _error(url=url, post=post, timestamp=timestamp, message=33676)
-
-		oauth = urljoin(BASE_URL, '/oauth/token')
-		opost = {'client_id': V2_API_KEY, 'client_secret': CLIENT_SECRET, 'redirect_uri': REDIRECT_URI, 'grant_type': 'refresh_token', 'refresh_token': refresh}
-
-		result = client.request(oauth, post=jsdumps(opost), headers=headers, error=True)
-		try: code = str(result[1])
-		except: code = ''
-
-		if code.startswith('5') or not result or (result and isinstance(result, basestring) and '<html' in result):
-			return _error(url=url, post=post, timestamp=timestamp, message=33676)
-		elif result and code in ['404']:
-			return _error(url=url, post=post, timestamp=timestamp, message=33786)
-		elif result and code in ['401', '405']:
-			return _error(url=url, post=post, timestamp=timestamp, message=33677)
-
-		result = jsloads(result)
-		if 'error' in result and result['error'] == 'invalid_grant':
-			return _error(url=url, post=post, timestamp=timestamp, message='Please Re-Authorize Trakt')
-
-		token, refresh = result['access_token'], result['refresh_token']
-		control.setSetting(id='trakt.token', value=token)
-		control.setSetting(id='trakt.refresh', value=refresh)
-
-		control.addon('script.module.myaccounts').setSetting('trakt.token', token)
-		control.addon('script.module.myaccounts').setSetting('trakt.refresh', refresh)
-
-		headers['Authorization'] = 'Bearer %s' % token
-		result = client.request(url, post=post, headers=headers, output='extended')
-		if check: _cacheCheck()
-
-		if extended: return result[0], result[2]
-		else: return result[0]
 	except:
-		log_utils.error()
+		log_utils.error('getTrakt Error: ')
 	return None
 
 
-def getTraktAsJson(url, post=None, authentication=None):
+def getTraktAsJson(url, post=None):
 	try:
 		res_headers = {}
-		r = getTrakt(url=url, post=post, extended=True, authentication=authentication)
+		r = getTrakt(url=url, post=post, extended=True)
 		if isinstance(r, tuple) and len(r) == 2:
 			r , res_headers = r[0], r[1]
-		if not r or any(val in str(r) for val in ["Bad Gateway", "We're sorry, but something went wrong (500)"]):
-			log_utils.log('Trakt Service Unavailable', __name__, log_utils.LOGDEBUG)
-			return
+		if not r: return
 		r = utils.json_loads_as_str(r)
-		res_headers = dict((k.lower(), v) for k, v in res_headers.iteritems())
+		res_headers = dict((k.lower(), v) for k, v in control.iteritems(res_headers))
 		if 'x-sort-by' in res_headers and 'x-sort-how' in res_headers:
 			r = sort_list(res_headers['x-sort-by'], res_headers['x-sort-how'], r)
 		return r
@@ -125,79 +95,47 @@ def getTraktAsJson(url, post=None, authentication=None):
 		log_utils.error()
 
 
-def _error(url, post, timestamp, message):
+def re_auth(headers):
 	try:
-		_cache(url=url, post=post, timestamp=timestamp)
-		if control.setting('trakt.server.notifications') == 'true':
-			control.notification(title=32315, message=message)
-		control.hide()
-		return None
+		oauth = urljoin(BASE_URL, '/oauth/token')
+		opost = {'client_id': V2_API_KEY, 'client_secret': CLIENT_SECRET, 'redirect_uri': REDIRECT_URI, 'grant_type': 'refresh_token', 'refresh_token': control.setting('trakt.refresh')}
+		result = client.request(oauth, post=jsdumps(opost), headers=headers, error=True)
+		# result = utils.byteify(result) # check if this is needed because client "as_bytes" should handle this
+		try: code = str(result[1])
+		except: code = ''
+
+		if code.startswith('5') or (result and isinstance(result, py_tools.string_types) and '<html' in result) or not result: # covers Maintenance html responses ["Bad Gateway", "We're sorry, but something went wrong (500)"])
+			log_utils.log('Temporary Trakt Server Problems', level=log_utils.LOGNOTICE)
+			control.notification(title=32315, message=33676)
+			return False
+		elif result and code in ['423']:
+			log_utils.log('Locked User Account - Contact Trakt Support: %s' % str(result[0]), level=log_utils.LOGWARNING)
+			control.notification(title=32315, message=33675)
+			return False
+
+		if result and code not in ['401', '405']:
+			try: result = jsloads(result) # result = utils.json_loads_as_str(result) # which json method here?
+			except:
+				log_utils.error()
+				return False
+			if 'error' in result and result['error'] == 'invalid_grant':
+				log_utils.log('Please Re-Authorize your Trakt Account: %s' % result['error'], __name__, level=log_utils.LOGERROR)
+				control.notification(title=32315, message=33677)
+				return False
+
+			token, refresh = result['access_token'], result['refresh_token']
+			control.setSetting(id='trakt.token', value=token)
+			control.setSetting(id='trakt.refresh', value=refresh)
+
+			control.addon('script.module.myaccounts').setSetting('trakt.token', token)
+			control.addon('script.module.myaccounts').setSetting('trakt.refresh', refresh)
+			log_utils.log('Trakt Token Successfully Re-Authorized', level=log_utils.LOGDEBUG)
+			return True
+		else:
+			log_utils.log('Error while Re-Authorizing Trakt Token: %s' % str(result[0]), level=log_utils.LOGDEBUG)
+			return False
 	except:
 		log_utils.error()
-
-
-def _cache(url, post=None, timestamp=None):
-	try:
-		# Only cache the requests that change something on the Trakt account.
-		# Trakt uses JSON post data to set things and only uses GET parameters to retrieve things.
-		if not post: return None
-		data = database.Database(databaseName, connect=True)
-		_cacheCreate(data)
-		# post parameter already jsdumps from getTrakt.
-		post = ('"%s"' % post.replace('"', '""').replace("'", "''")) if post else data._null()
-
-		if not timestamp:
-			timestamp = int(time.time())
-
-		data._insert('''
-			INSERT INTO %s (time, link, data)
-			VALUES (%d, "%s", %s);
-			''' % (databaseTable, timestamp, url, post)
-			, commit = True
-		)
-		data._close()
-	except:
-		log_utils.error()
-
-
-def _cacheCreate(data):
-	try:
-		data._create('''
-		CREATE TABLE IF NOT EXISTS %s
-		(id INTEGER PRIMARY KEY AUTOINCREMENT,
-			time INTEGER,
-			link TEXT,
-			data TEXT
-			);
-			''' % (databaseTable)
-		)
-	except:
-		log_utils.error()
-
-
-def _cacheCheck():
-	thread = threading.Thread(target=_cacheProcess)
-	thread.start()
-
-
-def _cacheProcess():
-	data = database.Database(databaseName, connect=True)
-	data._lock()
-	_cacheCreate(data)
-	data._unlock()
-	try:
-		while True:
-			# Execute the select and delete as atomic operations.
-			data._lock()
-			result = data._selectSingle('SELECT id, time, link, data FROM %s ORDER BY time ASC LIMIT 1;' % (databaseTable))
-			if not result: raise Exception()
-			data._delete('DELETE FROM %s WHERE id IS %d;' % (databaseTable, result[0]), commit = True)
-			data._unlock()
-			result = getTrakt(url=result[2], post=jsloads(result[3]) if result[3] else None, cache=True, check=False, timestamp=result[1])
-	except:
-		log_utils.error()
-		data._unlock()
-	data._close()
 
 
 def authTrakt():
@@ -211,8 +149,10 @@ def authTrakt():
 			raise Exception()
 
 		result = getTraktAsJson('/oauth/device/code', {'client_id': V2_API_KEY})
-		verification_url = (control.lang(32513) % result['verification_url']).encode('utf-8')
-		user_code = (control.lang(32514) % result['user_code']).encode('utf-8')
+		# verification_url = (control.lang(32513) % result['verification_url']).encode('utf-8')
+		verification_url = (control.lang(32513) % result['verification_url'])
+		# user_code = (control.lang(32514) % result['user_code']).encode('utf-8')
+		user_code = (control.lang(32514) % result['user_code'])
 		expires_in = int(result['expires_in'])
 		device_code = result['device_code']
 		interval = result['interval']
@@ -233,11 +173,10 @@ def authTrakt():
 		except: pass
 
 		token, refresh = r['access_token'], r['refresh_token']
-		headers = {'Content-Type': 'application/json', 'trakt-api-key': V2_API_KEY, 'trakt-api-version': 2, 'Authorization': 'Bearer %s' % token}
+		headers = {'Content-Type': 'application/json', 'trakt-api-key': V2_API_KEY, 'trakt-api-version': '2', 'Authorization': 'Bearer %s' % token}
 
 		result = client.request(urljoin(BASE_URL, '/users/me'), headers=headers)
 		result = utils.json_loads_as_str(result)
-
 		username = result['username']
 
 		control.setSetting(id='trakt.isauthed', value='true')
@@ -434,9 +373,11 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True)
 		lists = [lists[i//2] for i in range(len(lists)*2)]
 
 		for i in range(0, len(lists), 2):
-			lists[i] = ((control.lang(33580) % lists[i][0]).encode('utf-8'), '/users/me/lists/%s/items' % lists[i][1])
+			# lists[i] = ((control.lang(33580) % lists[i][0]).encode('utf-8'), '/users/me/lists/%s/items' % lists[i][1])
+			lists[i] = ((control.lang(33580) % lists[i][0]), '/users/me/lists/%s/items' % lists[i][1])
 		for i in range(1, len(lists), 2):
-			lists[i] = ((control.lang(33581) % lists[i][0]).encode('utf-8'), '/users/me/lists/%s/items/remove' % lists[i][1])
+			# lists[i] = ((control.lang(33581) % lists[i][0]).encode('utf-8'), '/users/me/lists/%s/items/remove' % lists[i][1])
+			lists[i] = ((control.lang(33581) % lists[i][0]), '/users/me/lists/%s/items/remove' % lists[i][1])
 		items += lists
 
 		control.hide()

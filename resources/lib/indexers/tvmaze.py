@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import re
 import requests
-
 try: #Py2
 	from urllib import quote_plus
 except ImportError: #Py3
 	from urllib.parse import quote_plus
-
 from resources.lib.modules import cache
 from resources.lib.modules import cleantitle
 from resources.lib.modules import client
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 from resources.lib.modules import metacache
+from resources.lib.modules import py_tools
+from resources.lib.indexers import tvdb_v1
 from resources.lib.modules import workers
 
 
@@ -250,7 +250,7 @@ class tvshows:
 		self.imdb_user = control.setting('imdb.user').replace('ur', '')
 		self.user = str(self.imdb_user) + str(self.tvdb_key)
 
-		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/%s.xml' % (self.tvdb_key.decode('base64'), '%s', '%s')
+		self.tvdb_info_link = 'https://thetvdb.com/api/%s/series/%s/%s.xml' % (self.tvdb_key, '%s', '%s')
 		self.tvdb_by_imdb = 'https://thetvdb.com/api/GetSeriesByRemoteID.php?imdbid=%s'
 		self.tvdb_by_query = 'https://thetvdb.com/api/GetSeries.php?seriesname=%s'
 		self.tvdb_image = 'https://thetvdb.com/banners/'
@@ -296,8 +296,10 @@ class tvshows:
 
 				content = item.get('type', '0').lower()
 
-				try: title = (item.get('name')).encode('utf-8')
-				except: title = item.get('name')
+				# try: title = (item.get('name')).encode('utf-8')
+				# except: title = item.get('name')
+				title = item.get('name')
+				tvshowtitle = title
 
 				premiered = item.get('premiered', '0')
 				try: year = re.search(r"(\d{4})", premiered).group(1)
@@ -323,7 +325,6 @@ class tvshows:
 				rating = str(item.get('rating').get('average', '0'))
 
 				plot = item.get('summary', '0')
-				# if plot: plot = re.sub(r'<.+?>|</.+?>|\n', '', plot)
 				try: plot = client.cleanHTML(plot)
 				except: pass
 
@@ -332,10 +333,11 @@ class tvshows:
 				castandart = []
 				for person in item['_embedded']['cast']:
 					try:
-						try:
-							castandart.append({'name': person['person']['name'].encode('utf-8'), 'role': person['character']['name'].encode('utf-8'), 'thumbnail': (person['person']['image']['original'] if person['person']['image']['original'] is not None else '0')})
-						except:
-							castandart.append({'name': person['person']['name'], 'role': person['character']['name'], 'thumbnail': (person['person']['image']['medium'] if person['person']['image']['medium'] is not None else '0')})
+						# try:
+							# castandart.append({'name': person['person']['name'].encode('utf-8'), 'role': person['character']['name'].encode('utf-8'), 'thumbnail': (person['person']['image']['original'] if person['person']['image']['original'] is not None else '0')})
+						# except:
+							# castandart.append({'name': person['person']['name'], 'role': person['character']['name'], 'thumbnail': (person['person']['image']['medium'] if person['person']['image']['medium'] is not None else '0')})
+						castandart.append({'name': person['person']['name'], 'role': person['character']['name'], 'thumbnail': (person['person']['image']['medium'] if person['person']['image']['medium'] is not None else '0')})
 					except:
 						castandart = []
 					if len(castandart) == 150: break
@@ -361,59 +363,28 @@ class tvshows:
 							tmdb = str(trakt_ids.get('tmdb', '0'))
 							if not tmdb or tmdb == 'None': tmdb = '0'
 
-###--Check TVDb by IMDB_ID for missing ID
+###--Check TVDb by IMDB_ID for missing tvdb_id
 				if tvdb == '0' and imdb != '0':
-					try:
-						url = self.tvdb_by_imdb % imdb
-						result = requests.get(url).content
-						result = re.sub(r'[^\x00-\x7F]+', '', result)
-						result = client.replaceHTMLCodes(result)
-						result = client.parseDOM(result, 'Series')
-						result = [(client.parseDOM(x, 'SeriesName'), client.parseDOM(x, 'FirstAired'), client.parseDOM(x, 'seriesid'), client.parseDOM(x, 'AliasNames')) for x in result]
-						years = [str(year), str(int(year)+1), str(int(year)-1)]
-						item = [(x[0], x[1], x[2], x[3]) for x in result if cleantitle.get(title) == cleantitle.get(str(x[0][0])) and any(y in str(x[1][0]) for y in years)]
-						if item == []:
-							item = [(x[0], x[1], x[2], x[3]) for x in result if cleantitle.get(title) == cleantitle.get(str(x[3][0]))]
-						if item == []:
-							item = [(x[0], x[1], x[2], x[3]) for x in result if cleantitle.get(title) == cleantitle.get(str(x[0][0]))]
-						if item == []:
-							raise Exception()
-						tvdb = item[0][2]
-						tvdb = tvdb[0] or '0'
-					except:
-						log_utils.error()
+					try: tvdb = cache.get(tvdb_v1.getSeries_ByIMDB, 96, tvshowtitle, year, imdb)
+					except: tvdb = '0'
+##########################
 
-###--Check TVDb by seriesname
-				if tvdb == '0' or imdb == '0':
+###--Check TVDb by seriesname for missing tvdb_id
+				if tvdb == '0':
 					try:
-						url = self.tvdb_by_query % (quote_plus(title))
-						result = requests.get(url).content
-						result = re.sub(r'[^\x00-\x7F]+', '', result)
-						result = client.replaceHTMLCodes(result)
-						result = client.parseDOM(result, 'Series')
-						result = [(client.parseDOM(x, 'SeriesName'), client.parseDOM(x, 'FirstAired'), client.parseDOM(x, 'seriesid'), client.parseDOM(x, 'IMDB_ID'), client.parseDOM(x, 'AliasNames')) for x in result]
-						years = [str(year), str(int(year)+1), str(int(year)-1)]
-						item = [(x[0], x[1], x[2], x[3], x[4]) for x in result if cleantitle.get(title) == cleantitle.get(str(x[0][0])) and any(y in str(x[1][0]) for y in years)]
-						if item == []:
-							item = [(x[0], x[1], x[2], x[3], x[4]) for x in result if cleantitle.get(title) == cleantitle.get(str(x[4][0]))]
-						if item == []:
-							item = [(x[0], x[1], x[2], x[3], x[4]) for x in result if cleantitle.get(title) == cleantitle.get(str(x[0][0]))]
-						if item == []:
-							raise Exception()
-						if tvdb == '0':
-							tvdb = item[0][2]
-							tvdb = tvdb[0] or '0'
-						if imdb == '0':
-							imdb = item[0][3]
-							imdb = imdb[0] or '0'
+						ids = cache.get(tvdb_v1.getSeries_ByName, 96, tvshowtitle, year)
+						if ids: tvdb = ids.get(tvdb, '0') or '0'
 					except:
+						tvdb = '0'
 						log_utils.error()
-#################################
+##########################
 
 				if tvdb == '0': raise Exception()
 				try:
 					url = self.tvdb_info_link % (tvdb, self.lang)
-					item3 = requests.get(url).content
+					# item3 = requests.get(url).content ## maybe switch to client.request # test .content vs. .text
+					item3 = requests.get(url).text # test .content vs. .text
+					# item3 = py_tools.six_decode(item3)
 				except: item3 = None
 
 				if item3:
@@ -448,14 +419,14 @@ class tvshows:
 					if not plot:
 						plot = client.parseDOM(item3, 'Overview')[0] or '0'
 						plot = client.replaceHTMLCodes(plot)
-						try: plot = plot.encode('utf-8')
-						except: pass
+						# try: plot = plot.encode('utf-8')
+						# except: pass
 
 					airday = client.parseDOM(item3, 'Airs_DayOfWeek')[0] or '0'
 					airtime = client.parseDOM(item3, 'Airs_Time')[0] or '0'
 
 				item = {}
-				item = {'content': content, 'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 
+				item = {'content': content, 'tvshowtitle': tvshowtitle, 'title': title, 'originaltitle': title, 'year': year, 'premiered': premiered, 'studio': studio, 'genre': genre, 'duration': duration, 'rating': rating, 'votes': votes, 
 							'mpaa': mpaa, 'castandart': castandart, 'plot': plot, 'tagline': '0', 'status': status, 'imdb': imdb, 'tvdb': tvdb, 'tmdb': tmdb, 'tvmaze': tvmaze, 'airday': airday, 'airtime': airtime, 'poster': poster,
 							'poster2': '0', 'banner': banner, 'banner2': '0', 'fanart': fanart, 'fanart2': '0', 'clearlogo': '0', 'clearart': '0', 'landscape': fanart, 'metacache': False, 'next': next}
 
@@ -474,7 +445,6 @@ class tvshows:
 					fanart == '0' and item.get('fanart2') == '0'))):
 					from resources.lib.indexers.tmdb import TVshows
 					tmdb_art = TVshows().get_art(tmdb)
-					# log_utils.log('tmdb_art = %s' % tmdb_art, __name__, log_utils.LOGDEBUG)
 					if tmdb_art:
 						item.update(tmdb_art)
 						if item.get('landscape', '0') == '0':
@@ -482,7 +452,7 @@ class tvshows:
 							item.update({'landscape': landscape})
 						meta.update(item)
 
-				item = dict((k,v) for k,v in item.iteritems() if v != '0')
+				item = dict((k,v) for k,v in control.iteritems(item) if v != '0')
 				self.list.append(item)
 
 				if 'next' in meta.get('item'):
@@ -499,7 +469,6 @@ class tvshows:
 				threads.append(workers.Thread(items_list, i))
 			[i.start() for i in threads]
 			[i.join() for i in threads]
-
 			sorted_list = []
 			for i in sortList:
 				sorted_list += [item for item in self.list if str(item['tvmaze']) == str(i)]

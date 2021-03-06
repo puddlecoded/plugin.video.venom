@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 from sys import argv
 import requests
 try: from urllib import quote_plus
 except ImportError: from urllib.parse import quote_plus
-
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 from resources.lib.modules.source_utils import supported_video_extensions
@@ -32,9 +31,7 @@ class Furk:
 		self.protect_file_link = "/api/file/protect?"
 		self.user_feeds_link = "/api/feed/get?"
 		self.add_download_link = "/api/dl/add?"
-
 		self.tfile_link = "/api/file/get?api_key=%s&t_files=1&id=%s"
-
 		self.api_key = control.setting('furk.api')
 		self.list = []
 		self.session = requests.Session()
@@ -174,8 +171,9 @@ class Furk:
 
 	def addDirectoryItem(self, name, query, thumb, icon, isAction=True):
 		try:
-			if type(name) is str or type(name) is unicode: 	name = str(name)
-			if type(name) is int: name = control.lang(name)
+			# if type(name) is str or type(name) is unicode: 	name = str(name)
+			# if type(name) is int: name = control.lang(name)
+			if isinstance(name, int): name = control.lang(name)
 		except:
 			log_utils.error()
 		url = '%s?action=%s' % (argv[0], query) if isAction else query

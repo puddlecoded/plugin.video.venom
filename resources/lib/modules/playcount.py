@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import sys
-
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 from resources.lib.modules import trakt
@@ -327,7 +326,8 @@ def tvshowsUpdate(imdb, tvdb):
 		countSeason = 0
 		metaget.get_seasons('', imdb, seasons.keys()) # Must be called to initialize the database.
 
-		for key, value in seasons.iteritems():
+		# for key, value in seasons.iteritems():
+		for key, value in control.iteritems(seasons):
 			countEpisode = 0
 			for i in value:
 				countEpisode += int(metaget._get_watched_episode({'imdb_id': i['imdb'], 'season': i['season'], 'episode': i['episode'], 'premiered': ''}) == 7)

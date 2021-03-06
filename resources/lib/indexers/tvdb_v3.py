@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import copy
 import json
-# import threading
 import time
-
 import requests
-
 from resources.lib.modules import control
 from resources.lib.modules import cache
 from resources.lib.modules import client
@@ -79,7 +76,6 @@ class TVDBAPI:
 			self.newToken(True)
 		else:
 			self.jwToken = response['token']
-			# tools.tvdb_refresh = self.jwToken
 			control.setSetting('tvdb.jw', self.jwToken)
 			control.setSetting('tvdb.expiry', str(time.time() + (24 * (60 * 60))))
 		return

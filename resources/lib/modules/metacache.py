@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 	Venom Add-on
-'''
+"""
 
 import time
 try: from sqlite3 import dbapi2 as db
 except ImportError: from pysqlite2 import dbapi2 as db
-
 from resources.lib.modules import control
 from resources.lib.modules import log_utils
 
@@ -44,8 +43,10 @@ def fetch(items, lang='en', user=''):
 			if match:
 				update = (abs(t2 - t1) / 3600) >= 720
 				if update: continue
-				item = eval(match[5].encode('utf-8'))
-				item = dict((k, v) for k, v in item.iteritems() if v != '0')
+				# try: item = eval(match[5])
+				# except: item = eval(match[5].encode('utf-8'))
+				item = eval(match[5])
+				item = dict((k, v) for k, v in control.iteritems(item) if v != '0')
 				items[i].update(item)
 				items[i].update({'metacache': True})
 		except:
