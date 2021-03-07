@@ -1353,7 +1353,6 @@ class Sources:
 			from base64 import b32decode
 			from resources.lib.modules import py_tools
 			log_utils.log('base32 hash: %s' % hash, __name__, log_utils.LOGDEBUG)
-
 			if py_tools.isPY3:
 				hex = b32decode(hash).hex()
 			else
