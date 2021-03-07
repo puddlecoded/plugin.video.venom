@@ -1351,8 +1351,13 @@ class Sources:
 		if len(torrent_List) == 0: return
 		def base32_to_hex(hash):
 			from base64 import b32decode
+			from resources.lib.modules import py_tools
 			log_utils.log('base32 hash: %s' % hash, __name__, log_utils.LOGDEBUG)
-			hex = b32decode(hash).encode('hex') # 19 compatible?
+
+			if py_tools.isPY3:
+				hex = b32decode(hash).hex()
+			else
+				hex = b32decode(hash).encode('hex') 
 			log_utils.log('base32_to_hex: %s' % hex, __name__, log_utils.LOGDEBUG)
 			return hex
 		try:
